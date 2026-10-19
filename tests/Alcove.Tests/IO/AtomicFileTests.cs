@@ -36,28 +36,32 @@ public sealed class AtomicFileTests
         var target = temp.Combine("target");
         Directory.CreateDirectory(target);   // a directory can't be replaced by a file
 
-        Assert.ThrowsAny<IOException>(() => AtomicFile.WriteAllBytes(target, "content"u8));
+        // Linux and macOS report an IOException; Windows reports access denied (after the rename retries).
+        var exception = Assert.ThrowsAny<Exception>(() => AtomicFile.WriteAllBytes(target, "content"u8));
+        Assert.True(exception is IOException or UnauthorizedAccessException, exception.ToString());
 
         Assert.True(Directory.Exists(target));
         Assert.Empty(Directory.GetFiles(temp.Path));
     }
 
     [Fact]
-    public void Readers_ShareWriteAndDelete_SoAWriterCanRenameOverAFileBeingRead()
+    public async Task AWriter_ReplacesAFileBeingRead_OnceTheReaderCloses()
     {
-        // Review finding 5. On Windows a reader without FileShare.Delete makes the writer's rename fail; Linux and
-        // macOS never refuse it, so this only checks the sharing mode readers ask for, and that reading while a
-        // rename replaces the file works here.
+        // Review finding 5. Linux and macOS let the rename replace a file being read right away. Windows refuses it
+        // while the reader has the file open, so the writer retries until the reader closes (well within its ~1 s).
         Assert.Equal(FileShare.ReadWrite | FileShare.Delete, AtomicFile.ReadShare);
         using var temp = new TempDirectory();
         var path = temp.Combine("state.json");
         AtomicFile.WriteAllBytes(path, "old"u8);
 
+        Task writer;
         using (new FileStream(path, FileMode.Open, FileAccess.Read, AtomicFile.ReadShare))
         {
-            AtomicFile.WriteAllBytes(path, "new"u8);
+            writer = Task.Run(() => AtomicFile.WriteAllBytes(path, "new"u8), TestContext.Current.CancellationToken);
+            await Task.Delay(50, TestContext.Current.CancellationToken);
         }
 
+        await writer;
         Assert.Equal("new"u8.ToArray(), AtomicFile.ReadAllBytes(path));
     }
 

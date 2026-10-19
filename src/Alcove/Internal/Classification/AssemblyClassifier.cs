@@ -197,7 +197,7 @@ internal sealed class AssemblyClassifier
         foreach (var relative in assets.RuntimeAssemblies)
         {
             var name = Path.GetFileNameWithoutExtension(relative);
-            var path = Path.Combine(directory, relative);
+            var path = AssetPath(directory, relative);
             var isWpfRelevant = wpfRelevant.Contains(name);
             cell.Plan.Private[name] = new PrivateAssembly(name, path, id, version) { WpfRelevant = isWpfRelevant };
             cell.Add(new ClassifiedAssembly(name, AssemblyClass.CellPrivate, id, version, path) { WpfRelevant = isWpfRelevant });
@@ -207,15 +207,22 @@ internal sealed class AssemblyClassifier
         {
             var name = Path.GetFileNameWithoutExtension(satellite.Path);
             cell.Plan.Satellites[CellPlan.SatelliteKey(name, satellite.Culture)] =
-                new SatelliteAssembly(name, satellite.Culture, Path.Combine(directory, satellite.Path), id, version);
+                new SatelliteAssembly(name, satellite.Culture, AssetPath(directory, satellite.Path), id, version);
         }
 
         foreach (var native in assets.NativeLibraries)
         {
             var fileName = Path.GetFileName(native);
-            cell.Plan.NativeLibraries[fileName] = new NativeLibraryAsset(fileName, Path.Combine(directory, native), id, version);
+            cell.Plan.NativeLibraries[fileName] = new NativeLibraryAsset(fileName, AssetPath(directory, native), id, version);
         }
     }
+
+    /// <summary>
+    /// Joins a package directory and a NuGet asset path (always <c>/</c>-separated) with the platform's separator, so
+    /// plan paths compare equal to paths built elsewhere (answers are compared as strings).
+    /// </summary>
+    private static string AssetPath(string directory, string relative) =>
+        Path.Combine(directory, relative.Replace('/', Path.DirectorySeparatorChar));
 
     private static void ClassifyProvided(CellBuilder cell, Dictionary<string, PluginState> plugins, Dictionary<string, CellBuilder> cells)
     {

@@ -2,9 +2,10 @@ namespace Alcove.Internal.IO;
 
 /// <summary>Writes files so readers see either the old or the new content, never a partial file.</summary>
 /// <remarks>
-/// Readers open files with <see cref="ReadShare"/> (<see cref="ReadAllBytes"/>), so on Windows a writer can rename
-/// over a file another process is reading. A rename that still hits a sharing violation (e.g. a reader that isn't
-/// Alcove, such as an antivirus scanner) is retried briefly.
+/// Readers open files with <see cref="ReadShare"/> (<see cref="ReadAllBytes"/>). On Linux and macOS a writer can
+/// always rename over a file being read. On Windows the rename is refused while any reader has the file open (even
+/// one sharing deletion), so the rename is retried for about a second: Alcove's own reads take milliseconds, and
+/// other readers (e.g. an antivirus scanner) are usually as brief.
 /// </remarks>
 internal static class AtomicFile
 {
