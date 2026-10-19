@@ -93,8 +93,7 @@ public sealed partial class PluginHost : IAsyncDisposable
         _services = options.Services ?? EmptyServiceProvider.Instance;
         _cells = new CellEnvironment(inventory, _loggerFactory);
         _cellServices = new CellServiceProviders(options.CellServicesFactory, _services, _logger, HostAssemblyFiles.FromCurrentProcess(inventory));
-        _cellObservers = [.. options.CellObservers.Select(factory => factory(_loggerFactory)
-            ?? throw new InvalidOperationException("A PluginHostOptions.CellObservers factory returned null."))];
+        _cellObservers = CreateObservers(options.CellObservers);
         if (_cellObservers.Count > 0)
         {
             _cells.AddCellCreatedCallback(cell => NotifyObservers(cell, "CellCreated", o => o.CellCreated(cell.Info)));
@@ -1348,6 +1347,36 @@ public sealed partial class PluginHost : IAsyncDisposable
             {
                 infos[plugin.Id].SetNotLoaded(reason);
             }
+        }
+    }
+
+    /// <summary>
+    /// Creates the host's cell observers. If a factory throws (or returns null), the observers already created are
+    /// disposed before the exception propagates, so nothing they hold (e.g. a handler on the default load context)
+    /// outlives a host that was never created.
+    /// </summary>
+    private List<ICellObserver> CreateObservers(IEnumerable<CellObserverFactory> factories)
+    {
+        var observers = new List<ICellObserver>();
+        try
+        {
+            foreach (var factory in factories)
+            {
+                observers.Add(factory(_loggerFactory)
+                    ?? throw new InvalidOperationException("A PluginHostOptions.CellObservers factory returned null."));
+            }
+
+            return observers;
+        }
+        catch
+        {
+            for (var i = observers.Count - 1; i >= 0; i--)
+            {
+                // Synchronously: this is a constructor. An observer that's only IAsyncDisposable is waited for.
+                DisposeObserverAsync(observers[i]).AsTask().GetAwaiter().GetResult();
+            }
+
+            throw;
         }
     }
 
