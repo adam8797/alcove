@@ -44,11 +44,11 @@ Throwaway proof-of-concept code under `spike/<name>/`, described in [docs/spikes
   tests/fixtures/                   fixture host contracts and plugin projects
   samples/ConsoleHost/, samples/WpfHost/ (Phase 7, not created yet), samples/plugins/
   ```
-- `Directory.Build.props`: `net10.0`, nullable, warnings as errors, deterministic builds. SourceLink is off until the repository has a Gitea remote (Microsoft.SourceLink.Gitea).
+- `Directory.Build.props`: `net10.0`, nullable, warnings as errors, deterministic builds. SourceLink via the SDK's built-in GitHub provider.
 - Central package management (`Directory.Packages.props`). Pin `System.Security.Cryptography.Pkcs` ≥ 10.0.13 *(spike: nuget-signature-verification)*.
 - `global.json` pinning the SDK (the spikes used 10.0.203).
 - Test framework: xUnit v3.
-- CI on Gitea Actions: a Linux build + test job. A Windows job for WPF and signature tests once a Windows runner exists; until then, those are run manually.
+- CI on GitHub Actions (`.github/workflows/ci.yml`): build + test on Linux and Windows (a matrix; the Windows job covers file locks, sharing violations and native library names). WPF runtime checks stay manual until Phase 0b.
 - Versioning: one version for all packages, from a single property, prerelease (`0.x`) until the API settles.
 
 **Done when:** an empty solution builds and runs an empty test in CI.
@@ -183,7 +183,7 @@ Validation also reports `ExposedDependencyConflict` for a fixture built to trigg
 - Logging review (event IDs, levels).
 - Performance check: startup time with 50 plugins (budget for the exposed-dependency scan is at install, not startup).
 - Refresh process for the bundled trusted roots (tied to SDK/NuGet updates).
-- First prerelease packages to the Gitea feed.
+- First prerelease packages (nuget.org or GitHub Packages).
 
 ## Later (after v1)
 

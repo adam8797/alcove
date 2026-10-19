@@ -63,4 +63,4 @@ NuGet's trust store selection and the opt-in WPF resolving forwarder. (NuGet's u
 - **Strict revocation** (`Revocation = OnlineStrict`).
 - **NuGet plugin credential providers** (e.g. Azure Artifacts' provider). Needs `NuGet.Credentials`; v1 supports `nuget.config` credentials, default network credentials and the app's `ICredentialProvider`.
 - **Refresh `AllowedSigner.NuGetOrg`** when nuget.org rotates its repository certificate. The newest one in the list expires 2027-05-18; consider refreshing from the feed's `RepositorySignatures` resource at runtime.
-- **Hosting:** GitHub mirror and nuget.org publishing. The repo starts on Gitea.
+- **Publishing:** nuget.org (and/or GitHub Packages). The repository is on GitHub (github.com/adam8797/alcove).
