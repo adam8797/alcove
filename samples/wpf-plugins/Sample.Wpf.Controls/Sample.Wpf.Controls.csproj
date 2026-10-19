@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- A third-party style XAML control library (not a plugin). Sample.Charts and Sample.Clock both use it from separate
+       cells: the identical copy is loaded once and shared (ADR 0015). -->
+  <PropertyGroup>
+    <Description>A gauge control used by the WPF sample plugins.</Description>
+  </PropertyGroup>
+</Project>

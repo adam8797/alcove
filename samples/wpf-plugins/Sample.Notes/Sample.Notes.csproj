@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- A panel whose view-model gets its view by convention (NotesViewModel -> Views.NotesView), with its own
+       Themes/Plugin.xaml (merged into the app's resources when it loads) and the host's PanelHeader and keys. -->
+</Project>

@@ -1,0 +1,12 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sdk="clr-namespace:WpfHost.Sdk">
+    <!-- The host merges this into its application resources at startup (App.xaml). -->
+    <SolidColorBrush x:Key="{x:Static sdk:SampleKeys.AccentBrush}" Color="#FF2B6CB0" />
+    <SolidColorBrush x:Key="{x:Static sdk:SampleKeys.PanelBackground}" Color="#FFF7F9FC" />
+    <Style x:Key="{x:Static sdk:SampleKeys.HeaderTextStyle}" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource {x:Static sdk:SampleKeys.AccentBrush}}" />
+    </Style>
+</ResourceDictionary>

@@ -1,0 +1,8 @@
+<UserControl x:Class="Fixture.Wpf.View.HelloView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sdk="clr-namespace:Fixture.Wpf.HostSdk;assembly=Fixture.Wpf.HostSdk">
+    <Border Background="{StaticResource Fixture.Wpf.View.Background}">
+        <TextBlock Text="Hello from a cell" Foreground="{DynamicResource {x:Static sdk:HostKeys.Accent}}" />
+    </Border>
+</UserControl>

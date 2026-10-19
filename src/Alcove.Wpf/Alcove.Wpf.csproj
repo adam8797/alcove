@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <!-- Builds (and packs) on Linux too; WPF itself only runs on Windows. -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Description>WPF add-on for Alcove: options.UseWpf(app) pre-loads plugins' XAML assemblies, merges their resource dictionaries, marshals catalog callbacks to the Dispatcher, builds versioned pack URIs and maps view-models to views.</Description>
+    <PackageTags>plugins;nuget;assemblyloadcontext;wpf</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Alcove\Alcove.csproj" />
+  </ItemGroup>
+
+  <!-- The WPF-free files (PluginPackUri.cs, SharedResourceKey.cs, PluginResourcesAttribute.cs and Internal/ except
+       WpfCellObserver.cs) are also compiled into tests/Alcove.Wpf.Tests, which runs on Linux. Keep them free of WPF types. -->
+
+  <ItemGroup>
+    <!-- Plugins built with Alcove.Sdk treat this package as host-owned (never copied to their output). -->
+    <None Include="buildTransitive\Alcove.Wpf.props" Pack="true" PackagePath="buildTransitive\" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+</Project>

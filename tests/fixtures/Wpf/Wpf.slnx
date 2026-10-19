@@ -1,0 +1,12 @@
+<Solution>
+  <Project Path="Fixture.Wpf.RollLib.V1/Fixture.Wpf.RollLib.V1.csproj" />
+  <Project Path="Fixture.Wpf.RollLib.V2/Fixture.Wpf.RollLib.V2.csproj" />
+  <Project Path="Fixture.Wpf.RollNew/Fixture.Wpf.RollNew.csproj" />
+  <Project Path="Fixture.Wpf.RollOld/Fixture.Wpf.RollOld.csproj" />
+  <Project Path="Fixture.Wpf.SharedControls/Fixture.Wpf.SharedControls.csproj" />
+  <Project Path="Fixture.Wpf.SharedUserA/Fixture.Wpf.SharedUserA.csproj" />
+  <Project Path="Fixture.Wpf.SharedUserB/Fixture.Wpf.SharedUserB.csproj" />
+  <Project Path="Fixture.Wpf.View/Fixture.Wpf.View.csproj" />
+  <Project Path="Fixture.Wpf.XamlLib/Fixture.Wpf.XamlLib.csproj" />
+  <Project Path="Fixture.Wpf.XamlOnly/Fixture.Wpf.XamlOnly.csproj" />
+</Solution>

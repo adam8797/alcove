@@ -1,0 +1,17 @@
+<Project>
+  <!-- WPF plugin fixtures for the Alcove.Wpf runtime scenarios (tests/Alcove.Wpf.Tests/Windows): packed together
+       (Wpf.slnx) into a folder feed once per test run. Plugins build with Alcove.Sdk against Fixture.Wpf.HostSdk, which
+       the WPF test host ships. Libraries and plugin dependencies are ProjectReferences, which pack as package
+       dependencies. They build on Linux too; they only run on Windows. -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <IsPackable>true</IsPackable>
+    <Version Condition="'$(Version)' == ''">1.0.0</Version>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+  </PropertyGroup>
+</Project>

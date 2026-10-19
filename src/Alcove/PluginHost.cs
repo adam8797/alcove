@@ -37,6 +37,7 @@ public sealed partial class PluginHost : IAsyncDisposable
     private readonly IServiceProvider _services;
     private readonly CellEnvironment _cells;
     private readonly CellServiceProviders _cellServices;
+    private readonly IReadOnlyList<ICellObserver> _cellObservers;
     private readonly Lock _gate = new();
     private readonly List<PluginRuntime> _activated = [];
     private readonly SemaphoreSlim _installGate = new(1, 1);   // an install's resolve, write and merge; not its activation
@@ -92,6 +93,13 @@ public sealed partial class PluginHost : IAsyncDisposable
         _services = options.Services ?? EmptyServiceProvider.Instance;
         _cells = new CellEnvironment(inventory, _loggerFactory);
         _cellServices = new CellServiceProviders(options.CellServicesFactory, _services, _logger, HostAssemblyFiles.FromCurrentProcess(inventory));
+        _cellObservers = [.. options.CellObservers.Select(factory => factory(_loggerFactory)
+            ?? throw new InvalidOperationException("A PluginHostOptions.CellObservers factory returned null."))];
+        if (_cellObservers.Count > 0)
+        {
+            _cells.AddCellCreatedCallback(cell => NotifyObservers(cell, "CellCreated", o => o.CellCreated(cell.Info)));
+        }
+
         _feeds = new Lazy<FeedConfiguration>(() => FeedConfiguration.Create(options));
         Catalog = new ExtensionCatalog(_loggerFactory);
     }
@@ -628,6 +636,11 @@ public sealed partial class PluginHost : IAsyncDisposable
 
             await Task.WhenAll(awaited.Select(o => o.Done)).ConfigureAwait(true);
             await DisposeActivatedAsync().ConfigureAwait(true);
+            for (var i = _cellObservers.Count - 1; i >= 0; i--)
+            {
+                await DisposeObserverAsync(_cellObservers[i]).ConfigureAwait(true);
+            }
+
             DeleteInUseRecord();
 
             List<CancellationTokenSource> tokens;
@@ -899,6 +912,7 @@ public sealed partial class PluginHost : IAsyncDisposable
 
         // Decide and merge under the Gate, so no cell freezes a new answer in between.
         var created = new List<Cell>();
+        var extended = new List<(Cell Cell, IReadOnlyList<CellAssembly> Added)>();
         lock (_cells.Gate)
         {
             foreach (var name in outcome.Cells.Where(classifications.ContainsKey))
@@ -932,7 +946,7 @@ public sealed partial class PluginHost : IAsyncDisposable
                 {
                     if (_cells.FindCell(name) is { } cell)
                     {
-                        cell.MergePlan(classifications[name].Plan);
+                        extended.Add((cell, cell.MergePlan(classifications[name].Plan)));
                     }
                     else
                     {
@@ -947,6 +961,11 @@ public sealed partial class PluginHost : IAsyncDisposable
             foreach (var cell in created)
             {
                 _cells.RunCellCreated(cell);
+            }
+
+            foreach (var (cell, added) in extended)
+            {
+                NotifyObservers(cell, "CellExtended", o => o.CellExtended(cell.Info, added));
             }
         }
 
@@ -1152,6 +1171,18 @@ public sealed partial class PluginHost : IAsyncDisposable
                 System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw(fault);
             }
 
+            if (_cellObservers.Count > 0)
+            {
+                stage = "running the cell observers";
+                using (cell.EnterContextualReflection())
+                {
+                    foreach (var observer in _cellObservers)
+                    {
+                        observer.PluginLoading(cell.Info, info, prepared.Assemblies);
+                    }
+                }
+            }
+
             stage = "creating its cell's services";
             runtime.Services = services();
             var context = new PluginContext(
@@ -1317,6 +1348,41 @@ public sealed partial class PluginHost : IAsyncDisposable
             {
                 infos[plugin.Id].SetNotLoaded(reason);
             }
+        }
+    }
+
+    /// <summary>Calls the cell observers; an exception is logged and doesn't stop the others or the load.</summary>
+    private void NotifyObservers(Cell cell, string what, Action<ICellObserver> notify)
+    {
+        foreach (var observer in _cellObservers)
+        {
+            try
+            {
+                notify(observer);
+            }
+            catch (Exception ex)
+            {
+                HostLog.CellObserverFailed(_logger, ex, observer.GetType().FullName ?? observer.GetType().Name, what, cell.Name);
+            }
+        }
+    }
+
+    private async ValueTask DisposeObserverAsync(ICellObserver observer)
+    {
+        try
+        {
+            if (observer is IAsyncDisposable asyncDisposable)
+            {
+                await asyncDisposable.DisposeAsync().ConfigureAwait(true);
+            }
+            else if (observer is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
+        catch (Exception ex)
+        {
+            HostLog.CellObserverDisposeFailed(_logger, ex, observer.GetType().FullName ?? observer.GetType().Name);
         }
     }
 

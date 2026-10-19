@@ -12,10 +12,32 @@ sealed record Alcove.AllowedSigner
   override string ToString()
   static bool op_Equality(AllowedSigner? left, AllowedSigner? right)
   static bool op_Inequality(AllowedSigner? left, AllowedSigner? right)
+sealed record Alcove.CellAssembly
+  .ctor(string Name, string Path, string PackageId, NuGetVersion PackageVersion, bool IsWpfRelevant)
+  void Deconstruct(out string Name, out string Path, out string PackageId, out NuGetVersion PackageVersion, out bool IsWpfRelevant)
+  bool Equals(CellAssembly? other)
+  override bool Equals(object? obj)
+  override int GetHashCode()
+  bool IsWpfRelevant { get; init; }
+  string Name { get; init; }
+  string PackageId { get; init; }
+  NuGetVersion PackageVersion { get; init; }
+  string Path { get; init; }
+  override string ToString()
+  static bool op_Equality(CellAssembly? left, CellAssembly? right)
+  static bool op_Inequality(CellAssembly? left, CellAssembly? right)
 sealed class Alcove.CellDefinition
   .ctor(string name)
   string Name { get; }
   IList<string> Plugins { get; init; }
+sealed class Alcove.CellInfo
+  AssemblyLoadContext LoadContext { get; }
+  string Name { get; }
+  IReadOnlyList<string> Plugins { get; }
+  IReadOnlyList<CellAssembly> PrivateAssemblies { get; }
+  override string ToString()
+delegate Alcove.CellObserverFactory : ICloneable, ISerializable
+  ICellObserver Invoke(ILoggerFactory loggerFactory)
 sealed class Alcove.CellServicesContext
   string Cell { get; }
   IServiceProvider HostServices { get; }
@@ -66,6 +88,10 @@ sealed class Alcove.Extension<T, TMetadata> : Extension<T> where T : class
 sealed class Alcove.ExtensionsAddedEventArgs : EventArgs
   IReadOnlyList<Extension> Extensions { get; }
   PluginInfo Plugin { get; }
+interface Alcove.ICellObserver
+  virtual void CellCreated(CellInfo cell)
+  virtual void CellExtended(CellInfo cell, IReadOnlyList<CellAssembly> added)
+  virtual void PluginLoading(CellInfo cell, PluginInfo plugin, IReadOnlyList<Assembly> assemblies)
 interface Alcove.ICellServicesFactory
   IServiceProvider CreateServices(CellServicesContext context)
   IReadOnlyCollection<string> ServicePluginInterfaces { get; }
@@ -196,6 +222,7 @@ sealed class Alcove.PluginHostOptions
   .ctor()
   IExtensionActivator? Activator { get; set; }
   bool AllowPrerelease { get; set; }
+  IList<CellObserverFactory> CellObservers { get; init; }
   ICellServicesFactory? CellServicesFactory { get; set; }
   IList<CellDefinition> Cells { get; init; }
   ICredentialProvider? CredentialProvider { get; set; }

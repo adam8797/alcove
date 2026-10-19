@@ -1,0 +1,5 @@
+<Project>
+  <Target Name="_SampleRequireAlcoveVersion" BeforeTargets="_GenerateRestoreGraph;CollectPackageReferences;Build">
+    <Error Condition="'$(AlcoveVersion)' == ''" Text="Build the WPF sample plugins with samples/run-wpf-sample.ps1 or samples/run-wpf-sample.sh (they pass -p:AlcoveVersion=...)." />
+  </Target>
+</Project>

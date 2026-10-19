@@ -1,0 +1,11 @@
+<UserControl x:Class="Sample.Clock.PanelView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sdk="clr-namespace:WpfHost.Sdk;assembly=WpfHost.Sdk"
+             xmlns:controls="clr-namespace:Sample.Wpf.Controls;assembly=Sample.Wpf.Controls">
+    <StackPanel Margin="12">
+        <sdk:PanelHeader Title="Clock" />
+        <TextBlock x:Name="Time" FontSize="36" Margin="0,0,0,8" Foreground="{DynamicResource {x:Static sdk:SampleKeys.AccentBrush}}" />
+        <controls:Gauge x:Name="Seconds" Label="Seconds" />
+    </StackPanel>
+</UserControl>

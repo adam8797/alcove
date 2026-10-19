@@ -1,0 +1,8 @@
+<Project>
+  <!-- What a plugin of the WPF sample host references: Alcove.Sdk and the host's app SDK (which brings
+       Alcove.Abstractions and Alcove.Wpf, and configures the SDK). -->
+  <ItemGroup>
+    <PackageReference Include="Alcove.Sdk" Version="$(AlcoveVersion)" PrivateAssets="all" />
+    <PackageReference Include="WpfHost.Sdk" Version="$(AlcoveVersion)" />
+  </ItemGroup>
+</Project>

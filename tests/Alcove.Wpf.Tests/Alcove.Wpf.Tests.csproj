@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Alcove.Wpf's tests. This project targets net10.0 so it runs on every OS:
+    - the add-on's WPF-free code (URI builder, keys, conventions, forwarder, pre-loading, resource lookup) is compiled
+      in from src/Alcove.Wpf and tested directly, with real cells;
+    - the WPF runtime scenarios (Windows/) run tests/Alcove.Wpf.TestHost, a net10.0-windows WPF host, in a child process
+      per scenario, against fixture plugins packed once per run. They're skipped on other OSes.
+  -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Alcove.Abstractions\Alcove.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Alcove\Alcove.csproj" />
+    <!-- Build order only (net10.0-windows): the add-on and its packed package, the WPF test host (which references the
+         host SDK fixture, packed on build), and the packed Alcove.Sdk the fixture plugins build with. -->
+    <ProjectReference Include="..\..\src\Alcove.Wpf\Alcove.Wpf.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" Private="false" />
+    <ProjectReference Include="..\Alcove.Wpf.TestHost\Alcove.Wpf.TestHost.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" Private="false" />
+    <ProjectReference Include="..\..\src\Alcove.Sdk\Alcove.Sdk.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NuGet.Packaging" />
+  </ItemGroup>
+
+  <!-- Alcove.Wpf's WPF-free files. -->
+  <ItemGroup>
+    <Compile Include="..\..\src\Alcove.Wpf\PluginPackUri.cs" Link="AddOn\PluginPackUri.cs" />
+    <Compile Include="..\..\src\Alcove.Wpf\SharedResourceKey.cs" Link="AddOn\SharedResourceKey.cs" />
+    <Compile Include="..\..\src\Alcove.Wpf\PluginResourcesAttribute.cs" Link="AddOn\PluginResourcesAttribute.cs" />
+    <Compile Include="..\..\src\Alcove.Wpf\Internal\*.cs" Exclude="..\..\src\Alcove.Wpf\Internal\WpfCellObserver.cs" Link="AddOn\Internal\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!-- Shared test infrastructure. -->
+  <ItemGroup>
+    <Compile Include="..\Alcove.IntegrationTests\Infrastructure\TempDirectory.cs" Link="Infrastructure\TempDirectory.cs" />
+    <Compile Include="..\Alcove.IntegrationTests\Infrastructure\DotNetCli.cs" Link="Infrastructure\DotNetCli.cs" />
+    <Compile Include="..\Alcove.IntegrationTests\Infrastructure\FixtureWorkspace.cs" Link="Infrastructure\FixtureWorkspace.cs" />
+    <Compile Include="..\Alcove.IntegrationTests\Infrastructure\TestEnvironment.cs" Link="Infrastructure\TestEnvironment.cs" />
+    <Compile Include="..\Alcove.IntegrationTests\Infrastructure\ListLoggerFactory.cs" Link="Infrastructure\ListLoggerFactory.cs" />
+    <Compile Include="..\Alcove.IntegrationTests\Infrastructure\PluginPackageReader.cs" Link="Infrastructure\PluginPackageReader.cs" />
+  </ItemGroup>
+
+  <!-- WPF assemblies for the pre-loading and resource tests: inspected and loaded into cells, never run. Build order
+       only; each builds into tests/fixtures/Metadata/bin/<ProjectName>/. -->
+  <ItemGroup>
+    <MetadataFixture Include="..\fixtures\Metadata\Fixture.Wpf.Code\Fixture.Wpf.Code.csproj" />
+    <MetadataFixture Include="..\fixtures\Metadata\Fixture.Wpf.Controls.V1\Fixture.Wpf.Controls.V1.csproj" />
+    <MetadataFixture Include="..\fixtures\Metadata\Fixture.Wpf.Controls.V2\Fixture.Wpf.Controls.V2.csproj" />
+    <MetadataFixture Include="..\fixtures\Metadata\Fixture.Wpf.Themed\Fixture.Wpf.Themed.csproj" />
+    <MetadataFixture Include="..\fixtures\Metadata\Fixture.Wpf.Declared\Fixture.Wpf.Declared.csproj" />
+    <MetadataFixture Include="..\fixtures\Metadata\Fixture.Leak.Dependency\Fixture.Leak.Dependency.csproj" />
+    <ProjectReference Include="@(MetadataFixture)" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="AlcoveRepoRoot" Value="$(AlcoveRepoRoot)" />
+    <AssemblyMetadata Include="AlcovePackagesDirectory" Value="$(PackageOutputPath)" />
+    <AssemblyMetadata Include="AlcoveVersion" Value="$(Version)" />
+    <AssemblyMetadata Include="AlcoveWpfTestHost" Value="$(AlcoveRepoRoot)tests/Alcove.Wpf.TestHost/bin/$(Configuration)/net10.0-windows/Alcove.Wpf.TestHost.dll" />
+  </ItemGroup>
+
+</Project>

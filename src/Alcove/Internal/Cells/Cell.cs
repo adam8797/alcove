@@ -47,12 +47,16 @@ internal sealed class Cell : AssemblyLoadContext
         _environment = environment;
         _logger = environment.Logger;
         _plan = Copy(plan);
+        Info = new CellInfo(this);
         Resolving += OnResolving;
         ResolvingUnmanagedDll += OnResolvingUnmanagedDll;
     }
 
     /// <summary>The cell's name.</summary>
     public new string Name => base.Name!;
+
+    /// <summary>The cell as <see cref="ICellObserver"/>s see it.</summary>
+    public CellInfo Info { get; }
 
     /// <summary>The environment shared with the host's other cells.</summary>
     public CellEnvironment Environment => _environment;
@@ -111,18 +115,37 @@ internal sealed class Cell : AssemblyLoadContext
         }
     }
 
+    /// <summary>The planned cell-private assemblies, sorted by name (<see cref="CellInfo.PrivateAssemblies"/>).</summary>
+    public IReadOnlyList<CellAssembly> GetPrivateAssemblies()
+    {
+        lock (_environment.Gate)
+        {
+            return [.. _plan.Private.Values.OrderBy(a => a.Name, StringComparer.OrdinalIgnoreCase).Select(ToPublic)];
+        }
+    }
+
     /// <summary>
     /// Adds to the plan (a hot install into this cell). Entries replace planned ones, but answers already
     /// given stay frozen: the install pipeline must apply the hot-load rule first.
     /// </summary>
-    public void MergePlan(CellPlan additions)
+    /// <returns>The private assemblies the plan didn't have before (new names, or a name with a different file), sorted by name.</returns>
+    public IReadOnlyList<CellAssembly> MergePlan(CellPlan additions)
     {
         ArgumentNullException.ThrowIfNull(additions);
         lock (_environment.Gate)
         {
+            var added = additions.Private.Values
+                .Where(a => !_plan.Private.TryGetValue(a.Name, out var existing) || !string.Equals(existing.Path, a.Path, StringComparison.Ordinal))
+                .OrderBy(a => a.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(ToPublic)
+                .ToList();
             Merge(_plan, additions);
+            return added;
         }
     }
+
+    private static CellAssembly ToPublic(PrivateAssembly asset) =>
+        new(asset.Name, asset.Path, asset.PackageId, asset.PackageVersion, asset.WpfRelevant);
 
     /// <inheritdoc />
     /// <remarks>

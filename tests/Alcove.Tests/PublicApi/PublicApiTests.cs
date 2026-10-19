@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Alcove.Autofac;
 using Alcove.DependencyInjection;
+using Alcove.Tests.TestSupport;
 
 namespace Alcove.Tests.PublicApi;
 
@@ -12,7 +13,7 @@ namespace Alcove.Tests.PublicApi;
 /// </summary>
 public sealed class PublicApiTests
 {
-    private static readonly Assembly[] Shipping =
+    private static readonly Assembly[] Loaded =
     [
         typeof(IPlugin).Assembly,
         typeof(PluginHost).Assembly,
@@ -20,7 +21,10 @@ public sealed class PublicApiTests
         typeof(PluginContainerBuilderExtensions).Assembly,
     ];
 
-    public static TheoryData<string> Assemblies => new(Shipping.Select(a => a.GetName().Name!));
+    /// <summary>Every shipping assembly; Alcove.Wpf as metadata only.</summary>
+    private static IEnumerable<Assembly> Shipping => Loaded.Append(WpfAddOnMetadata.Assembly);
+
+    public static TheoryData<string> Assemblies => new(Loaded.Select(a => a.GetName().Name!).Append("Alcove.Wpf"));
 
     [Theory]
     [MemberData(nameof(Assemblies))]
@@ -62,8 +66,8 @@ public sealed class PublicApiTests
                     problems.Add($"{name}: name doesn't end in Async");
 
                 var parameters = method.GetParameters();
-                var tokens = parameters.Where(p => p.ParameterType == typeof(CancellationToken)).ToList();
-                if (tokens.Count != 1 || parameters[^1].ParameterType != typeof(CancellationToken))
+                var tokens = parameters.Where(p => IsCancellationToken(p.ParameterType)).ToList();
+                if (tokens.Count != 1 || !IsCancellationToken(parameters[^1].ParameterType))
                 {
                     problems.Add($"{name}: no CancellationToken as the last parameter");
                     continue;
@@ -79,9 +83,12 @@ public sealed class PublicApiTests
         Assert.Empty(problems);
     }
 
+    // By name: Alcove.Wpf's types come from a MetadataLoadContext.
     private static bool IsAwaitable(Type type) =>
-        type == typeof(Task) || type == typeof(ValueTask)
-        || type.IsGenericType && (type.GetGenericTypeDefinition() == typeof(Task<>) || type.GetGenericTypeDefinition() == typeof(ValueTask<>));
+        (type.IsGenericType ? type.GetGenericTypeDefinition() : type).FullName
+            is "System.Threading.Tasks.Task" or "System.Threading.Tasks.ValueTask" or "System.Threading.Tasks.Task`1" or "System.Threading.Tasks.ValueTask`1";
+
+    private static bool IsCancellationToken(Type type) => type.FullName == "System.Threading.CancellationToken";
 
     private static string Diff(string expected, string actual)
     {
@@ -96,7 +103,11 @@ public sealed class PublicApiTests
             .Single(a => a.Key == "AlcoveRepoRoot").Value!;
 }
 
-/// <summary>Writes a stable, sorted, C#-like listing of an assembly's public and protected surface.</summary>
+/// <summary>
+/// Writes a stable, sorted, C#-like listing of an assembly's public and protected surface. Types are compared by name,
+/// never with <c>typeof</c>, so the same listing comes from a runtime-loaded assembly and from one read with a
+/// <see cref="MetadataLoadContext"/> (Alcove.Wpf, which can't load on Linux).
+/// </summary>
 internal static class PublicApiWriter
 {
     private const BindingFlags Declared =
@@ -125,8 +136,8 @@ internal static class PublicApiWriter
         var modifiers = "";
         if (type.IsEnum) kind = "enum";
         else if (type.IsInterface) kind = "interface";
-        else if (type.IsValueType) kind = (type.IsDefined(typeof(IsReadOnlyAttribute)) ? "readonly " : "") + "struct";
-        else if (type.IsSubclassOf(typeof(Delegate))) kind = "delegate";
+        else if (type.IsValueType) kind = (HasAttribute(type, "System.Runtime.CompilerServices.IsReadOnlyAttribute") ? "readonly " : "") + "struct";
+        else if (IsDelegate(type)) kind = "delegate";
         else
         {
             kind = type.GetMethod("<Clone>$") is not null ? "record" : "class";
@@ -134,8 +145,8 @@ internal static class PublicApiWriter
         }
 
         var bases = new List<string>();
-        if (type.BaseType is { } baseType && baseType != typeof(object) && baseType != typeof(ValueType)
-            && baseType != typeof(Enum) && !type.IsSubclassOf(typeof(Delegate)))
+        if (type.BaseType is { } baseType && baseType.FullName is not ("System.Object" or "System.ValueType" or "System.Enum")
+            && !IsDelegate(type))
             bases.Add(TypeName(baseType));
         if (!type.IsEnum)
             bases.AddRange(type.GetInterfaces()
@@ -151,7 +162,10 @@ internal static class PublicApiWriter
     // Records implement IEquatable<Self>; that's implied by "record".
     private static bool IsCompilerInterface(Type type, Type @interface)
         => type.GetMethod("<Clone>$") is not null && @interface.IsGenericType
-           && @interface.GetGenericTypeDefinition() == typeof(IEquatable<>) && @interface.GetGenericArguments()[0] == type;
+           && @interface.GetGenericTypeDefinition().FullName == "System.IEquatable`1" && Definition(@interface.GetGenericArguments()[0]) == type;
+
+    // A generic type over its own parameters is its definition at run time, but not in a MetadataLoadContext.
+    private static Type Definition(Type type) => type is { IsGenericType: true, IsGenericTypeDefinition: false } ? type.GetGenericTypeDefinition() : type;
 
     private static IEnumerable<(string Name, string Text)> Members(Type type)
     {
@@ -162,7 +176,7 @@ internal static class PublicApiWriter
             yield break;
         }
 
-        if (type.IsSubclassOf(typeof(Delegate)))
+        if (IsDelegate(type))
         {
             var invoke = type.GetMethod("Invoke")!;
             yield return ("Invoke", $"{ReturnType(invoke)} Invoke({Parameters(invoke)})");
@@ -215,8 +229,11 @@ internal static class PublicApiWriter
         if (method.IsStatic) return "static ";
         if (type.IsInterface) return method.IsAbstract ? "" : "virtual ";   // default interface implementation
         if (method.IsAbstract) return "abstract ";
-        if (!method.IsVirtual || method.IsFinal) return method.GetBaseDefinition() != method && !method.IsFinal ? "override " : "";
-        return method.GetBaseDefinition().DeclaringType != method.DeclaringType ? "override " : "virtual ";
+        if (!method.IsVirtual || method.IsFinal) return "";
+
+        // C# emits "newslot" for a virtual method it introduces, and reuses the slot for an override (GetBaseDefinition
+        // isn't available in a MetadataLoadContext).
+        return (method.Attributes & MethodAttributes.NewSlot) == 0 ? "override " : "virtual ";
     }
 
     private static string Method(Type type, MethodInfo method)
@@ -225,7 +242,7 @@ internal static class PublicApiWriter
             ? "<" + string.Join(", ", method.GetGenericArguments().Select(a => a.Name)) + ">"
             : "";
         var constraints = method.IsGenericMethodDefinition ? GenericConstraints(method.GetGenericArguments()) : "";
-        var extension = method.IsDefined(typeof(System.Runtime.CompilerServices.ExtensionAttribute)) ? "this " : "";
+        var extension = HasAttribute(method, "System.Runtime.CompilerServices.ExtensionAttribute") ? "this " : "";
         return $"{Access(method)}{Modifiers(type, method)}{ReturnType(method)} {method.Name}{generic}({extension}{Parameters(method)}){constraints}";
     }
 
@@ -238,11 +255,11 @@ internal static class PublicApiWriter
         if (IsVisible(property.GetMethod)) accessors.Add(Access(property.GetMethod!) + "get;");
         if (IsVisible(property.SetMethod))
         {
-            var isInit = property.SetMethod!.ReturnParameter.GetRequiredCustomModifiers().Contains(typeof(IsExternalInit));
+            var isInit = property.SetMethod!.ReturnParameter.GetRequiredCustomModifiers().Any(m => m.FullName == "System.Runtime.CompilerServices.IsExternalInit");
             accessors.Add(Access(property.SetMethod!) + (isInit ? "init;" : "set;"));
         }
 
-        var required = property.IsDefined(typeof(RequiredMemberAttribute)) ? "required " : "";
+        var required = HasAttribute(property, "System.Runtime.CompilerServices.RequiredMemberAttribute") ? "required " : "";
         var indexParameters = property.GetIndexParameters();
         var name = indexParameters.Length > 0 ? $"this[{string.Join(", ", indexParameters.Select(Parameter))}]" : property.Name;
         var access = IsVisible(property.GetMethod) && property.GetMethod!.IsPublic || IsVisible(property.SetMethod) && property.SetMethod!.IsPublic ? "" : "protected ";
@@ -261,17 +278,17 @@ internal static class PublicApiWriter
     private static string Parameter(ParameterInfo parameter)
     {
         var type = parameter.ParameterType;
-        var modifier = parameter.IsDefined(typeof(ParamArrayAttribute)) ? "params "
+        var modifier = parameter.CustomAttributes.Any(a => a.AttributeType.FullName == "System.ParamArrayAttribute") ? "params "
             : type.IsByRef ? (parameter.IsOut ? "out " : parameter.IsIn ? "in " : "ref ") : "";
         var text = $"{modifier}{NullableTypeName(Nullability.Create(parameter))} {parameter.Name}";
         if (!parameter.HasDefaultValue)
             return text;
         var elementType = type.IsByRef ? type.GetElementType()! : type;
         var value = parameter.RawDefaultValue;
-        if (value is null && elementType.IsValueType && Nullable.GetUnderlyingType(elementType) is null)
+        if (value is null && elementType.IsValueType && UnderlyingNullable(elementType) is null)
             return text + " = default";
         if (value is not null && elementType.IsEnum)
-            return text + " = " + elementType.Name + "." + Enum.ToObject(elementType, value);
+            return text + " = " + elementType.Name + "." + EnumName(elementType, value);
         return text + " = " + Literal(value);
     }
 
@@ -280,7 +297,7 @@ internal static class PublicApiWriter
         null => "null",
         string s => $"\"{s}\"",
         bool b => b ? "true" : "false",
-        _ when value.GetType() == typeof(Missing) || value == DBNull.Value => "default",
+        _ when value.GetType().FullName is "System.Reflection.Missing" or "System.DBNull" => "default",
         _ => Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture)!,
     };
 
@@ -293,8 +310,8 @@ internal static class PublicApiWriter
             var attributes = argument.GenericParameterAttributes;
             if (attributes.HasFlag(GenericParameterAttributes.NotNullableValueTypeConstraint)) constraints.Add("struct");
             else if (attributes.HasFlag(GenericParameterAttributes.ReferenceTypeConstraint)) constraints.Add("class");
-            else if (argument.IsDefined(typeof(IsUnmanagedAttribute))) constraints.Add("unmanaged");
-            constraints.AddRange(argument.GetGenericParameterConstraints().Where(c => c != typeof(ValueType)).Select(TypeName));
+            else if (HasAttribute(argument, "System.Runtime.CompilerServices.IsUnmanagedAttribute")) constraints.Add("unmanaged");
+            constraints.AddRange(argument.GetGenericParameterConstraints().Where(c => c.FullName != "System.ValueType").Select(TypeName));
             if (attributes.HasFlag(GenericParameterAttributes.DefaultConstructorConstraint)
                 && !attributes.HasFlag(GenericParameterAttributes.NotNullableValueTypeConstraint))
                 constraints.Add("new()");
@@ -311,7 +328,7 @@ internal static class PublicApiWriter
         if (type.IsByRef)
             type = type.GetElementType()!;
         string name;
-        if (Nullable.GetUnderlyingType(type) is { } underlying)
+        if (UnderlyingNullable(type) is { } underlying)
             return TypeName(underlying) + "?";
         if (type.IsArray && info.ElementType is { } element)
             name = NullableTypeName(element) + "[]";
@@ -329,8 +346,8 @@ internal static class PublicApiWriter
         if (type.IsGenericParameter) return type.Name;
         if (type.IsByRef) return TypeName(type.GetElementType()!);
         if (type.IsArray) return TypeName(type.GetElementType()!) + "[]";
-        if (Nullable.GetUnderlyingType(type) is { } underlying) return TypeName(underlying) + "?";
-        if (Keywords.TryGetValue(type, out var keyword)) return keyword;
+        if (UnderlyingNullable(type) is { } underlying) return TypeName(underlying) + "?";
+        if (type.FullName is { } fullName && Keywords.TryGetValue(fullName, out var keyword)) return keyword;
         if (type.IsGenericType) return GenericName(type, type.GetGenericArguments().Select(TypeName), includeNamespace);
 
         var name = type.IsNested ? TypeName(type.DeclaringType!, includeNamespace) + "." + type.Name : type.Name;
@@ -346,11 +363,38 @@ internal static class PublicApiWriter
         return $"{name}<{string.Join(", ", arguments)}>";
     }
 
-    private static readonly Dictionary<Type, string> Keywords = new()
+    private static bool IsDelegate(Type type)
     {
-        [typeof(void)] = "void", [typeof(object)] = "object", [typeof(string)] = "string", [typeof(bool)] = "bool",
-        [typeof(byte)] = "byte", [typeof(sbyte)] = "sbyte", [typeof(short)] = "short", [typeof(ushort)] = "ushort",
-        [typeof(int)] = "int", [typeof(uint)] = "uint", [typeof(long)] = "long", [typeof(ulong)] = "ulong",
-        [typeof(float)] = "float", [typeof(double)] = "double", [typeof(decimal)] = "decimal", [typeof(char)] = "char",
+        for (var baseType = type.BaseType; baseType is not null; baseType = baseType.BaseType)
+        {
+            if (baseType.FullName == "System.Delegate")
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool HasAttribute(MemberInfo member, string fullName) =>
+        member.CustomAttributes.Any(a => a.AttributeType.FullName == fullName);
+
+    private static Type? UnderlyingNullable(Type type) =>
+        type is { IsGenericType: true, IsGenericTypeDefinition: false } && type.GetGenericTypeDefinition().FullName == "System.Nullable`1"
+            ? type.GetGenericArguments()[0]
+            : null;
+
+    private static string EnumName(Type enumType, object value)
+    {
+        var number = Convert.ToInt64(value, System.Globalization.CultureInfo.InvariantCulture);
+        return enumType.GetFields(BindingFlags.Public | BindingFlags.Static)
+            .FirstOrDefault(f => Convert.ToInt64(f.GetRawConstantValue(), System.Globalization.CultureInfo.InvariantCulture) == number)?.Name
+            ?? number.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    private static readonly Dictionary<string, string> Keywords = new()
+    {
+        ["System.Void"] = "void", ["System.Object"] = "object", ["System.String"] = "string", ["System.Boolean"] = "bool",
+        ["System.Byte"] = "byte", ["System.SByte"] = "sbyte", ["System.Int16"] = "short", ["System.UInt16"] = "ushort",
+        ["System.Int32"] = "int", ["System.UInt32"] = "uint", ["System.Int64"] = "long", ["System.UInt64"] = "ulong",
+        ["System.Single"] = "float", ["System.Double"] = "double", ["System.Decimal"] = "decimal", ["System.Char"] = "char",
     };
 }

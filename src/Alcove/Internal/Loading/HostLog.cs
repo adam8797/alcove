@@ -32,4 +32,10 @@ internal static partial class HostLog
 
     [LoggerMessage(EventId = 2008, Level = LogLevel.Warning, Message = "A callback registered on a plugin's cancellation token threw while the host was being disposed")]
     public static partial void CancellationCallbackFailed(ILogger logger, Exception exception);
+
+    [LoggerMessage(EventId = 2009, Level = LogLevel.Error, Message = "The cell observer {Observer} threw in {What} for cell '{Cell}'")]
+    public static partial void CellObserverFailed(ILogger logger, Exception exception, string observer, string what, string cell);
+
+    [LoggerMessage(EventId = 2010, Level = LogLevel.Warning, Message = "Disposing the cell observer {Observer} threw")]
+    public static partial void CellObserverDisposeFailed(ILogger logger, Exception exception, string observer);
 }

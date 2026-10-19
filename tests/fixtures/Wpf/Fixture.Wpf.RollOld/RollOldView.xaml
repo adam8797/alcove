@@ -1,0 +1,9 @@
+<UserControl x:Class="Fixture.Wpf.RollOld.RollOldView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:roll="clr-namespace:Fixture.Wpf.RollLib;assembly=Fixture.Wpf.RollLib">
+    <StackPanel>
+        <TextBlock Text="Built against RollLib 1" />
+        <roll:RollMarker />
+    </StackPanel>
+</UserControl>

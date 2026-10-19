@@ -6,10 +6,19 @@
     <!-- PublicApi/ snapshots every shipping assembly. -->
     <ProjectReference Include="..\..\src\Alcove.DependencyInjection\Alcove.DependencyInjection.csproj" />
     <ProjectReference Include="..\..\src\Alcove.Autofac\Alcove.Autofac.csproj" />
+    <!-- net10.0-windows, so build order only: read with a MetadataLoadContext (TestSupport/WpfAddOnMetadata.cs). -->
+    <ProjectReference Include="..\..\src\Alcove.Wpf\Alcove.Wpf.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Reflection.MetadataLoadContext" />
   </ItemGroup>
 
   <ItemGroup>
     <AssemblyMetadata Include="AlcoveRepoRoot" Value="$(AlcoveRepoRoot)" />
+    <AssemblyMetadata Include="AlcoveWpfAssembly" Value="$(AlcoveRepoRoot)src/Alcove.Wpf/bin/$(Configuration)/net10.0-windows/Alcove.Wpf.dll" />
+    <AssemblyMetadata Include="NetCoreTargetingPackRoot" Value="$(NetCoreTargetingPackRoot)" />
+    <AssemblyMetadata Include="NuGetPackageRoot" Value="$(NuGetPackageRoot)" />
   </ItemGroup>
 
   <!-- Metadata/ tests inspect these fixture assemblies without loading them. Build order only; each fixture

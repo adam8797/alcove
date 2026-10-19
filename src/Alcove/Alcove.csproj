@@ -39,6 +39,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Alcove.Tests" />
     <InternalsVisibleTo Include="Alcove.IntegrationTests" />
+    <InternalsVisibleTo Include="Alcove.Wpf.Tests" />
   </ItemGroup>
 
 </Project>

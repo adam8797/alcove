@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- A WPF host that loads plugins with Alcove and Alcove.Wpf. Run it with ../run-wpf-sample.ps1 (Windows); it builds on
+       every OS. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <OutputType>WinExe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Alcove\Alcove.csproj" />
+    <ProjectReference Include="..\..\src\Alcove.Wpf\Alcove.Wpf.csproj" />
+    <ProjectReference Include="..\WpfHost.Sdk\WpfHost.Sdk.csproj" />
+    <!-- Build order only: packs Alcove.Sdk, which the sample plugins are built with. -->
+    <ProjectReference Include="..\..\src\Alcove.Sdk\Alcove.Sdk.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Alcove.Wpf's host guidance: XAML that refers to its own assembly's dictionaries gets a versioned pack URI, so
+         it can't reach another cell's copy of that assembly. -->
+    <RuntimeHostConfigurationOption Include="Switch.System.Windows.Baml2006.AppendLocalAssemblyVersionForSourceUri" Value="true" />
+  </ItemGroup>
+</Project>

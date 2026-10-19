@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    The WPF host that tests/Alcove.Wpf.Tests runs, once per scenario, in a child process (WPF's caches and the loaded
+    assemblies are process-wide, so scenarios don't share a process). Builds on every OS; runs on Windows only.
+    Fixture.Wpf.HostSdk is in its deps.json, so it's host-owned here.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Alcove\Alcove.csproj" />
+    <ProjectReference Include="..\..\src\Alcove.Wpf\Alcove.Wpf.csproj" />
+    <!-- The "render" scenario combines UseWpf with services.AddPlugins (UseWpf first: the order doesn't matter). -->
+    <ProjectReference Include="..\..\src\Alcove.DependencyInjection\Alcove.DependencyInjection.csproj" />
+    <ProjectReference Include="..\shared\Fixture.Wpf.HostSdk\Fixture.Wpf.HostSdk.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Alcove.Wpf's host guidance (the "render" scenario checks it's picked up). -->
+    <RuntimeHostConfigurationOption Include="Switch.System.Windows.Baml2006.AppendLocalAssemblyVersionForSourceUri" Value="true" />
+  </ItemGroup>
+</Project>

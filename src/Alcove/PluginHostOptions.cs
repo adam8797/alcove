@@ -92,6 +92,14 @@ public sealed class PluginHostOptions
     public ICellServicesFactory? CellServicesFactory { get; set; }
 
     /// <summary>
+    /// Factories of the <see cref="ICellObserver"/>s that each host made from these options creates (one observer per
+    /// factory and host): they're told when cells are created or grow and when plugins' assemblies load. Set by UI
+    /// add-ons such as <c>Alcove.Wpf</c>. Code only.
+    /// </summary>
+    [JsonIgnore]
+    public IList<CellObserverFactory> CellObservers { get; init => field = value ?? new List<CellObserverFactory>(); } = new List<CellObserverFactory>();
+
+    /// <summary>
     /// Supplies credentials for authenticated feeds when the feed's own credentials are missing or rejected, e.g.
     /// a login dialog. Without it, only <see cref="PackageFeed.Credentials"/> and the <c>nuget.config</c>'s
     /// credentials are used. Code only.

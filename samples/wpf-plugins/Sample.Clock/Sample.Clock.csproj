@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <ItemGroup>
+    <ProjectReference Include="../Sample.Wpf.Controls/Sample.Wpf.Controls.csproj" />
+  </ItemGroup>
+</Project>

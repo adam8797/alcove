@@ -11,14 +11,20 @@
     <Project Path="src/Alcove.Sdk/Alcove.Sdk.csproj" />
     <Project Path="src/Alcove.DependencyInjection/Alcove.DependencyInjection.csproj" />
     <Project Path="src/Alcove.Autofac/Alcove.Autofac.csproj" />
+    <Project Path="src/Alcove.Wpf/Alcove.Wpf.csproj" />
   </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/ConsoleHost.Contracts/ConsoleHost.Contracts.csproj" />
     <Project Path="samples/ConsoleHost/ConsoleHost.csproj" />
+    <Project Path="samples/WpfHost.Sdk/WpfHost.Sdk.csproj" />
+    <Project Path="samples/WpfHost/WpfHost.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Alcove.Tests/Alcove.Tests.csproj" />
     <Project Path="tests/Alcove.IntegrationTests/Alcove.IntegrationTests.csproj" />
+    <Project Path="tests/Alcove.Wpf.Tests/Alcove.Wpf.Tests.csproj" />
+    <Project Path="tests/Alcove.Wpf.TestHost/Alcove.Wpf.TestHost.csproj" />
     <Project Path="tests/shared/Fixture.HostContracts/Fixture.HostContracts.csproj" />
+    <Project Path="tests/shared/Fixture.Wpf.HostSdk/Fixture.Wpf.HostSdk.csproj" />
   </Folder>
 </Solution>

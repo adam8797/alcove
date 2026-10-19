@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <ItemGroup>
+    <ProjectReference Include="../Fixture.Wpf.SharedControls/Fixture.Wpf.SharedControls.csproj" />
+  </ItemGroup>
+</Project>

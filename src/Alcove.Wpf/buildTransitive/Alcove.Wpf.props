@@ -1,0 +1,9 @@
+<Project>
+  <!-- A plugin that references Alcove.Wpf (for PluginResourcesAttribute, SharedResourceKey or PluginPackUri) runs in a
+       host that provides it: Alcove.Sdk keeps it a dependency but never copies it to the output (the core's own
+       buildTransitive targets do the same for the core it depends on). Inert in projects that don't use Alcove.Sdk
+       (such as the host app). -->
+  <ItemGroup>
+    <PluginHostOwnedPackage Include="Alcove.Wpf" />
+  </ItemGroup>
+</Project>

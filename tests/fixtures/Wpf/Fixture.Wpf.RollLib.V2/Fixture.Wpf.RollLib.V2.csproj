@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Fixture.Wpf.RollLib 2.0.0 (AssemblyVersion 2.0.0.0): a control library rolled forward in a cell (spike scenario 10). -->
+  <PropertyGroup>
+    <PackageId>Fixture.Wpf.RollLib</PackageId>
+    <AssemblyName>Fixture.Wpf.RollLib</AssemblyName>
+    <RootNamespace>Fixture.Wpf.RollLib</RootNamespace>
+    <Version>2.0.0</Version>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <DefineConstants>$(DefineConstants);V2</DefineConstants>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../Fixture.Wpf.RollLib/RollMarker.cs" />
+  </ItemGroup>
+</Project>

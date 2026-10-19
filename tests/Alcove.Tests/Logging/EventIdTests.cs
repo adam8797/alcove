@@ -17,14 +17,26 @@ public sealed class EventIdTests
         typeof(Autofac.PluginContainerBuilderExtensions).Assembly,
     ];
 
-    private static IReadOnlyList<(MethodInfo Method, LoggerMessageAttribute Attribute)> Messages() =>
+    /// <summary>A <c>[LoggerMessage]</c> method: its class, name, event ID and level.</summary>
+    private sealed record Message(Type Class, string Method, int EventId, LogLevel Level);
+
+    // Read as attribute data, so Alcove.Wpf (metadata only: it can't load on Linux) is checked too.
+    private static IReadOnlyList<Message> Messages() =>
     [
-        .. Shipping
+        .. Shipping.Append(TestSupport.WpfAddOnMetadata.Assembly)
             .SelectMany(a => a.GetTypes())
             .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly))
-            .Select(m => (Method: m, Attribute: m.GetCustomAttribute<LoggerMessageAttribute>()!))
-            .Where(m => m.Attribute is not null),
+            .SelectMany(m => m.CustomAttributes
+                .Where(a => a.AttributeType.FullName == typeof(LoggerMessageAttribute).FullName)
+                .Select(a => new Message(
+                    m.DeclaringType!,
+                    m.Name,
+                    Named(a, nameof(LoggerMessageAttribute.EventId)) is int id ? id : -1,
+                    Named(a, nameof(LoggerMessageAttribute.Level)) is int level ? (LogLevel)level : LogLevel.None))),
     ];
+
+    private static object? Named(CustomAttributeData attribute, string name) =>
+        attribute.NamedArguments.FirstOrDefault(n => n.MemberName == name).TypedValue.Value;
 
     [Fact]
     public void LoggerMessages_AreFound()
@@ -34,9 +46,9 @@ public sealed class EventIdTests
     public void EventIds_AreUnique()
     {
         var duplicates = Messages()
-            .GroupBy(m => m.Attribute.EventId)
+            .GroupBy(m => m.EventId)
             .Where(g => g.Count() > 1)
-            .Select(g => $"{g.Key}: {string.Join(", ", g.Select(m => $"{m.Method.DeclaringType!.Name}.{m.Method.Name}"))}");
+            .Select(g => $"{g.Key}: {string.Join(", ", g.Select(m => $"{m.Class.Name}.{m.Method}"))}");
 
         Assert.Empty(duplicates);
     }
@@ -46,24 +58,24 @@ public sealed class EventIdTests
     {
         var messages = Messages();
 
-        Assert.All(messages, m => Assert.True(m.Attribute.EventId > 0, $"{m.Method.DeclaringType!.Name}.{m.Method.Name} has no event ID"));
-        Assert.Empty(messages.GroupBy(m => $"{m.Method.DeclaringType!.FullName}.{m.Method.Name}").Where(g => g.Count() > 1).Select(g => g.Key));
+        Assert.All(messages, m => Assert.True(m.EventId > 0, $"{m.Class.Name}.{m.Method} has no event ID"));
+        Assert.Empty(messages.GroupBy(m => $"{m.Class.FullName}.{m.Method}").Where(g => g.Count() > 1).Select(g => g.Key));
     }
 
     [Fact]
     public void EachLogClass_OwnsOneRangeOfAHundred()
     {
-        var ranges = Messages().GroupBy(m => m.Method.DeclaringType!).ToList();
+        var ranges = Messages().GroupBy(m => m.Class).ToList();
 
-        var spanning = ranges.Where(g => g.Select(m => m.Attribute.EventId / 100).Distinct().Count() > 1).Select(g => g.Key.Name);
+        var spanning = ranges.Where(g => g.Select(m => m.EventId / 100).Distinct().Count() > 1).Select(g => g.Key.Name);
         Assert.Empty(spanning);
 
-        var shared = ranges.GroupBy(g => g.First().Attribute.EventId / 100).Where(g => g.Count() > 1)
+        var shared = ranges.GroupBy(g => g.First().EventId / 100).Where(g => g.Count() > 1)
             .Select(g => $"{g.Key * 100}: {string.Join(", ", g.Select(c => c.Key.Name))}");
         Assert.Empty(shared);
     }
 
     [Fact]
     public void Levels_AreNeverCriticalOrNone()
-        => Assert.DoesNotContain(Messages(), m => m.Attribute.Level is LogLevel.Critical or LogLevel.None);
+        => Assert.DoesNotContain(Messages(), m => m.Level is LogLevel.Critical or LogLevel.None);
 }

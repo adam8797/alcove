@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- A code-only control library that Fixture.Wpf.XamlOnly uses only from XAML (spike scenario 9). -->
+</Project>

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The WPF sample host's app SDK: its extension point, a shared UserControl, styles and typed resource keys. The host
+       ships it (host-owned: one copy for every cell); plugins reference the packed copy. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>App SDK of the Alcove WPF sample host.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Alcove.Abstractions\Alcove.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Alcove.Wpf\Alcove.Wpf.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="build/WpfHost.Sdk.props" Pack="true" PackagePath="build/" />
+  </ItemGroup>
+</Project>

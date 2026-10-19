@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <PropertyGroup>
+    <PluginCell>Roll</PluginCell>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Fixture.Wpf.RollLib.V1/Fixture.Wpf.RollLib.V1.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,10 @@
+<Project>
+  <!-- Shipped by the host's SDK package so plugin developers can't get these wrong. -->
+  <PropertyGroup>
+    <PluginPackageType Condition="'$(PluginPackageType)' == ''">FixtureWpfPlugin</PluginPackageType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PluginHostOwnedPackage Include="Fixture.Wpf.HostSdk" />
+  </ItemGroup>
+</Project>

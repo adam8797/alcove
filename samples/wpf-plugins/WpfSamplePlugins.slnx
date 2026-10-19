@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Sample.Charts/Sample.Charts.csproj" />
+  <Project Path="Sample.Clock/Sample.Clock.csproj" />
+  <Project Path="Sample.Notes/Sample.Notes.csproj" />
+  <Project Path="Sample.Wpf.Controls/Sample.Wpf.Controls.csproj" />
+</Solution>

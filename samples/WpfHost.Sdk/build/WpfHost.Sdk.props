@@ -1,0 +1,10 @@
+<Project>
+  <!-- Configures Alcove.Sdk for plugins of the WPF sample host. -->
+  <PropertyGroup>
+    <PluginPackageType Condition="'$(PluginPackageType)' == ''">WpfHostPlugin</PluginPackageType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PluginHostOwnedPackage Include="WpfHost.Sdk" />
+  </ItemGroup>
+</Project>

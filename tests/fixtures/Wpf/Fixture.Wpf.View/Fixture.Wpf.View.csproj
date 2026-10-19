@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- A UserControl using a key from its Themes/Plugin.xaml (StaticResource) and a host key (DynamicResource), and a
+       view-model with a view by convention. Attribute-only. -->
+</Project>

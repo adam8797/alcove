@@ -1,0 +1,10 @@
+<UserControl x:Class="WpfHost.Sdk.PanelHeader"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sdk="clr-namespace:WpfHost.Sdk"
+             x:Name="Root">
+    <!-- A shared UserControl: host-owned, so every plugin gets this one copy. -->
+    <Border BorderBrush="{DynamicResource {x:Static sdk:SampleKeys.AccentBrush}}" BorderThickness="0,0,0,2" Padding="0,0,0,4" Margin="0,0,0,8">
+        <TextBlock Text="{Binding Title, ElementName=Root}" Style="{DynamicResource {x:Static sdk:SampleKeys.HeaderTextStyle}}" />
+    </Border>
+</UserControl>
