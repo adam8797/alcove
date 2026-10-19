@@ -1,0 +1,24 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+    <File Path=".gitea/workflows/ci.yml" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Alcove.Abstractions/Alcove.Abstractions.csproj" />
+    <Project Path="src/Alcove/Alcove.csproj" />
+    <Project Path="src/Alcove.Sdk/Alcove.Sdk.csproj" />
+    <Project Path="src/Alcove.DependencyInjection/Alcove.DependencyInjection.csproj" />
+    <Project Path="src/Alcove.Autofac/Alcove.Autofac.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/ConsoleHost.Contracts/ConsoleHost.Contracts.csproj" />
+    <Project Path="samples/ConsoleHost/ConsoleHost.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Alcove.Tests/Alcove.Tests.csproj" />
+    <Project Path="tests/Alcove.IntegrationTests/Alcove.IntegrationTests.csproj" />
+    <Project Path="tests/shared/Fixture.HostContracts/Fixture.HostContracts.csproj" />
+  </Folder>
+</Solution>

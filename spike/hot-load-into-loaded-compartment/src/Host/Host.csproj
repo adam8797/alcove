@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <!-- The host itself ships D 1.0 (so D is "host-shared" and sits in the default context's TPA list). -->
+  <ItemGroup><ProjectReference Include="../D1/D.csproj" /></ItemGroup>
+</Project>

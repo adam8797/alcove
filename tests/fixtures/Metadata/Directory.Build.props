@@ -1,0 +1,26 @@
+<Project>
+  <!--
+    Fixture assemblies for the metadata analysis unit tests (tests/Alcove.Tests/Metadata). They're only
+    inspected with System.Reflection.Metadata, never loaded. Like the other fixtures they don't import the
+    repository's build settings, and these Directory.* files also stop the parent tests/fixtures ones from
+    applying (so no AlcoveVersion is needed).
+
+    Alcove.Tests builds them through ProjectReference (ReferenceOutputAssembly=false), so the solution's restore
+    also fetches the WPF targeting pack. Each project builds into a fixed folder whatever the configuration, so
+    the tests can find it: tests/fixtures/Metadata/bin/<ProjectName>/<AssemblyName>.dll.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <MSBuildTreatWarningsAsErrors>true</MSBuildTreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <EnableSourceLink>false</EnableSourceLink>
+    <OutputPath>$(MSBuildThisFileDirectory)bin/$(MSBuildProjectName)/</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+</Project>

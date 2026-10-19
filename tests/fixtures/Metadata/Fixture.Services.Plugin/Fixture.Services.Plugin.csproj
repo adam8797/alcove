@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- A plugin assembly with candidate entry points that do, or don't, implement the service-plugin interface. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Fixture.Services.Contracts\Fixture.Services.Contracts.csproj" />
+    <ProjectReference Include="..\Fixture.Services.Library\Fixture.Services.Library.csproj" />
+    <ProjectReference Include="..\Fixture.Services.HostSdk\Fixture.Services.HostSdk.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Plugin A: uses its own types, HostSdk (host-owned) and SharedControls v1 (compartment-private) from XAML. -->
+  <PropertyGroup>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Host-owned: compile against it, never copy it into the plugin folder. -->
+    <ProjectReference Include="..\HostSdk\HostSdk.csproj" Private="false" />
+    <ProjectReference Include="..\SharedControls.v1\SharedControls.v1.csproj" />
+  </ItemGroup>
+</Project>

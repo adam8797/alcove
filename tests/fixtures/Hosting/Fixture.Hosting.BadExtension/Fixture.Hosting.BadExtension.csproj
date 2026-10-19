@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- Loads fine, but its singleton extension throws when created. -->
+  <PropertyGroup>
+    <PluginEntryPoint>Fixture.Hosting.BadExtension.BadExtensionPlugin</PluginEntryPoint>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,70 @@
+$ dotnet tools/XamlAsmInspect/bin/Debug/net10.0/XamlAsmInspect.dll <deployed plugin dlls>  (framework assembly records omitted)
+== src/WpfHost/bin/Debug/net10.0-windows/plugins/PluginA/PluginA.dll
+   identity: PluginA, Version=1.0.0.0
+   has WPF resources (PluginA.g.resources): YES
+   part pluginaview.baml (ResourceTypeCode.Stream, 1984 bytes)
+      BAML assembly record: PluginA, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+      BAML assembly record: HostSdk, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+      BAML assembly record: SharedControls, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+   part themes/plugin.baml (ResourceTypeCode.Stream, 1447 bytes)
+      BAML assembly record: PluginA, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+      pack URI string in BAML: /SharedControls;component/Themes/Shared.xaml
+== src/WpfHost/bin/Debug/net10.0-windows/plugins/PluginA/SharedControls.dll
+   identity: SharedControls, Version=1.0.0.0
+   has WPF resources (SharedControls.g.resources): YES
+   part themes/generic.baml (ResourceTypeCode.Stream, 1207 bytes)
+      BAML assembly record: SharedControls, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+   part themes/selfref.baml (ResourceTypeCode.Stream, 784 bytes)
+      pack URI string in BAML: /SharedControls;component/Themes/Shared.xaml
+   part themes/shared.baml (ResourceTypeCode.Stream, 1046 bytes)
+   part unversionedbadge.baml (ResourceTypeCode.Stream, 946 bytes)
+   part versionbadge.baml (ResourceTypeCode.Stream, 914 bytes)
+== src/WpfHost/bin/Debug/net10.0-windows/plugins/PluginB/PluginB.dll
+   identity: PluginB, Version=1.0.0.0
+   has WPF resources (PluginB.g.resources): YES
+   part pluginbview.baml (ResourceTypeCode.Stream, 2020 bytes)
+      BAML assembly record: PluginA, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+      BAML assembly record: HostSdk, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+      BAML assembly record: SharedControls, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null
+      pack URI string in BAML: /PluginA;component/Themes/Plugin.xaml
+== src/WpfHost/bin/Debug/net10.0-windows/plugins/PluginB/SharedControls.dll
+   identity: SharedControls, Version=2.0.0.0
+   has WPF resources (SharedControls.g.resources): YES
+   part themes/generic.baml (ResourceTypeCode.Stream, 1207 bytes)
+      BAML assembly record: SharedControls, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null
+   part themes/selfref.baml (ResourceTypeCode.Stream, 784 bytes)
+      pack URI string in BAML: /SharedControls;component/Themes/Shared.xaml
+   part themes/shared.baml (ResourceTypeCode.Stream, 1045 bytes)
+   part unversionedbadge.baml (ResourceTypeCode.Stream, 946 bytes)
+   part versionbadge.baml (ResourceTypeCode.Stream, 914 bytes)
+== src/WpfHost/bin/Debug/net10.0-windows/plugins/PluginC/SharedControls.dll
+   identity: SharedControls, Version=1.0.0.0
+   has WPF resources (SharedControls.g.resources): YES
+   part themes/generic.baml (ResourceTypeCode.Stream, 1208 bytes)
+      BAML assembly record: SharedControls, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+   part themes/selfref.baml (ResourceTypeCode.Stream, 784 bytes)
+      pack URI string in BAML: /SharedControls;component/Themes/Shared.xaml
+   part themes/shared.baml (ResourceTypeCode.Stream, 1044 bytes)
+   part unversionedbadge.baml (ResourceTypeCode.Stream, 947 bytes)
+   part versionbadge.baml (ResourceTypeCode.Stream, 915 bytes)
+== src/WpfHost/bin/Debug/net10.0-windows/plugins/PluginD/PluginD.dll
+   identity: PluginD, Version=1.0.0.0
+   has WPF resources (PluginD.g.resources): YES
+   part plugindview.baml (ResourceTypeCode.Stream, 1095 bytes)
+      BAML assembly record: SharedControls, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+== src/WpfHost/bin/Debug/net10.0-windows/plugins/PluginA-rollforward/SharedControls.dll
+   identity: SharedControls, Version=2.0.0.0
+   has WPF resources (SharedControls.g.resources): YES
+   part themes/generic.baml (ResourceTypeCode.Stream, 1207 bytes)
+      BAML assembly record: SharedControls, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null
+   part themes/selfref.baml (ResourceTypeCode.Stream, 784 bytes)
+      pack URI string in BAML: /SharedControls;component/Themes/Shared.xaml
+   part themes/shared.baml (ResourceTypeCode.Stream, 1045 bytes)
+   part unversionedbadge.baml (ResourceTypeCode.Stream, 946 bytes)
+   part versionbadge.baml (ResourceTypeCode.Stream, 914 bytes)
+== src/WpfHost/bin/Debug/net10.0-windows/HostSdk.dll
+   identity: HostSdk, Version=1.0.0.0
+   has WPF resources (HostSdk.g.resources): YES
+   part sharedbanner.baml (ResourceTypeCode.Stream, 875 bytes)
+   part themes/hoststyles.baml (ResourceTypeCode.Stream, 1186 bytes)
+      BAML assembly record: HostSdk, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null

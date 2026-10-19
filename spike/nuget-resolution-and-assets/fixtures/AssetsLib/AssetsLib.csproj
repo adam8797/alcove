@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net8.0-windows;net9.0-windows10.0.19041.0</TargetFrameworks>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Version>1.0.0</Version>
+    <Authors>spike</Authors>
+    <Description>Asset selection fixture: per-TFM libs, satellites, fake natives</Description>
+    <GenerateResourceUsePreserializedResources>false</GenerateResourceUsePreserializedResources>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="native/libfake.so" Pack="true" PackagePath="runtimes/linux-x64/native/" />
+    <None Include="native/fake.dll" Pack="true" PackagePath="runtimes/win-x64/native/" />
+    <None Include="native/libfake.dylib" Pack="true" PackagePath="runtimes/osx/native/" />
+  </ItemGroup>
+</Project>

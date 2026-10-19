@@ -1,0 +1,60 @@
+== nuget.org term='serilog' packageType=(none)  resource=PackageSearchResourceV3 SupportsPackageTypeFiltering=True  (287 ms)
+    Serilog.4.4.0                                 Serilog
+    Serilog.Sinks.File.7.0.0                      Serilog.Sinks.File
+    Serilog.Sinks.Console.6.1.1                   Serilog.Sinks.Console
+    Serilog.Extensions.Logging.10.0.0             Serilog.Extensions.Logging
+    Serilog.Settings.Configuration.10.0.1         Serilog.Settings.Configuration
+    Serilog.Formatting.Compact.3.0.0              Serilog.Formatting.Compact
+    Serilog.Extensions.Hosting.10.0.0             Serilog.Extensions.Hosting
+    Serilog.Sinks.Debug.3.0.0                     Serilog.Sinks.Debug
+    Serilog.AspNetCore.10.0.0                     Serilog.AspNetCore
+    Serilog.Sinks.PeriodicBatching.5.0.0          Serilog.Sinks.PeriodicBatching
+== nuget.org term='serilog' packageType=DotnetTool  resource=PackageSearchResourceV3 SupportsPackageTypeFiltering=True  (95 ms)
+    Serilog.Sinks.File.Encrypt.Cli.6.0.0          Serilog.Sinks.File.Encrypt.Cli
+    lathe.0.2.1                                   lathe
+    Theon.Monolith.Cli.1.0.0                      Theon.Monolith.Cli
+    Shyam.CleanArchitecture.Template.2.0.1        Shyam Clean Architecture Template
+    BuildQuickPkg.1.1.1                           BuildQuickPkg - Interactive ASP.NET Core Clean Architecture CLI Scaffolder
+== nuget.org term='' packageType=MyAppPlugin  resource=PackageSearchResourceV3 SupportsPackageTypeFiltering=True  (100 ms)
+    (no results)
+== nuget.org term='' packageType=Template  resource=PackageSearchResourceV3 SupportsPackageTypeFiltering=True  (138 ms)
+    Microsoft.Azure.Functions.Worker.ProjectTemplates.4.0.5708 Microsoft.Azure.Functions.Worker.ProjectTemplates
+    Microsoft.Azure.Functions.Worker.ItemTemplates.4.0.5708 Microsoft.Azure.Functions.Worker.ItemTemplates
+    Microsoft.Azure.WebJobs.ItemTemplates.4.0.5708 Microsoft.Azure.WebJobs.ItemTemplates
+    Microsoft.Azure.WebJobs.ProjectTemplates.4.0.5708 Microsoft.Azure.WebJobs.ProjectTemplates
+    Microsoft.Azure.Functions.Worker.ItemTemplates.NetCore.4.0.5708 Microsoft.Azure.Functions.Worker.ItemTemplates.NetCore
+    Microsoft.Android.Templates.36.1.118          .NET for Android Templates
+    Microsoft.Azure.Functions.Worker.ItemTemplates.NetFx.4.0.5708 Microsoft.Azure.Functions.Worker.ItemTemplates.NetFx
+    Aspire.ProjectTemplates.13.6.1                Aspire.ProjectTemplates
+    Microsoft.iOS.Templates.27.0.10722            Microsoft.iOS.Templates
+    Microsoft.MacCatalyst.Templates.27.0.10722    Microsoft.MacCatalyst.Templates
+== local feed term='' packageType=(none)  resource=LocalPackageSearchResource SupportsPackageTypeFiltering=True  (26 ms)
+    PluginD.1.0.0                                 PluginD
+    AssetsLib.1.0.0                               AssetsLib
+    PluginB.1.0.0                                 PluginB
+    LibShared.3.0.0                               LibShared
+    LibMid.1.0.0                                  LibMid
+    PluginA.1.0.0                                 PluginA
+    LibShared.2.0.0                               LibShared
+    PluginC.1.0.0                                 PluginC
+    PluginE.1.0.0                                 PluginE
+    LibShared.1.0.0                               LibShared
+== local feed term='' packageType=MyAppPlugin  resource=LocalPackageSearchResource SupportsPackageTypeFiltering=True  (3 ms)
+    PluginD.1.0.0                                 PluginD
+    PluginB.1.0.0                                 PluginB
+    PluginA.1.0.0                                 PluginA
+    PluginC.1.0.0                                 PluginC
+    PluginE.1.0.0                                 PluginE
+== local feed term='plugin' packageType=Dependency  resource=LocalPackageSearchResource SupportsPackageTypeFiltering=True  (1 ms)
+    (no results)
+== local feed, client-side package type from nuspec
+    AssetsLib.1.0.0.nupkg          
+    LibMid.1.0.0.nupkg             
+    LibShared.1.0.0.nupkg          
+    LibShared.2.0.0.nupkg          
+    LibShared.3.0.0.nupkg          
+    PluginA.1.0.0.nupkg            MyAppPlugin
+    PluginB.1.0.0.nupkg            MyAppPlugin
+    PluginC.1.0.0.nupkg            MyAppPlugin
+    PluginD.1.0.0.nupkg            MyAppPlugin
+    PluginE.1.0.0.nupkg            MyAppPlugin

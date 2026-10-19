@@ -1,0 +1,39 @@
+<Project>
+  <!-- Settings shared by every project in the repository. Fixture plugins under tests/fixtures/
+       deliberately do not inherit these (they have their own Directory.Build.props). -->
+
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <MSBuildTreatWarningsAsErrors>true</MSBuildTreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true' or '$(GITEA_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    <AlcoveRepoRoot>$(MSBuildThisFileDirectory)</AlcoveRepoRoot>
+  </PropertyGroup>
+
+  <!-- One version for every package (implementation plan, Phase 1). Prerelease until the API settles. -->
+  <PropertyGroup>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <VersionSuffix>dev</VersionSuffix>
+  </PropertyGroup>
+
+  <!-- Package metadata -->
+  <PropertyGroup>
+    <Authors>Adam Schiavone</Authors>
+    <Copyright>Copyright (c) Adam Schiavone</Copyright>
+    <PackageOutputPath>$(AlcoveRepoRoot)artifacts/packages/$(Configuration)/</PackageOutputPath>
+  </PropertyGroup>
+
+  <!-- SourceLink: the SDK's built-in SourceLink providers cover GitHub, GitLab, Azure Repos and
+       Bitbucket, not Gitea. TODO: once the repository has a Gitea remote, reference
+       Microsoft.SourceLink.Gitea (PrivateAssets="all") and add <SourceLinkGiteaHost Include="..." />.
+       Until then SourceLink stays off so builds without a remote stay warning-free. -->
+  <PropertyGroup>
+    <EnableSourceLink>false</EnableSourceLink>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+</Project>

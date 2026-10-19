@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- Uses Sample.Text 1.0; found by its [Command] attribute (no entry point). -->
+  <ItemGroup>
+    <ProjectReference Include="../Sample.Text.V1/Sample.Text.V1.csproj" />
+  </ItemGroup>
+</Project>

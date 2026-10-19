@@ -1,0 +1,6 @@
+--- offline, revocation=online, strict
+first: 180.9 ms accepted=False errors=[NU3018: The author primary signature found a chain building issue: The revocation function was unable to check revocation because the revocation server could not be reached. For more information, visit https://aka.ms/certificateRevocationMode.; NU3018: The author primary signature found a chain building issue: RevocationStatusUnknown: unable to get certificat
+newtonsoft.json.13.0.3.nupkg (2384 KiB): first 180.9 ms; warm n=1 median 8.7 ms min 8.7 max 8.7
+--- offline, revocation=offline, strict
+first: 151.8 ms accepted=False errors=[(no error issued) provider trust: SignedPackageVerificationResult=Valid, SignedPackageVerificationResult=Disallowed; other issues: Information/Undefined: Signature Hash Algorithm: SHA256 | Minimal/Undefined:  | Information/Undefined: Verifying the author primary signature with certificate: | Minimal/Undefined: Subject Name: CN=Json.NET (.NET Foundation), O=Js
+newtonsoft.json.13.0.3.nupkg (2384 KiB): first 151.8 ms; warm n=1 median 6.8 ms min 6.8 max 6.8

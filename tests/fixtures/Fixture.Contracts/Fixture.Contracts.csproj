@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- A host's contracts package: extension points plus build props that configure Alcove.Sdk. -->
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Alcove.Abstractions" Version="$(AlcoveVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="build/Fixture.Contracts.props" Pack="true" PackagePath="build/" />
+  </ItemGroup>
+</Project>

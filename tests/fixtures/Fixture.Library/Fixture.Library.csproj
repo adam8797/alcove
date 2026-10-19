@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- An ordinary third-party library a plugin depends on. -->
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+</Project>

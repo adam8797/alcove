@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- A third-party library whose types Fixture.Leak.Surface exposes in its public API, one type per leak kind. -->
+</Project>

@@ -1,0 +1,5 @@
+<UserControl x:Class="UriCodegenCheck.V"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <TextBlock Text="codegen check" />
+</UserControl>

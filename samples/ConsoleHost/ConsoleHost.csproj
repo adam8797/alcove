@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- A console host that loads plugins with Alcove. Run it with ../run-console-sample.sh. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Alcove\Alcove.csproj" />
+    <ProjectReference Include="..\ConsoleHost.Contracts\ConsoleHost.Contracts.csproj" />
+    <!-- Build order only: packs Alcove.Sdk, which the sample plugins are built with. -->
+    <ProjectReference Include="..\..\src\Alcove.Sdk\Alcove.Sdk.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+</Project>

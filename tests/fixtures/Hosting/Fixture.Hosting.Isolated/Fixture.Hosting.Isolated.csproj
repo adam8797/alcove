@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- Requires a cell of its own. -->
+  <PropertyGroup>
+    <PluginIsolated>true</PluginIsolated>
+  </PropertyGroup>
+</Project>

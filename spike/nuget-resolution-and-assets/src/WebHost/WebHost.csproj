@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <!-- Only exists to show inventory of a host that uses two shared frameworks (NETCore.App + AspNetCore.App). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../Spike/HostInventory.cs;../Spike/InventoryExtras.cs;../Spike/Resolution.cs;../Spike/Feeds.cs" />
+    <PackageReference Include="NuGet.DependencyResolver.Core" Version="7.9.0" />
+    <PackageReference Include="NuGet.Protocol" Version="7.9.0" />
+    <!-- also on the shared framework: what happens to an app-local package that the framework carries? -->
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,11 @@
+<Project>
+  <!-- A plugin that references Alcove.Autofac (for IServicePlugin) runs in a host that provides it: Alcove.Sdk
+       keeps it, and Autofac behind it, a dependency but never copies them to the output (the core's own
+       buildTransitive targets do the same for the core). Inert in projects that don't use Alcove.Sdk (such as
+       the host app). -->
+  <ItemGroup>
+    <PluginHostOwnedPackage Include="Alcove.Autofac" />
+    <PluginHostOwnedPackage Include="Autofac" />
+    <PluginHostOwnedPackage Include="Autofac.Extensions.DependencyInjection" />
+  </ItemGroup>
+</Project>

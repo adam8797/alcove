@@ -1,0 +1,16 @@
+<Solution>
+  <Project Path="Fixture.Consumer2/Fixture.Consumer2.csproj" />
+  <Project Path="Fixture.Consumer3/Fixture.Consumer3.csproj" />
+  <Project Path="Fixture.Dep.V1/Fixture.Dep.V1.csproj" />
+  <Project Path="Fixture.Dep.V2/Fixture.Dep.V2.csproj" />
+  <Project Path="Fixture.Dep.V3/Fixture.Dep.V3.csproj" />
+  <Project Path="Fixture.Late/Fixture.Late.csproj" />
+  <Project Path="Fixture.LateUser/Fixture.LateUser.csproj" />
+  <Project Path="Fixture.Middle/Fixture.Middle.csproj" />
+  <Project Path="Fixture.NativeUser1/Fixture.NativeUser1.csproj" />
+  <Project Path="Fixture.NativeUser2/Fixture.NativeUser2.csproj" />
+  <Project Path="Fixture.Provider/Fixture.Provider.csproj" />
+  <Project Path="Fixture.Top/Fixture.Top.csproj" />
+  <Project Path="Fixture.UserA/Fixture.UserA.csproj" />
+  <Project Path="Fixture.UserB/Fixture.UserB.csproj" />
+</Solution>

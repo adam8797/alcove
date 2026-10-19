@@ -1,0 +1,29 @@
+# Build output
+bin/
+obj/
+artifacts/
+TestResults/
+
+# Packages (packed fixtures, downloaded packages)
+*.nupkg
+*.snupkg
+packages/
+
+# Signing material
+*.pfx
+*.p12
+*.key
+*.pem
+!**/trustedroots/*.pem
+
+# IDE and OS
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.DotSettings.user
+.DS_Store
+
+# Claude Code local state (agent worktrees)
+.claude/

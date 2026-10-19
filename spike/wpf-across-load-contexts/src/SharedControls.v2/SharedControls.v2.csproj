@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Variant v2 of the XAML library "SharedControls". All variants share the assembly NAME SharedControls.
+       AssemblyVersion=2.0.0.0. Visible marker colour: SeaGreen. -->
+  <PropertyGroup>
+    <AssemblyName>SharedControls</AssemblyName>
+    <RootNamespace>SharedControls</RootNamespace>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
+    <Version>2.0.0.0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\SharedControls.Common\*.cs" />
+  </ItemGroup>
+</Project>

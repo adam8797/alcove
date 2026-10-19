@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- A plugin with an entry point and a prerelease version. -->
+  <PropertyGroup>
+    <Version>1.2.3-beta.1</Version>
+    <PluginEntryPoint>Fixture.EntryPointPlugin.GreeterPlugin</PluginEntryPoint>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Alcove.Sdk" Version="$(AlcoveVersion)" PrivateAssets="all" />
+    <PackageReference Include="Alcove.Abstractions" Version="$(AlcoveVersion)" />
+    <PackageReference Include="Fixture.Contracts" Version="[1.0,2.0)" />
+  </ItemGroup>
+</Project>

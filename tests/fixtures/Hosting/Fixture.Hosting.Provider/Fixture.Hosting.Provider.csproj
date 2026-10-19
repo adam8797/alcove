@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- Exposes Fixture.Dep 2.0's Widget in its public API: Fixture.Dep is an exposed dependency. -->
+  <PropertyGroup>
+    <PluginEntryPoint>Fixture.Hosting.Provider.ProviderPlugin</PluginEntryPoint>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Fixture.Hosting.Dep.V2/Fixture.Hosting.Dep.V2.csproj" />
+  </ItemGroup>
+</Project>

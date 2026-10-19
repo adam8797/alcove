@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../../Hosting/Plugin.props" />
+  <!-- Fixture.Lifecycle.Versioned 1.0.0, built against Fixture.Dep 1.0. -->
+  <PropertyGroup>
+    <PackageId>Fixture.Lifecycle.Versioned</PackageId>
+    <AssemblyName>Fixture.Lifecycle.Versioned</AssemblyName>
+    <RootNamespace>Fixture.Lifecycle.Versioned</RootNamespace>
+    <Version>1.0.0</Version>
+    <DefineConstants>$(DefineConstants);V1</DefineConstants>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../Versioned/Versioned.cs" />
+    <ProjectReference Include="../../Hosting/Fixture.Hosting.Dep.V1/Fixture.Hosting.Dep.V1.csproj" />
+  </ItemGroup>
+</Project>

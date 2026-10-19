@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- A plugin assembly with one public type per leak kind, plus internal-only uses that must not count. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Fixture.Leak.Dependency\Fixture.Leak.Dependency.csproj" />
+    <ProjectReference Include="..\Fixture.Leak.InternalDependency\Fixture.Leak.InternalDependency.csproj" />
+    <ProjectReference Include="..\Fixture.Leak.ForwardTarget\Fixture.Leak.ForwardTarget.csproj" />
+  </ItemGroup>
+</Project>

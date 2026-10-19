@@ -1,0 +1,21 @@
+<Project>
+  <!-- Sample plugins are built like third-party plugins: they don't import the repository's settings and
+       reference the packed Alcove.Sdk and ConsoleHost.Contracts from a local feed (run-console-sample.sh
+       sets it up). Required global property: AlcoveVersion. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- NU5104: stable sample packages depend on the prerelease (0.x-dev) Alcove packages. -->
+    <NoWarn>$(NoWarn);NU5104</NoWarn>
+    <IsPackable>true</IsPackable>
+    <Version Condition="'$(Version)' == ''">1.0.0</Version>
+    <Authors>Alcove samples</Authors>
+    <Description>Alcove sample plugin.</Description>
+    <!-- Each project sees only what it references directly (plugin dependencies are ProjectReferences, which
+         pack as package dependencies). -->
+    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+  </PropertyGroup>
+</Project>

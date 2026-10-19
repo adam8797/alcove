@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- Depends on the Faulty plugin, so it is never loaded. -->
+  <ItemGroup>
+    <ProjectReference Include="../Fixture.Hosting.Faulty/Fixture.Hosting.Faulty.csproj" />
+  </ItemGroup>
+</Project>

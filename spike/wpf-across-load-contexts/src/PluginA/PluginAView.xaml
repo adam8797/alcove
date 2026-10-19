@@ -1,0 +1,21 @@
+<UserControl x:Class="PluginA.PluginAView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:PluginA"
+             xmlns:host="clr-namespace:HostSdk;assembly=HostSdk"
+             xmlns:shared="clr-namespace:SharedControls;assembly=SharedControls">
+    <StackPanel Margin="4">
+        <TextBlock Text="MARK:PluginA.PluginAView" FontWeight="Bold" />
+        <!-- Q3: type in the plugin's own assembly -->
+        <local:AStatusText x:Name="LocalText" />
+        <!-- Q3: type in a host-owned assembly -->
+        <host:SharedBanner x:Name="Banner" />
+        <!-- Q5: UserControl from the compartment-private XAML library (x:Name forces a typed field + cast in Connect) -->
+        <shared:VersionBadge x:Name="Badge" />
+        <!-- Q5: lookless control, template from SharedControls' Themes/Generic.xaml -->
+        <shared:FancyBox x:Name="Fancy" />
+        <!-- Q6: DynamicResource to host keys (typed ComponentResourceKey and plain string key) -->
+        <Border x:Name="AccentBorder" Height="10" Background="{DynamicResource {x:Static host:HostKeys.AccentBrush}}" />
+        <TextBlock x:Name="HostTitleText" Text="{DynamicResource Host.Title}" />
+    </StackPanel>
+</UserControl>

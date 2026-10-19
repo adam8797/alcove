@@ -1,0 +1,7 @@
+<Project>
+  <!-- Imported by every plugin fixture: Alcove.Sdk + the host's contracts (which bring Alcove.Abstractions). -->
+  <ItemGroup>
+    <PackageReference Include="Alcove.Sdk" Version="$(AlcoveVersion)" PrivateAssets="all" />
+    <PackageReference Include="Fixture.HostContracts" Version="$(AlcoveVersion)" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Alcove: install plugins from NuGet feeds and load them into isolated cells (AssemblyLoadContexts), with an extension catalog for the host.</Description>
+    <PackageTags>plugins;nuget;assemblyloadcontext</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Alcove.Abstractions\Alcove.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Feeds, search, download (NuGet.Protocol, which brings Packaging for asset selection) and resolution
+         (RemoteDependencyWalker): architecture §1, ADR 0016. -->
+    <PackageReference Include="NuGet.Protocol" />
+    <PackageReference Include="NuGet.DependencyResolver.Core" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The SDK's RID graph (there is no SDK on end-user machines). -->
+    <EmbeddedResource Include="Internal\Assets\PortableRuntimeIdentifierGraph.json" LogicalName="Alcove.PortableRuntimeIdentifierGraph.json" />
+  </ItemGroup>
+
+  <!-- NuGet's trusted root bundles (trustedroots/README.md), which NuGet looks for next to NuGet.Packaging.dll.
+       Project references: copied to this project's output, and from there to every referencing app's output.
+       Package references: packed with buildTransitive/Alcove.targets, which copies them to the consuming app's
+       output and publish folders. -->
+  <ItemGroup>
+    <None Include="trustedroots\codesignctl.pem;trustedroots\timestampctl.pem"
+          Link="trustedroots\%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest"
+          Pack="true"
+          PackagePath="buildTransitive\trustedroots\" />
+    <None Include="buildTransitive\Alcove.targets" Pack="true" PackagePath="buildTransitive\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Alcove.Tests" />
+    <InternalsVisibleTo Include="Alcove.IntegrationTests" />
+  </ItemGroup>
+
+</Project>

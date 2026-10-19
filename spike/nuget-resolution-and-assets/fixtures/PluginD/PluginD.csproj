@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net8.0</TargetFramework><Version>1.0.0</Version><Authors>spike</Authors><Description>Plugin fixture PluginD</Description><PackageType>MyAppPlugin</PackageType></PropertyGroup>
+  <ItemGroup><PackageReference Include="LibShared" Version="1.0.0" /><None Include="PluginD.plugin.json" Pack="true" PackagePath="" /></ItemGroup>
+</Project>

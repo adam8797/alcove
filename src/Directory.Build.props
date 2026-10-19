@@ -1,0 +1,15 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <!-- Shipping packages -->
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Every public type and member is documented (CONTRIBUTING.md). An error even if TreatWarningsAsErrors is
+         ever turned off locally; likewise broken or ambiguous crefs and mismatched param tags. -->
+    <WarningsAsErrors>$(WarningsAsErrors);CS1591;CS1572;CS1573;CS1574;CS0419</WarningsAsErrors>
+    <!-- Pack on build so the integration tests can install the packages from a local feed. -->
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+</Project>

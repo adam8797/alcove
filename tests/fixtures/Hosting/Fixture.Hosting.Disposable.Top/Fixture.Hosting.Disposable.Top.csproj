@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- Records its disposal (and its singleton's) in the host's IEventLog service. -->
+  <PropertyGroup>
+    <PluginEntryPoint>Fixture.Hosting.Disposable.Top.DisposableTopPlugin</PluginEntryPoint>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Fixture.Hosting.Disposable.Base/Fixture.Hosting.Disposable.Base.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- A third-party library (another private assembly of the plugin's cell) with a service-plugin base class. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Fixture.Services.Contracts\Fixture.Services.Contracts.csproj" />
+  </ItemGroup>
+</Project>

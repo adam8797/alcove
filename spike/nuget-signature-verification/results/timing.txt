@@ -1,0 +1,27 @@
+--- online, cold CRL cache: downloaded/newtonsoft.json.13.0.3.nupkg
+first: 204.1 ms accepted=True errors=[] warnings=[]
+newtonsoft.json.13.0.3.nupkg (2384 KiB): first 204.1 ms; warm n=29 median 6.9 ms min 6.4 max 9.9
+--- offline, revocation=offline: downloaded/newtonsoft.json.13.0.3.nupkg
+first: 152.8 ms accepted=True errors=[] warnings=[]
+newtonsoft.json.13.0.3.nupkg (2384 KiB): first 152.8 ms; warm n=29 median 7.0 ms min 6.3 max 11.0
+--- online, cold CRL cache: downloaded/serilog.4.0.0.nupkg
+first: 222.6 ms accepted=True errors=[] warnings=[]
+serilog.4.0.0.nupkg (524 KiB): first 222.6 ms; warm n=29 median 8.9 ms min 8.4 max 17.3
+--- offline, revocation=offline: downloaded/serilog.4.0.0.nupkg
+first: 163.0 ms accepted=True errors=[] warnings=[]
+serilog.4.0.0.nupkg (524 KiB): first 163.0 ms; warm n=29 median 9.1 ms min 8.8 max 13.6
+--- online, cold CRL cache: feed/signed-selfsigned/Spike.SamplePlugin.1.0.0.nupkg
+first: 116.3 ms accepted=False errors=[NU3018: The author primary signature's signing certificate is not trusted by the trust provider.] warnings=[NU3042: The following X.509 root certificate is untrusted because it is not present in the certificate bundle at /home/adam/git/net-plugin-thing/spike/nuget-signature-verification/out/bundled/trustedroots/codesignctl.pem.  For more information, see documentation for NU3042.; NU3027: The signature should be timestamped to enable long-term signature validity after the certificate has expired.]
+Spike.SamplePlugin.1.0.0.nupkg (5 KiB): first 116.3 ms; warm n=29 median 1.2 ms min 1.1 max 2.0
+--- offline, revocation=offline: feed/signed-selfsigned/Spike.SamplePlugin.1.0.0.nupkg
+first: 142.5 ms accepted=False errors=[NU3018: The author primary signature's signing certificate is not trusted by the trust provider.] warnings=[NU3042: The following X.509 root certificate is untrusted because it is not present in the certificate bundle at /home/adam/git/net-plugin-thing/spike/nuget-signature-verification/out/bundled/trustedroots/codesignctl.pem.  For more information, see documentation for NU3042.; NU3027: The signature should be timestamped to enable long-term signature validity after the certificate has expired.]
+Spike.SamplePlugin.1.0.0.nupkg (5 KiB): first 142.5 ms; warm n=29 median 1.2 ms min 1.2 max 2.1
+--- online, cold CRL cache: feed/unsigned/Spike.SamplePlugin.1.0.0.nupkg
+first: 31.6 ms accepted=False errors=[NU3004: The package is not signed.] warnings=[]
+Spike.SamplePlugin.1.0.0.nupkg (3 KiB): first 31.6 ms; warm n=29 median 0.0 ms min 0.0 max 0.2
+--- offline, revocation=offline: feed/unsigned/Spike.SamplePlugin.1.0.0.nupkg
+first: 31.6 ms accepted=False errors=[NU3004: The package is not signed.] warnings=[]
+Spike.SamplePlugin.1.0.0.nupkg (3 KiB): first 31.6 ms; warm n=29 median 0.0 ms min 0.0 max 0.1
+--- OFFLINE, revocation=online, cold cache: newtonsoft
+first: 190.9 ms accepted=True errors=[] warnings=[NU3018: The author primary signature found a chain building issue: The revocation function was unable to check revocation because the revocation server could not be reached. For more information, visit https://aka.ms/certificateRevocationMode.; NU3018: The author primary signature found a chain building issue: RevocationStatusUnknown: unable to get certificate CRL]
+newtonsoft.json.13.0.3.nupkg (2384 KiB): first 190.9 ms; warm n=4 median 9.1 ms min 8.9 max 9.4

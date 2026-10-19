@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Host</AssemblyName>
+    <OutDir>$(LayoutDir)host/</OutDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Contracts/Contracts.csproj" />
+    <!-- Dep v1 is HOST-SHARED: in the host's deps.json and default context -->
+    <ProjectReference Include="../Dep.v1/Dep.v1.csproj" />
+  </ItemGroup>
+</Project>

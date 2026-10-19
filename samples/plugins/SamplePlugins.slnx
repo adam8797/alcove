@@ -1,0 +1,10 @@
+<Solution>
+  <Project Path="Sample.Broken/Sample.Broken.csproj" />
+  <Project Path="Sample.Dashboard/Sample.Dashboard.csproj" />
+  <Project Path="Sample.Formatting/Sample.Formatting.csproj" />
+  <Project Path="Sample.Greetings/Sample.Greetings.csproj" />
+  <Project Path="Sample.Report/Sample.Report.csproj" />
+  <Project Path="Sample.Text.V1/Sample.Text.V1.csproj" />
+  <Project Path="Sample.Text.V2/Sample.Text.V2.csproj" />
+  <Project Path="Sample.Weather/Sample.Weather.csproj" />
+</Solution>

@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- Attribute-only plugin built against Fixture.Dep 1.0. -->
+  <ItemGroup>
+    <ProjectReference Include="../Fixture.Hosting.Dep.V1/Fixture.Hosting.Dep.V1.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,5 @@
+interface Alcove.Autofac.IServicePlugin
+  void ConfigureContainer(ContainerBuilder builder)
+static class Alcove.Autofac.PluginContainerBuilderExtensions
+  static ContainerBuilder AddPlugins(this ContainerBuilder builder, Action<PluginHostOptions> configure)
+  static PluginHostOptions UseAutofac(this PluginHostOptions options, ILifetimeScope scope)

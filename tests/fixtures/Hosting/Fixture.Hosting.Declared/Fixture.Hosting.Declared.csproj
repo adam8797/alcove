@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- Two public IPlugin classes, but PluginEntryPoint names one: the manifest wins, no error. -->
+  <PropertyGroup>
+    <PluginEntryPoint>Fixture.Hosting.Declared.ChosenPlugin</PluginEntryPoint>
+  </PropertyGroup>
+</Project>

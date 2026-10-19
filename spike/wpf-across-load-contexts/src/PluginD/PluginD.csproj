@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Plugin D: uses SharedControls v1 ONLY from XAML (no x:Name, no code reference), so nothing
+       in D's code makes the runtime load SharedControls before the BAML parser needs it. -->
+  <PropertyGroup>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HostSdk\HostSdk.csproj" Private="false" />
+    <ProjectReference Include="..\SharedControls.v1\SharedControls.v1.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,33 @@
+<Project>
+  <!--
+    Alcove.Sdk: imported before the plugin's project file.
+
+    Properties a plugin project sets (see docs/plugin-developer-guide.md):
+      PluginPackageType        Required. The host's plugin PackageType. A host contracts package may set it
+                               from its own build/<id>.props.
+      PluginEntryPoint         Optional. Full name of the IPlugin type. Without it the host uses the
+                               plugin's one public, non-abstract IPlugin class (several: a validation
+                               error), or, with none, scans for [Extension] types.
+      PluginCell               Optional. Named cell to share with other plugins.
+      PluginIsolated           Optional. true to require a cell of the plugin's own.
+    Items:
+      PluginPrivateDependency  Package IDs that are always cell-private.
+      PluginHostOwnedPackage   Package IDs the host provides. They stay nuspec dependencies (their version
+                               ranges are the compatibility gate) but their runtime assets are never copied
+                               to the build output. A host contracts package adds itself (and e.g. its app
+                               SDK) from its build/<id>.props.
+  -->
+
+  <PropertyGroup>
+    <UsingAlcoveSdk>true</UsingAlcoveSdk>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Always host-owned (architecture §4), plus their own dependencies: a dependency of a host-owned
+         package is host-owned too (DependencyInjection.Abstractions comes with Logging.Abstractions). -->
+    <PluginHostOwnedPackage Include="Alcove.Abstractions" />
+    <PluginHostOwnedPackage Include="NuGet.Versioning" />
+    <PluginHostOwnedPackage Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PluginHostOwnedPackage Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+</Project>

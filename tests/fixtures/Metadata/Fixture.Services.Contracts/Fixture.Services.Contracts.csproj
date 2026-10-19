@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Stands in for an add-on's service-plugin interface (e.g. Alcove.DependencyInjection.IServicePlugin): host-owned. -->
+</Project>

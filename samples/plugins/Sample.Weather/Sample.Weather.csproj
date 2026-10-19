@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- Uses Sample.Text 2.0, in its own cell next to Sample.Greetings' 1.0; has an entry point. -->
+  <PropertyGroup>
+    <PluginEntryPoint>Sample.Weather.WeatherPlugin</PluginEntryPoint>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Sample.Text.V2/Sample.Text.V2.csproj" />
+  </ItemGroup>
+</Project>

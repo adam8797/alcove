@@ -1,0 +1,18 @@
+<Project>
+  <!-- Plugin fixtures for the dependency injection add-on tests: packed together (DependencyInjection.slnx) into a
+       folder that tests install from (a folder feed for hot installs). They build with Alcove.Sdk against
+       Fixture.HostContracts. The service plugins implement both add-ons' IServicePlugin, so one package runs under
+       either container; each registers its services under the adapter's name, so tests see which one ran. -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Version Condition="'$(Version)' == ''">1.0.0</Version>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Alcove.Sdk" Version="$(AlcoveVersion)" PrivateAssets="all" />
+    <PackageReference Include="Fixture.HostContracts" Version="$(AlcoveVersion)" />
+  </ItemGroup>
+</Project>

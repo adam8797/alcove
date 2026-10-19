@@ -1,0 +1,5 @@
+<Project>
+  <Target Name="_FixtureRequireAlcoveVersion" BeforeTargets="_GenerateRestoreGraph;CollectPackageReferences;Build">
+    <Error Condition="'$(AlcoveVersion)' == ''" Text="Pass -p:AlcoveVersion=&lt;version of the packed Alcove packages&gt;." />
+  </Target>
+</Project>

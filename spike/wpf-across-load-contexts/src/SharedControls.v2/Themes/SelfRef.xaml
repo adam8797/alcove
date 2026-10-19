@@ -1,0 +1,9 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Scenario 11: a library dictionary that merges ANOTHER dictionary of ITS OWN assembly, unversioned.
+         WPF can append the local assembly version here, but only when the AppContext switch
+         Switch.System.Windows.Baml2006.AppendLocalAssemblyVersionForSourceUri is true (default false). -->
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/SharedControls;component/Themes/Shared.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+</ResourceDictionary>

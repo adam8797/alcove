@@ -1,0 +1,38 @@
+class Alcove.ExtensionAttribute : Attribute
+  .ctor(Type extensionPoint)
+  Type ExtensionPoint { get; }
+  ExtensionLifetime Lifetime { get; init; }
+enum Alcove.ExtensionLifetime
+  Singleton = 0
+  Transient = 1
+interface Alcove.IExtensionRegistrar
+  void Add<T, TImplementation>(object? metadata = null, ExtensionLifetime lifetime = ExtensionLifetime.Singleton) where T : class where TImplementation : class, T
+  void Add<T>(Func<T> factory, object? metadata = null, ExtensionLifetime lifetime = ExtensionLifetime.Singleton) where T : class
+interface Alcove.IPlugin
+  virtual ValueTask InitializeAsync(IPluginContext context, CancellationToken cancellationToken = default)
+  void Register(IExtensionRegistrar registrar, IPluginContext context)
+interface Alcove.IPluginContext
+  string DataDirectory { get; }
+  ILogger Logger { get; }
+  string PluginId { get; }
+  IServiceProvider Services { get; }
+  NuGetVersion Version { get; }
+sealed record Alcove.PluginManifest
+  .ctor()
+  string? Cell { get; init; }
+  const int CurrentSchemaVersion = 1
+  string? EntryPoint { get; init; }
+  bool Equals(PluginManifest? other)
+  override bool Equals(object? obj)
+  const string FileNameSuffix = ".plugin.json"
+  static string GetFileName(string packageId)
+  override int GetHashCode()
+  bool Isolated { get; init; }
+  static PluginManifest Parse(string json)
+  IReadOnlyList<string> PrivateDependencies { get; init; }
+  static PluginManifest Read(Stream utf8Json)
+  int SchemaVersion { get; init; }
+  string ToJson()
+  override string ToString()
+  static bool op_Equality(PluginManifest? left, PluginManifest? right)
+  static bool op_Inequality(PluginManifest? left, PluginManifest? right)

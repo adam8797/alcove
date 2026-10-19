@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Plugin C: SharedControls v1b = same AssemblyVersion (1.0.0.0) as v1 but different content. -->
+  <PropertyGroup>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HostSdk\HostSdk.csproj" Private="false" />
+    <ProjectReference Include="..\SharedControls.v1b\SharedControls.v1b.csproj" />
+  </ItemGroup>
+</Project>

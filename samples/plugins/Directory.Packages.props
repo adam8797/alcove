@@ -1,0 +1,6 @@
+<Project>
+  <!-- Sample plugins behave like external projects: no central package management. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>

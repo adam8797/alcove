@@ -1,0 +1,16 @@
+<Project>
+  <!-- Shared by the Fixture.Wpf.Controls.* variants: the same XAML library (assembly name Fixture.Wpf.Controls)
+       built with different AssemblyVersion settings. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <AssemblyName>Fixture.Wpf.Controls</AssemblyName>
+    <RootNamespace>Fixture.Wpf.Controls</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Page Include="$(MSBuildThisFileDirectory)Badge.xaml" Link="Badge.xaml" />
+    <Compile Include="$(MSBuildThisFileDirectory)Badge.xaml.cs" Link="Badge.xaml.cs" DependentUpon="Badge.xaml" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Fixture.Wpf.Code\Fixture.Wpf.Code.csproj" />
+  </ItemGroup>
+</Project>

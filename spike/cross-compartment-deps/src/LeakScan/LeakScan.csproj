@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>LeakScan</AssemblyName>
+    <OutDir>$(LayoutDir)tools/LeakScan/</OutDir>
+  </PropertyGroup>
+</Project>

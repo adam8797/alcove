@@ -1,0 +1,391 @@
+# [nuget-Information] X.509 certificate chain validation will not have any trusted roots. Chain building will fail with an untrusted status.
+# [nuget-Information] X.509 certificate chain validation will not have any trusted roots. Chain building will fail with an untrusted status.
+# OS=Ubuntu 26.04.1 LTS runtime=10.0.7 NuGet.Packaging=7.3.1.0 trust-store=sdk revocation=Online
+# NuGet.Packaging.dll dir: /home/adam/git/net-plugin-thing/spike/nuget-signature-verification/out/plain
+
+## P0 none (signatures optional)
+  nuget.org author+repo: Newtonsoft.Json 13.0.3    ACCEPT signed=True    136.0 ms
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018, NU3018(revocation), NU3037
+  nuget.org author+repo: Humanizer.Core 2.14.1     ACCEPT signed=True      5.6 ms
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018, NU3018(revocation), NU3037
+  nuget.org repo-only:   Serilog 4.0.0             ACCEPT signed=True      3.5 ms
+      error NU3028: The repository primary signature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018, NU3018(revocation)
+  nuget.org repo-only:   Dapper 2.1.35             ACCEPT signed=True      3.1 ms
+      error NU3028: The repository primary signature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018, NU3018(revocation), NU3037
+  local unsigned                                   ACCEPT signed=False     0.1 ms
+  local self-signed (allow-listed cert)            ACCEPT signed=True      0.8 ms
+      warn  NU3042, NU3018, NU3027
+  local self-signed (other cert)                   ACCEPT signed=True      0.7 ms
+      warn  NU3042, NU3018, NU3027
+  TAMPERED self-signed                             REJECT signed=True     12.7 ms
+      error NU3008: The package integrity check failed. The package has changed since it was signed. Try clearing the local http-cache and run nuget operation again.
+      warn  NU3042, NU3018, NU3027
+  TAMPERED Newtonsoft.Json                         REJECT signed=True      7.1 ms
+      error NU3008: The package integrity check failed. The package has changed since it was signed. Try clearing the local http-cache and run nuget operation again.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018, NU3018(revocation), NU3037
+
+## P1 require signed, any trusted signer
+  nuget.org author+repo: Newtonsoft.Json 13.0.3    REJECT signed=True      7.0 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)
+  nuget.org author+repo: Humanizer.Core 2.14.1     REJECT signed=True      4.6 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)
+  nuget.org repo-only:   Serilog 4.0.0             REJECT signed=True      3.1 ms
+      error NU3018: The repository primary signature's signing certificate is not trusted by the trust provider.
+      error NU3028: The repository primary signature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)
+  nuget.org repo-only:   Dapper 2.1.35             REJECT signed=True      3.0 ms
+      error NU3018: The repository primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository primary signature validity period has expired.
+      error NU3028: The repository primary signature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)
+  local unsigned                                   REJECT signed=False     0.2 ms
+      error NU3004: The package is not signed.
+  local self-signed (allow-listed cert)            REJECT signed=True      0.8 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      warn  NU3042, NU3027
+  local self-signed (other cert)                   REJECT signed=True      0.7 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      warn  NU3042, NU3027
+  TAMPERED self-signed                             REJECT signed=True      1.0 ms
+      error NU3008: The package integrity check failed. The package has changed since it was signed. Try clearing the local http-cache and run nuget operation again.
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      warn  NU3042, NU3027
+  TAMPERED Newtonsoft.Json                         REJECT signed=True      7.0 ms
+      error NU3008: The package integrity check failed. The package has changed since it was signed. Try clearing the local http-cache and run nuget operation again.
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)
+
+## P2 require signed, allow: test author cert (untrusted root ok)
+  nuget.org author+repo: Newtonsoft.Json 13.0.3    REJECT signed=True     11.9 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3018(revocation)
+  nuget.org author+repo: Humanizer.Core 2.14.1     REJECT signed=True      4.7 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3018(revocation)
+  nuget.org repo-only:   Serilog 4.0.0             REJECT signed=True      3.1 ms
+      error NU3018: The repository primary signature's signing certificate is not trusted by the trust provider.
+      error NU3028: The repository primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3018(revocation)
+  nuget.org repo-only:   Dapper 2.1.35             REJECT signed=True      3.0 ms
+      error NU3018: The repository primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository primary signature validity period has expired.
+      error NU3028: The repository primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3018(revocation)
+  local unsigned                                   REJECT signed=False     0.1 ms
+      error NU3004: The package is not signed.
+  local self-signed (allow-listed cert)            ACCEPT signed=True      0.9 ms
+      warn  NU3027
+  local self-signed (other cert)                   REJECT signed=True      0.8 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3027
+  TAMPERED self-signed                             REJECT signed=True      1.0 ms
+      error NU3008: The package integrity check failed. The package has changed since it was signed. Try clearing the local http-cache and run nuget operation again.
+      warn  NU3027
+  TAMPERED Newtonsoft.Json                         REJECT signed=True      7.1 ms
+      error NU3008: The package integrity check failed. The package has changed since it was signed. Try clearing the local http-cache and run nuget operation again.
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3018(revocation)
+
+## P3 require signed, allow: test author cert WITHOUT untrusted-root flag
+  nuget.org author+repo: Newtonsoft.Json 13.0.3    REJECT signed=True      8.1 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3018(revocation)
+  nuget.org author+repo: Humanizer.Core 2.14.1     REJECT signed=True      4.8 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3018(revocation)
+  nuget.org repo-only:   Serilog 4.0.0             REJECT signed=True      2.8 ms
+      error NU3018: The repository primary signature's signing certificate is not trusted by the trust provider.
+      error NU3028: The repository primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3018(revocation)
+  nuget.org repo-only:   Dapper 2.1.35             REJECT signed=True      2.6 ms
+      error NU3018: The repository primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository primary signature validity period has expired.
+      error NU3028: The repository primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3018(revocation)
+  local unsigned                                   REJECT signed=False     0.0 ms
+      error NU3004: The package is not signed.
+  local self-signed (allow-listed cert)            REJECT signed=True      0.7 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      warn  NU3042, NU3027
+  local self-signed (other cert)                   REJECT signed=True      0.7 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3027
+  TAMPERED self-signed                             REJECT signed=True      0.8 ms
+      error NU3008: The package integrity check failed. The package has changed since it was signed. Try clearing the local http-cache and run nuget operation again.
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      warn  NU3042, NU3027
+  TAMPERED Newtonsoft.Json                         REJECT signed=True      6.2 ms
+      error NU3008: The package integrity check failed. The package has changed since it was signed. Try clearing the local http-cache and run nuget operation again.
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3018(revocation)
+
+## P4 require signed, allow: nuget.org repo (any owner)
+  nuget.org author+repo: Newtonsoft.Json 13.0.3    REJECT signed=True      8.1 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)
+  nuget.org author+repo: Humanizer.Core 2.14.1     REJECT signed=True      4.0 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)
+  nuget.org repo-only:   Serilog 4.0.0             REJECT signed=True      2.8 ms
+      error NU3018: The repository primary signature's signing certificate is not trusted by the trust provider.
+      error NU3028: The repository primary signature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)
+  nuget.org repo-only:   Dapper 2.1.35             REJECT signed=True      2.6 ms
+      error NU3018: The repository primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository primary signature validity period has expired.
+      error NU3028: The repository primary signature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)
+  local unsigned                                   REJECT signed=False     0.0 ms
+      error NU3004: The package is not signed.
+  local self-signed (allow-listed cert)            REJECT signed=True      0.7 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3027
+  local self-signed (other cert)                   REJECT signed=True      0.6 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3027
+  TAMPERED self-signed                             REJECT signed=True      0.8 ms
+      error NU3008: The package integrity check failed. The package has changed since it was signed. Try clearing the local http-cache and run nuget operation again.
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3027
+  TAMPERED Newtonsoft.Json                         REJECT signed=True      6.3 ms
+      error NU3008: The package integrity check failed. The package has changed since it was signed. Try clearing the local http-cache and run nuget operation again.
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)
+
+## P5 require signed, allow: nuget.org repo with owners [jamesnk, serilog]
+  nuget.org author+repo: Newtonsoft.Json 13.0.3    REJECT signed=True      6.6 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)
+  nuget.org author+repo: Humanizer.Core 2.14.1     REJECT signed=True      4.0 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3018(revocation)
+  nuget.org repo-only:   Serilog 4.0.0             REJECT signed=True      2.7 ms
+      error NU3018: The repository primary signature's signing certificate is not trusted by the trust provider.
+      error NU3028: The repository primary signature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)
+  nuget.org repo-only:   Dapper 2.1.35             REJECT signed=True      2.6 ms
+      error NU3018: The repository primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository primary signature validity period has expired.
+      error NU3028: The repository primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3018(revocation)
+  local unsigned                                   REJECT signed=False     0.0 ms
+      error NU3004: The package is not signed.
+  local self-signed (allow-listed cert)            REJECT signed=True      0.7 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3027
+  local self-signed (other cert)                   REJECT signed=True      0.7 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3027
+  TAMPERED self-signed                             REJECT signed=True      0.8 ms
+      error NU3008: The package integrity check failed. The package has changed since it was signed. Try clearing the local http-cache and run nuget operation again.
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3027
+  TAMPERED Newtonsoft.Json                         REJECT signed=True      6.3 ms
+      error NU3008: The package integrity check failed. The package has changed since it was signed. Try clearing the local http-cache and run nuget operation again.
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)
+
+## P6 require signed, allow: Json.NET author cert only
+  nuget.org author+repo: Newtonsoft.Json 13.0.3    REJECT signed=True      6.2 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)
+  nuget.org author+repo: Humanizer.Core 2.14.1     REJECT signed=True      4.1 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3018(revocation)
+  nuget.org repo-only:   Serilog 4.0.0             REJECT signed=True      3.7 ms
+      error NU3018: The repository primary signature's signing certificate is not trusted by the trust provider.
+      error NU3028: The repository primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3018(revocation)
+  nuget.org repo-only:   Dapper 2.1.35             REJECT signed=True      3.4 ms
+      error NU3018: The repository primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository primary signature validity period has expired.
+      error NU3028: The repository primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3018(revocation)
+  local unsigned                                   REJECT signed=False     0.0 ms
+      error NU3004: The package is not signed.
+  local self-signed (allow-listed cert)            REJECT signed=True      0.8 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3027
+  local self-signed (other cert)                   REJECT signed=True      0.7 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3027
+  TAMPERED self-signed                             REJECT signed=True      0.8 ms
+      error NU3008: The package integrity check failed. The package has changed since it was signed. Try clearing the local http-cache and run nuget operation again.
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3027
+  TAMPERED Newtonsoft.Json                         REJECT signed=True      6.3 ms
+      error NU3008: The package integrity check failed. The package has changed since it was signed. Try clearing the local http-cache and run nuget operation again.
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)
+
+## P7 not required but allow-list set: test author + nuget.org
+  nuget.org author+repo: Newtonsoft.Json 13.0.3    REJECT signed=True      6.6 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)
+  nuget.org author+repo: Humanizer.Core 2.14.1     REJECT signed=True      4.0 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)
+  nuget.org repo-only:   Serilog 4.0.0             REJECT signed=True      2.7 ms
+      error NU3018: The repository primary signature's signing certificate is not trusted by the trust provider.
+      error NU3028: The repository primary signature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)
+  nuget.org repo-only:   Dapper 2.1.35             REJECT signed=True      2.6 ms
+      error NU3018: The repository primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository primary signature validity period has expired.
+      error NU3028: The repository primary signature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)
+  local unsigned                                   ACCEPT signed=False     0.0 ms
+  local self-signed (allow-listed cert)            ACCEPT signed=True      0.7 ms
+      warn  NU3027
+  local self-signed (other cert)                   REJECT signed=True      0.7 ms
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3034: package is not signed by an allowed signer
+      warn  NU3042, NU3027
+  TAMPERED self-signed                             REJECT signed=True      0.8 ms
+      error NU3008: The package integrity check failed. The package has changed since it was signed. Try clearing the local http-cache and run nuget operation again.
+      warn  NU3027
+  TAMPERED Newtonsoft.Json                         REJECT signed=True      6.3 ms
+      error NU3008: The package integrity check failed. The package has changed since it was signed. Try clearing the local http-cache and run nuget operation again.
+      error NU3018: The author primary signature's signing certificate is not trusted by the trust provider.
+      error NU3037: The author primary signature validity period has expired.
+      error NU3028: The author primary signature's timestamping certificate is not trusted by the trust provider.
+      error NU3018: The repository countersignature's signing certificate is not trusted by the trust provider.
+      error NU3037: The repository countersignature validity period has expired.
+      error NU3028: The repository countersignature's timestamping certificate is not trusted by the trust provider.
+      warn  NU3042, NU3018(revocation)

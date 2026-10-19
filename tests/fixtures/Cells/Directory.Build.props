@@ -1,0 +1,15 @@
+<Project>
+  <!-- Cell scenario fixtures: plain libraries the integration tests load into cells directly (no packages).
+       Built together with Cells.slnx; each project's output goes to $(CellFixturesOutput)<ProjectName>/. -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+    <!-- Each fixture sees only the versions it references directly (e.g. Consumer3: Dep 3.0, not the provider's 2.0). -->
+    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <OutDir Condition="'$(CellFixturesOutput)' != ''">$(CellFixturesOutput)$(MSBuildProjectName)/</OutDir>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Host-owned assembly (plays the role of <TheApp>.Sdk): shared contract, UserControl, styles, resource keys.
+       Always loaded from the default context. -->
+  <PropertyGroup>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <RootNamespace>HostSdk</RootNamespace>
+  </PropertyGroup>
+</Project>

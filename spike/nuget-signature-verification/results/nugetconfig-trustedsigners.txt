@@ -1,0 +1,14 @@
+# [nuget-Information] X.509 certificate chain validation will use the fallback certificate bundle at '/home/adam/git/net-plugin-thing/spike/nuget-signature-verification/out/bundled/trustedroots/codesignctl.pem'.
+# [nuget-Information] X.509 certificate chain validation will use the fallback certificate bundle at '/home/adam/git/net-plugin-thing/spike/nuget-signature-verification/out/bundled/trustedroots/timestampctl.pem'.
+# OS=Ubuntu 26.04.1 LTS runtime=10.0.7 NuGet.Packaging=7.3.1.0 trust-store=sdk revocation=Online
+# NuGet.Packaging.dll dir: /home/adam/git/net-plugin-thing/spike/nuget-signature-verification/out/bundled
+policy=Require allowList=3
+  target=Author placement=PrimarySignature fp=1EEBEA645B50BBAC... untrustedRoot=True owners=[]
+  target=Repository placement=Any fp=5A2901D6ADA3D182... untrustedRoot=False owners=[jamesnk,serilog]
+  target=Repository placement=Any fp=1F4B311D9ACC115C... untrustedRoot=False owners=[jamesnk,serilog]
+  downloaded/newtonsoft.json.13.0.3.nupkg                 ACCEPT 
+  downloaded/humanizer.core.2.14.1.nupkg                  REJECT NU3034
+  downloaded/serilog.4.0.0.nupkg                          ACCEPT 
+  feed/signed-selfsigned/Spike.SamplePlugin.1.0.0.nupkg   ACCEPT 
+  feed/signed-other/Spike.SamplePlugin.1.0.0.nupkg        REJECT NU3018; NU3034
+  feed/unsigned/Spike.SamplePlugin.1.0.0.nupkg            REJECT NU3004

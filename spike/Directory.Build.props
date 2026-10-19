@@ -1,0 +1,3 @@
+<Project>
+  <!-- Spikes are throwaway code with their own settings: don't inherit the repository's Directory.Build.props. -->
+</Project>

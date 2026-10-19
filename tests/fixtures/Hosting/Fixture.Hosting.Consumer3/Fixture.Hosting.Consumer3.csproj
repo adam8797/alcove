@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- Depends on the Provider plugin but needs Dep 3.0, higher than the provider's cell has. -->
+  <ItemGroup>
+    <ProjectReference Include="../Fixture.Hosting.Provider/Fixture.Hosting.Provider.csproj" />
+    <ProjectReference Include="../Fixture.Hosting.Dep.V3/Fixture.Hosting.Dep.V3.csproj" />
+  </ItemGroup>
+</Project>

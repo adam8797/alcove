@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Plugin B: SharedControls v2 (compartment-private) and a plugin dependency on PluginA (provided by A's compartment). -->
+  <PropertyGroup>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <!-- Don't let PluginA's SharedControls v1 flow in transitively; B has its own v2. -->
+    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+    <NoWarn>$(NoWarn);MSB3277</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\HostSdk\HostSdk.csproj" Private="false" />
+    <ProjectReference Include="..\SharedControls.v2\SharedControls.v2.csproj" />
+    <!-- Plugin dependency: compile against A, but A is loaded from A's compartment at runtime. -->
+    <ProjectReference Include="..\PluginA\PluginA.csproj" Private="false" />
+  </ItemGroup>
+</Project>

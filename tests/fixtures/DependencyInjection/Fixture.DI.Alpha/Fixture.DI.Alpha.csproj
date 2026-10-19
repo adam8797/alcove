@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../ServicePlugin.props" />
+  <!-- A service plugin: a cell service by type that needs a host service, a singleton and a transient extension. -->
+  <PropertyGroup>
+    <PluginEntryPoint>Fixture.DI.Alpha.AlphaPlugin</PluginEntryPoint>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>CChain</AssemblyName><RootNamespace>CChain</RootNamespace>
+    <Version>1.0.0</Version>
+    <OutDir>$(LayoutDir)packages/CChain/1.0.0/</OutDir>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Contracts/Contracts.csproj" Private="false" />
+    <Reference Include="B"><HintPath>$(LayoutDir)packages/B/1.0.0/B.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

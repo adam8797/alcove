@@ -1,0 +1,22 @@
+<Project>
+  <!-- Alcove verifies package signatures with NuGet.Packaging, which only finds its trusted root bundles
+       (code signing and timestamping) in "trustedroots/" next to NuGet.Packaging.dll. Copy them to the app's
+       output and publish folders. Set AlcoveCopyTrustedRoots=false to manage them yourself. Not in plugins
+       (Alcove.Sdk), which only get here through a DI add-on and run inside the host. -->
+  <ItemGroup Condition="'$(AlcoveCopyTrustedRoots)' != 'false' and '$(UsingAlcoveSdk)' != 'true'">
+    <None Include="$(MSBuildThisFileDirectory)trustedroots/codesignctl.pem;$(MSBuildThisFileDirectory)trustedroots/timestampctl.pem"
+          Link="trustedroots/%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest"
+          Visible="false"
+          Pack="false" />
+  </ItemGroup>
+
+  <!-- A plugin referencing a DI add-on (for IServicePlugin) depends on the core through it. The host provides the
+       core and its runtime dependencies, so Alcove.Sdk never copies them to the plugin's output. -->
+  <ItemGroup Condition="'$(UsingAlcoveSdk)' == 'true'">
+    <PluginHostOwnedPackage Include="Alcove" />
+    <PluginHostOwnedPackage Include="NuGet.Common;NuGet.Configuration;NuGet.DependencyResolver.Core;NuGet.Frameworks;NuGet.LibraryModel;NuGet.Packaging;NuGet.Protocol" />
+    <PluginHostOwnedPackage Include="Newtonsoft.Json;System.Security.Cryptography.Pkcs;System.Security.Cryptography.ProtectedData" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- No IServicePlugin and no add-on reference: its extension still gets constructor injection. -->
+  <PropertyGroup>
+    <PluginEntryPoint>Fixture.DI.Plain.PlainPlugin</PluginEntryPoint>
+  </PropertyGroup>
+</Project>

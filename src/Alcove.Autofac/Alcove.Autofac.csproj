@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Autofac add-on for Alcove: builder.AddPlugins(), constructor injection for extensions, and IServicePlugin so plugins register services in their cell's child lifetime scope.</Description>
+    <PackageTags>plugins;nuget;assemblyloadcontext;autofac;dependency-injection</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Alcove\Alcove.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Autofac for the cells' lifetime scopes, Autofac.Extensions.DependencyInjection for AutofacServiceProvider
+         (and ActivatorUtilities through DependencyInjection.Abstractions). Lowest versions with keyed-service
+         support: this package is host-owned, so they're a floor for every plugin that references it. -->
+    <PackageReference Include="Autofac" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Plugins built with Alcove.Sdk treat this package as host-owned (never copied to their output). -->
+    <None Include="buildTransitive\Alcove.Autofac.props" Pack="true" PackagePath="buildTransitive\" />
+  </ItemGroup>
+
+</Project>

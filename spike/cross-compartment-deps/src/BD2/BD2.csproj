@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>BD2</AssemblyName><RootNamespace>BD2</RootNamespace>
+    <Version>1.0.0</Version>
+    <OutDir>$(LayoutDir)packages/BD2/1.0.0/</OutDir>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <DefineConstants>$(DefineConstants);BD2</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Contracts/Contracts.csproj" Private="false" />
+    <Reference Include="A"><HintPath>$(LayoutDir)packages/A/1.0.0/A.dll</HintPath><Private>false</Private></Reference>
+    <ProjectReference Include="../Dep.v2/Dep.v2.csproj" Private="false" />
+    <Compile Include="../BDShared/Leaky.cs" />
+  </ItemGroup>
+</Project>

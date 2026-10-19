@@ -1,0 +1,23 @@
+<Project>
+  <!--
+    Fixture projects stand in for third-party plugin and host-contracts projects. They deliberately don't
+    import the repository's Directory.Build.props or Directory.Packages.props: integration tests copy this
+    folder to a temporary workspace and build it against a local feed holding the packed Alcove packages.
+
+    Required global property: AlcoveVersion (the version of the packed Alcove.* packages).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <!-- Any warning from Alcove.Sdk or NuGet pack fails the fixture build. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <MSBuildTreatWarningsAsErrors>true</MSBuildTreatWarningsAsErrors>
+    <!-- NU5104: stable fixture packages depend on the prerelease (0.x-dev) Alcove packages. -->
+    <NoWarn>$(NoWarn);NU5104</NoWarn>
+    <Authors>Alcove fixtures</Authors>
+    <Description>Alcove test fixture.</Description>
+    <EnableSourceLink>false</EnableSourceLink>
+  </PropertyGroup>
+</Project>

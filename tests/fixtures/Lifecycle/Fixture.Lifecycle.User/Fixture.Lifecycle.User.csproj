@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../../Hosting/Plugin.props" />
+  <!-- Depends on the plugin Fixture.Lifecycle.Versioned [1.0.0, 3.0.0): updates of it must stay below 3.0. -->
+  <ItemGroup>
+    <PackageReference Include="Fixture.Lifecycle.Versioned" Version="[1.0.0, 3.0.0)" />
+  </ItemGroup>
+</Project>

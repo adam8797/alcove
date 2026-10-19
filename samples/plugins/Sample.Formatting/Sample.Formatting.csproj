@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- A plugin other plugins depend on. Its public API returns Sample.Text's TextBlock, so Sample.Text is an
+       exposed dependency: its dependents get it through this plugin's cell. -->
+  <ItemGroup>
+    <ProjectReference Include="../Sample.Text.V2/Sample.Text.V2.csproj" />
+  </ItemGroup>
+</Project>

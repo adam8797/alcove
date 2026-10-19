@@ -1,0 +1,6 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+    <sys:String x:Key="Shared.VersionText">MARK:SharedControls.v1b.SharedDictionary</sys:String>
+    <SolidColorBrush x:Key="Shared.Brush" Color="Orange" />
+</ResourceDictionary>

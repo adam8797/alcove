@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Requires a cell of its own, sets PluginPackageType itself and sets its own AssemblyVersion (which
+       Alcove.Sdk must keep). -->
+  <PropertyGroup>
+    <Version>3.0.0</Version>
+    <AssemblyVersion>3.0.1.0</AssemblyVersion>
+    <PluginPackageType>FixturePlugin</PluginPackageType>
+    <PluginIsolated>true</PluginIsolated>
+    <PluginEntryPoint>Fixture.IsolatedPlugin.IsolatedPlugin</PluginEntryPoint>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Alcove.Sdk" Version="$(AlcoveVersion)" PrivateAssets="all" />
+    <PackageReference Include="Alcove.Abstractions" Version="$(AlcoveVersion)" />
+    <PackageReference Include="Fixture.Contracts" Version="[1.0,2.0)" />
+  </ItemGroup>
+</Project>

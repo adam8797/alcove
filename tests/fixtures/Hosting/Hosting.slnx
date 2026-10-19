@@ -1,0 +1,24 @@
+<Solution>
+  <Project Path="Fixture.Hosting.AfterFaulty/Fixture.Hosting.AfterFaulty.csproj" />
+  <Project Path="Fixture.Hosting.Ambiguous/Fixture.Hosting.Ambiguous.csproj" />
+  <Project Path="Fixture.Hosting.BadExtension/Fixture.Hosting.BadExtension.csproj" />
+  <Project Path="Fixture.Hosting.Consumer/Fixture.Hosting.Consumer.csproj" />
+  <Project Path="Fixture.Hosting.Consumer3/Fixture.Hosting.Consumer3.csproj" />
+  <Project Path="Fixture.Hosting.Declared/Fixture.Hosting.Declared.csproj" />
+  <Project Path="Fixture.Hosting.Dep.V1/Fixture.Hosting.Dep.V1.csproj" />
+  <Project Path="Fixture.Hosting.Dep.V2/Fixture.Hosting.Dep.V2.csproj" />
+  <Project Path="Fixture.Hosting.Dep.V3/Fixture.Hosting.Dep.V3.csproj" />
+  <Project Path="Fixture.Hosting.Discovered/Fixture.Hosting.Discovered.csproj" />
+  <Project Path="Fixture.Hosting.Disposable.Base/Fixture.Hosting.Disposable.Base.csproj" />
+  <Project Path="Fixture.Hosting.Disposable.Top/Fixture.Hosting.Disposable.Top.csproj" />
+  <Project Path="Fixture.Hosting.Faulty/Fixture.Hosting.Faulty.csproj" />
+  <Project Path="Fixture.Hosting.FaultyInit/Fixture.Hosting.FaultyInit.csproj" />
+  <Project Path="Fixture.Hosting.Hook/Fixture.Hosting.Hook.csproj" />
+  <Project Path="Fixture.Hosting.HookUser/Fixture.Hosting.HookUser.csproj" />
+  <Project Path="Fixture.Hosting.Isolated/Fixture.Hosting.Isolated.csproj" />
+  <Project Path="Fixture.Hosting.Middle/Fixture.Hosting.Middle.csproj" />
+  <Project Path="Fixture.Hosting.Provider/Fixture.Hosting.Provider.csproj" />
+  <Project Path="Fixture.Hosting.Top/Fixture.Hosting.Top.csproj" />
+  <Project Path="Fixture.Hosting.UserA/Fixture.Hosting.UserA.csproj" />
+  <Project Path="Fixture.Hosting.UserB/Fixture.Hosting.UserB.csproj" />
+</Solution>

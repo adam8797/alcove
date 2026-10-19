@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Checks what pack URI the markup compiler puts in InitializeComponent when AssemblyVersion is NOT an
+       explicit MSBuild property (the SDK default). Build it and grep obj/ for "System.Uri(":
+         dotnet build                       -> "/UriCodegenCheck;component/v.xaml"   (no version)
+         dotnet build -p:Version=3.4.5      -> still no version (assembly itself gets 3.4.5.0)
+         dotnet build -p:AssemblyVersion=3.4.5.0 -> "/UriCodegenCheck;V3.4.5.0;component/v.xaml" -->
+</Project>

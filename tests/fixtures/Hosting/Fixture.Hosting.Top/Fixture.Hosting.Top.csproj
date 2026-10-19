@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- Top of a chain of three: a plugin dependency on Middle only, but it uses Provider's types through
+       Middle's API (Provider is compile-only, not a package dependency). -->
+  <ItemGroup>
+    <ProjectReference Include="../Fixture.Hosting.Middle/Fixture.Hosting.Middle.csproj" />
+    <ProjectReference Include="../Fixture.Hosting.Provider/Fixture.Hosting.Provider.csproj" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

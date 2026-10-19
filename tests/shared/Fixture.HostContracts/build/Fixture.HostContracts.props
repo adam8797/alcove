@@ -1,0 +1,10 @@
+<Project>
+  <!-- Shipped by the host's contracts package so plugin developers can't get these wrong. -->
+  <PropertyGroup>
+    <PluginPackageType Condition="'$(PluginPackageType)' == ''">FixturePlugin</PluginPackageType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PluginHostOwnedPackage Include="Fixture.HostContracts" />
+  </ItemGroup>
+</Project>

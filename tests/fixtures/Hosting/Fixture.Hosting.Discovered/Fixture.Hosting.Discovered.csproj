@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- No PluginEntryPoint: its one public, non-abstract IPlugin class is found and used. -->
+</Project>

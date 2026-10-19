@@ -1,0 +1,15 @@
+first: 120162.9 ms accepted=True errors=[] warnings=[NU3018: The author primary signature found a chain building issue: The revocation function was unable to check revocation because the revocation server could not be reached. For more information, visit https://aka.ms/certificateRevocationMode.; NU
+newtonsoft.json.13.0.3.nupkg (2384 KiB): first 120162.9 ms; warm n=2 median 120029.7 ms min 120013.2 max 120029.7
+
+real	6m0.301s
+user	0m0.878s
+sys	0m0.087s
+--- same, revocation offline
+first: 136.4 ms accepted=True errors=[] warnings=[]
+newtonsoft.json.13.0.3.nupkg (2384 KiB): first 136.4 ms; warm n=2 median 6.4 ms min 6.1 max 6.4
+
+real	0m0.237s
+user	0m0.193s
+sys	0m0.036s
+
+[exited with code 0]

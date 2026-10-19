@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Alcove.Abstractions\Alcove.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Alcove\Alcove.csproj" />
+    <!-- The DI add-ons: in the test host's deps.json (host-owned when used), and packed for the DI fixture plugins. -->
+    <ProjectReference Include="..\..\src\Alcove.DependencyInjection\Alcove.DependencyInjection.csproj" />
+    <ProjectReference Include="..\..\src\Alcove.Autofac\Alcove.Autofac.csproj" />
+    <!-- The test host's contracts: in its deps.json (host-owned), and packed for the Hosting fixture plugins. -->
+    <ProjectReference Include="..\shared\Fixture.HostContracts\Fixture.HostContracts.csproj" />
+    <!-- Build order only: the tests install the packed Alcove.Sdk from a local feed. -->
+    <ProjectReference Include="..\..\src\Alcove.Sdk\Alcove.Sdk.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NuGet.Packaging" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="AlcoveRepoRoot" Value="$(AlcoveRepoRoot)" />
+    <AssemblyMetadata Include="AlcovePackagesDirectory" Value="$(PackageOutputPath)" />
+    <AssemblyMetadata Include="AlcoveVersion" Value="$(Version)" />
+  </ItemGroup>
+
+</Project>

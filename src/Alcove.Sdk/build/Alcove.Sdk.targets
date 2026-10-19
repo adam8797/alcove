@@ -1,0 +1,89 @@
+<Project>
+  <!-- Alcove.Sdk: imported after the plugin's project file. See Alcove.Sdk.props for the inputs. -->
+
+  <PropertyGroup>
+    <!-- Must match Alcove.PluginManifest.CurrentSchemaVersion. -->
+    <AlcovePluginManifestSchemaVersion>1</AlcovePluginManifestSchemaVersion>
+
+    <PackageType Condition="'$(PluginPackageType)' != ''">$(PluginPackageType)</PackageType>
+
+    <!--
+      Explicit AssemblyVersion at evaluation time (major.minor.patch.0 from Version), unless the project set
+      one. The SDK's default is computed later, during execution, which leaves WPF's InitializeComponent URIs
+      unversioned (spike: wpf-across-load-contexts).
+    -->
+    <_AlcoveVersionNumbers>$([System.Text.RegularExpressions.Regex]::Match('$(Version)', '^\d+(\.\d+)*').Value)</_AlcoveVersionNumbers>
+    <_AlcoveAssemblyVersion Condition="'$(_AlcoveVersionNumbers)' != ''">$([System.Text.RegularExpressions.Regex]::Match('$(_AlcoveVersionNumbers).0.0', '^\d+\.\d+\.\d+').Value).0</_AlcoveAssemblyVersion>
+    <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">$(_AlcoveAssemblyVersion)</AssemblyVersion>
+  </PropertyGroup>
+
+  <Target Name="AlcoveValidatePluginProperties" BeforeTargets="BeforeBuild;GenerateNuspec">
+    <ItemGroup>
+      <_AlcovePrivateNotHostOwned Include="@(PluginPrivateDependency)" Exclude="@(PluginHostOwnedPackage)" />
+      <_AlcovePrivateHostOwned Include="@(PluginPrivateDependency)" Exclude="@(_AlcovePrivateNotHostOwned)" />
+      <_AlcoveInvalidPrivateDependency Include="@(PluginPrivateDependency)"
+          Condition="!$([System.Text.RegularExpressions.Regex]::IsMatch('%(Identity)', '^[A-Za-z0-9_][A-Za-z0-9_.\-]*$'))" />
+    </ItemGroup>
+
+    <Error Code="ALCOVE001" Condition="'$(PluginPackageType)' == ''"
+           Text="Alcove.Sdk: set the PluginPackageType property to the host's plugin package type (for example &lt;PluginPackageType&gt;MyAppPlugin&lt;/PluginPackageType&gt;). The host's contracts package may set it for you; check that you reference it." />
+    <Error Code="ALCOVE002" Condition="'$(PluginIsolated)' != '' and '$(PluginIsolated)' != 'true' and '$(PluginIsolated)' != 'false'"
+           Text="Alcove.Sdk: PluginIsolated must be 'true' or 'false', not '$(PluginIsolated)'." />
+    <Error Code="ALCOVE003" Condition="'$(PluginCell)' != '' and !$([System.Text.RegularExpressions.Regex]::IsMatch('$(PluginCell)', '^[^&quot;\\\x00-\x1F]+$'))"
+           Text="Alcove.Sdk: PluginCell '$(PluginCell)' must not contain quotes, backslashes or control characters." />
+    <Error Code="ALCOVE004" Condition="'$(PluginEntryPoint)' != '' and !$([System.Text.RegularExpressions.Regex]::IsMatch('$(PluginEntryPoint)', '^[^&quot;\\\x00-\x1F\s]+$'))"
+           Text="Alcove.Sdk: PluginEntryPoint '$(PluginEntryPoint)' must be the full name of the IPlugin type, for example Contoso.Charts.ChartsPlugin." />
+    <Error Code="ALCOVE005" Condition="'@(_AlcoveInvalidPrivateDependency)' != ''"
+           Text="Alcove.Sdk: PluginPrivateDependency '@(_AlcoveInvalidPrivateDependency)' is not a valid package ID." />
+    <Error Code="ALCOVE006" Condition="'@(_AlcovePrivateHostOwned)' != ''"
+           Text="Alcove.Sdk: '@(_AlcovePrivateHostOwned)' is host-owned and is always loaded from the host, so it can't be a PluginPrivateDependency." />
+  </Target>
+
+  <!-- Generates <PackageId>.plugin.json and packs it at the package root. -->
+  <Target Name="AlcoveGeneratePluginManifest"
+          BeforeTargets="_GetPackageFiles"
+          DependsOnTargets="AlcoveValidatePluginProperties">
+    <ItemGroup>
+      <_AlcovePrivateDependencyDistinct Include="@(PluginPrivateDependency->Distinct())" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <!-- PackageId gets its default after this file is imported, so the name is computed here. -->
+      <PluginManifestFileName Condition="'$(PluginManifestFileName)' == ''">$(PackageId).plugin.json</PluginManifestFileName>
+      <_AlcoveNL>&#10;</_AlcoveNL>
+      <_AlcoveIsolated>false</_AlcoveIsolated>
+      <_AlcoveIsolated Condition="'$(PluginIsolated)' == 'true'">true</_AlcoveIsolated>
+      <_AlcovePrivateDependencies>@(_AlcovePrivateDependencyDistinct->'&quot;%(Identity)&quot;', ', ')</_AlcovePrivateDependencies>
+      <_AlcovePrivateDependencies Condition="'$(_AlcovePrivateDependencies)' != ''"> $(_AlcovePrivateDependencies) </_AlcovePrivateDependencies>
+      <_AlcoveManifestJson>{$(_AlcoveNL)  &quot;schemaVersion&quot;: $(AlcovePluginManifestSchemaVersion),</_AlcoveManifestJson>
+      <_AlcoveManifestJson Condition="'$(PluginEntryPoint)' != ''">$(_AlcoveManifestJson)$(_AlcoveNL)  &quot;entryPoint&quot;: &quot;$(PluginEntryPoint)&quot;,</_AlcoveManifestJson>
+      <_AlcoveManifestJson Condition="'$(PluginCell)' != ''">$(_AlcoveManifestJson)$(_AlcoveNL)  &quot;cell&quot;: &quot;$(PluginCell)&quot;,</_AlcoveManifestJson>
+      <_AlcoveManifestJson>$(_AlcoveManifestJson)$(_AlcoveNL)  &quot;isolated&quot;: $(_AlcoveIsolated),$(_AlcoveNL)  &quot;privateDependencies&quot;: [$(_AlcovePrivateDependencies)]$(_AlcoveNL)}</_AlcoveManifestJson>
+      <PluginManifestPath>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', '$(PluginManifestFileName)'))</PluginManifestPath>
+    </PropertyGroup>
+
+    <WriteLinesToFile File="$(PluginManifestPath)"
+                      Lines="$([MSBuild]::Escape('$(_AlcoveManifestJson)'))"
+                      Overwrite="true"
+                      WriteOnlyWhenDifferent="true" />
+
+    <ItemGroup>
+      <FileWrites Include="$(PluginManifestPath)" />
+      <_PackageFiles Include="$(PluginManifestPath)" PackagePath="$(PluginManifestFileName)" BuildAction="None" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Host-owned packages stay nuspec dependencies, but their runtime assets are never copied into the build
+    output (relevant with CopyLocalLockFileAssemblies / EnableDynamicLoading, and for local debugging).
+    This works on build-time items, so it's unaffected by whether restore has seen this package's props.
+  -->
+  <Target Name="AlcoveExcludeHostOwnedRuntimeAssets" AfterTargets="ResolvePackageAssets">
+    <ItemGroup>
+      <_AlcoveHostOwnedPackageId Include="@(PluginHostOwnedPackage)" NuGetPackageId="%(Identity)" />
+      <RuntimeCopyLocalItems Remove="@(_AlcoveHostOwnedPackageId)" MatchOnMetadata="NuGetPackageId" MatchOnMetadataOptions="CaseInsensitive" />
+      <NativeCopyLocalItems Remove="@(_AlcoveHostOwnedPackageId)" MatchOnMetadata="NuGetPackageId" MatchOnMetadataOptions="CaseInsensitive" />
+      <ResourceCopyLocalItems Remove="@(_AlcoveHostOwnedPackageId)" MatchOnMetadata="NuGetPackageId" MatchOnMetadataOptions="CaseInsensitive" />
+    </ItemGroup>
+  </Target>
+</Project>

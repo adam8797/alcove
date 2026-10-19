@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The integration test host's contracts package: the test process references it, so it is in the
+       host's deps.json and is host-owned; fixture plugins under tests/fixtures/Hosting build against the
+       packed copy. -->
+  <PropertyGroup>
+    <Description>Extension points of the Alcove integration test host.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Alcove.Abstractions\Alcove.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="build/Fixture.HostContracts.props" Pack="true" PackagePath="build/" />
+  </ItemGroup>
+</Project>

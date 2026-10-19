@@ -1,0 +1,6 @@
+# OS=Ubuntu 26.04.1 LTS runtime=10.0.7 NuGet.Packaging=7.3.1.0 trust-store=default revocation=Online
+# NuGet.Packaging.dll dir: /home/adam/git/net-plugin-thing/spike/nuget-signature-verification/out/bundled
+GetDefault                     unsigned=True illegal=True untrusted=True noTimestamp=True unknownRevocation=True reportUnknownRev=False target=All placement=Any counter=IfExistsAndIsNecessary revocation=Online
+GetAcceptModeDefaultPolicy     unsigned=True illegal=True untrusted=True noTimestamp=True unknownRevocation=True reportUnknownRev=False target=All placement=Any counter=IfExistsAndIsNecessary revocation=Online
+GetRequireModeDefaultPolicy    unsigned=False illegal=False untrusted=False noTimestamp=True unknownRevocation=True reportUnknownRev=True target=All placement=Any counter=IfExistsAndIsNecessary revocation=Online
+GetVerifyCommandDefaultPolicy  unsigned=False illegal=False untrusted=False noTimestamp=True unknownRevocation=True reportUnknownRev=True target=All placement=Any counter=IfExists revocation=Online

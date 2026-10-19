@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Alcove.Sdk is a build-time package: MSBuild props/targets only, no assembly, no dependencies.
+       Plugins reference it with PrivateAssets="all" (developmentDependency makes that the default). -->
+  <PropertyGroup>
+    <Description>Build support for Alcove plugins: sets the plugin PackageType, generates the plugin manifest, sets an explicit AssemblyVersion and keeps host-owned packages referenced but not bundled.</Description>
+    <PackageTags>plugins;nuget;msbuild;sdk</PackageTags>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="build/**" Pack="true" PackagePath="build/" />
+  </ItemGroup>
+
+</Project>

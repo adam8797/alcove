@@ -1,0 +1,10 @@
+<Project>
+  <!-- The sample host and its contracts use the repository settings. The sample plugins (plugins/) don't:
+       they are built like third-party plugins, against the packed Alcove packages (see run-console-sample.sh). -->
+  <Import Project="$(MSBuildThisFileDirectory)../Directory.Build.props" />
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+</Project>

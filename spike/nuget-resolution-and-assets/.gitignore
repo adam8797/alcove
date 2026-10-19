@@ -1,0 +1,6 @@
+bin/
+obj/
+work/
+*.nupkg
+out/
+compare/oracle/

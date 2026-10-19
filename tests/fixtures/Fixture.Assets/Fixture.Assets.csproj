@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Asset selection fixture: per-framework libs, satellite assemblies, RID-specific libs and natives.
+       The RID-specific files are placeholders: only their paths matter to asset selection and dotnet build. -->
+  <PropertyGroup>
+    <!-- Multi-targeting: clear the single TargetFramework the fixtures' Directory.Build.props sets. -->
+    <TargetFramework></TargetFramework>
+    <TargetFrameworks>netstandard2.0;net10.0</TargetFrameworks>
+    <Version>1.0.0</Version>
+    <IsPackable>true</IsPackable>
+    <SatelliteResourceLanguages>de;fr</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="assets/win/Fixture.Assets.dll" Pack="true" PackagePath="runtimes/win/lib/net10.0/" />
+    <None Include="assets/linux-x64/libfixtureassets.so" Pack="true" PackagePath="runtimes/linux-x64/native/" />
+    <None Include="assets/linux-musl-x64/libfixtureassets.so" Pack="true" PackagePath="runtimes/linux-musl-x64/native/" />
+    <None Include="assets/win-x64/fixtureassets.dll" Pack="true" PackagePath="runtimes/win-x64/native/" />
+    <None Include="assets/osx/libfixtureassets.dylib" Pack="true" PackagePath="runtimes/osx/native/" />
+  </ItemGroup>
+</Project>

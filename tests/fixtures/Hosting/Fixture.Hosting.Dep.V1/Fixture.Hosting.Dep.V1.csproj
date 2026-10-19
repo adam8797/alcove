@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The library Fixture.Dep 1.0.0 (same source as tests/fixtures/Cells). -->
+  <PropertyGroup>
+    <PackageId>Fixture.Dep</PackageId>
+    <AssemblyName>Fixture.Dep</AssemblyName>
+    <RootNamespace>FixtureDep</RootNamespace>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <DefineConstants>$(DefineConstants);V1</DefineConstants>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Cells/Dep/Dep.cs" />
+  </ItemGroup>
+</Project>

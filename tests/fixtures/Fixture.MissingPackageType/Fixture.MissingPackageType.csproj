@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Uses Alcove.Sdk without a contracts package and without PluginPackageType: pack must fail with ALCOVE001.
+       Tests also pack copies of it with invalid plugin properties (FixturePrivateDependency adds an item). -->
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(FixturePrivateDependency)' != ''">
+    <PluginPrivateDependency Include="$(FixturePrivateDependency)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Alcove.Sdk" Version="$(AlcoveVersion)" PrivateAssets="all" />
+    <PackageReference Include="Alcove.Abstractions" Version="$(AlcoveVersion)" />
+  </ItemGroup>
+</Project>

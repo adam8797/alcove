@@ -1,0 +1,5 @@
+interface Alcove.DependencyInjection.IServicePlugin
+  void ConfigureServices(IServiceCollection services)
+static class Alcove.DependencyInjection.PluginServiceCollectionExtensions
+  static IServiceCollection AddPlugins(this IServiceCollection services, Action<PluginHostOptions> configure)
+  static PluginHostOptions UseDependencyInjection(this PluginHostOptions options, IServiceProvider services)

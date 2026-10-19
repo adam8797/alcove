@@ -1,0 +1,21 @@
+/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Spike.csproj : warning NU1510: PackageReference System.Text.Json will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary.
+/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Spike.csproj : warning NU1510: PackageReference System.Text.Json will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary.
+/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Feeds.cs(59,70): warning CS8603: Possible null reference return. [/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Spike.csproj]
+/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Download.cs(34,24): warning CS8602: Dereference of a possibly null reference. [/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Spike.csproj]
+/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Search.cs(28,34): warning CS8602: Dereference of a possibly null reference. [/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Spike.csproj]
+/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Download.cs(91,31): warning CS8602: Dereference of a possibly null reference. [/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Spike.csproj]
+/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Diamond.cs(73,41): warning CS8602: Dereference of a possibly null reference. [/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Spike.csproj]
+
+Build succeeded.
+
+/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Spike.csproj : warning NU1510: PackageReference System.Text.Json will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary.
+/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Spike.csproj : warning NU1510: PackageReference System.Text.Json will not be pruned. Consider removing this package from your dependencies, as it is likely unnecessary.
+/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Feeds.cs(59,70): warning CS8603: Possible null reference return. [/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Spike.csproj]
+/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Download.cs(34,24): warning CS8602: Dereference of a possibly null reference. [/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Spike.csproj]
+/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Search.cs(28,34): warning CS8602: Dereference of a possibly null reference. [/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Spike.csproj]
+/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Download.cs(91,31): warning CS8602: Dereference of a possibly null reference. [/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Spike.csproj]
+/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Diamond.cs(73,41): warning CS8602: Dereference of a possibly null reference. [/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/Spike/Spike.csproj]
+    7 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:01.10

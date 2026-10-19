@@ -1,0 +1,43 @@
+Host NuGet framework: net10.0   (FromAttributes(".NETCoreApp,Version=v10.0", "Windows7.0") = net10.0-windows7.0)
+App deps file      : /home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/WebHost/bin/Debug/net10.0/WebHost.deps.json
+Target framework   : .NETCoreApp,Version=v10.0   runtimeTarget RID: (portable)
+RuntimeInformation : .NET 10.0.7, RID linux-x64
+Shared frameworks  : 2
+    Microsoft.AspNetCore.App 10.0.7   (/home/adam/.dotnet/shared/Microsoft.AspNetCore.App/10.0.7/Microsoft.AspNetCore.App.deps.json)
+    Microsoft.NETCore.App 10.0.7   (/home/adam/.dotnet/shared/Microsoft.NETCore.App/10.0.7/Microsoft.NETCore.App.deps.json)
+Framework assemblies: 313   TPA entries: 325
+Projects (type!=package): WebHost/1.0.0 [project]
+Packages (10): id -> version
+    Newtonsoft.Json                                         13.0.3     asm: Newtonsoft.Json 13.0.0.0
+    NuGet.Common                                            7.9.0      asm: NuGet.Common 7.9.0.0
+    NuGet.Configuration                                     7.9.0      asm: NuGet.Configuration 7.9.0.0
+    NuGet.DependencyResolver.Core                           7.9.0      asm: NuGet.DependencyResolver.Core 7.9.0.0
+    NuGet.Frameworks                                        7.9.0      asm: NuGet.Frameworks 7.9.0.0
+    NuGet.LibraryModel                                      7.9.0      asm: NuGet.LibraryModel 7.9.0.0
+    NuGet.Packaging                                         7.9.0      asm: NuGet.Packaging 7.9.0.0
+    NuGet.Protocol                                          7.9.0      asm: NuGet.Protocol 7.9.0.0
+    NuGet.Versioning                                        7.9.0      asm: NuGet.Versioning 7.9.0.0
+    System.Security.Cryptography.ProtectedData              8.0.0      asm: System.Security.Cryptography.ProtectedData 8.0.0.0
+
+-- raw runtime properties
+  APP_CONTEXT_DEPS_FILES = /home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/WebHost/bin/Debug/net10.0/WebHost.deps.json;/home/adam/.dotnet/shared/Microsoft.AspNetCore.App/10.0.7/Microsoft.AspNetCore.App.deps.json;/home/adam/.dotnet/shared/Microsoft.NETCore.App/10.0.7/Microsoft.NETCore.App.deps.json
+  FX_DEPS_FILE = /home/adam/.dotnet/shared/Microsoft.NETCore.App/10.0.7/Microsoft.NETCore.App.deps.json
+  PROBING_DIRECTORIES = 
+  RUNTIME_IDENTIFIER = linux-x64
+  APP_CONTEXT_BASE_DIRECTORY = /home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/src/WebHost/bin/Debug/net10.0/
+-- requested frameworks (runtimeconfig.json) vs resolved (deps file paths above)
+  frameworks : Microsoft.NETCore.App 10.0.0
+  frameworks : Microsoft.AspNetCore.App 10.0.0
+-- System.Text.Json: host csproj references the 9.0.0 *package*
+  in app deps.json as package? False
+  framework assembly? True 10.0.0.0 owner=Microsoft.NETCore.App
+  loaded from: /home/adam/.dotnet/shared/Microsoft.NETCore.App/10.0.7/System.Text.Json.dll  version 10.0.0.0  ALC=Default
+-- TPA (= what the default context can bind to) split by origin
+  325 entries: 314 from shared frameworks, 11 from the app dir
+  deps.json assemblies not in TPA: none
+-- Microsoft.AspNetCore.App: PackageOverrides.txt (/home/adam/.dotnet/packs/Microsoft.AspNetCore.App.Ref/10.0.7) lists 140 packages; heuristic matches 139; misses 1:
+    other: 1  e.g. Microsoft.AspNetCore.App|10.0.0
+    framework assemblies with no package override entry: 2 e.g. System.Security.Cryptography.Pkcs, Microsoft.Extensions.FileProviders.Embedded
+-- Microsoft.NETCore.App: PackageOverrides.txt (/home/adam/.dotnet/packs/Microsoft.NETCore.App.Ref/10.0.7) lists 272 packages; heuristic matches 271; misses 1:
+    runtime.* (old RID-split packages): 1  e.g. runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.Apple|4.3.1
+    framework assemblies with no package override entry: 38 e.g. System.Private.CoreLib, mscorlib, netstandard, System.ComponentModel.DataAnnotations, System.Configuration, System.Core, System.Data, System

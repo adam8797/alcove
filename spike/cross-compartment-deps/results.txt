@@ -1,0 +1,477 @@
+##### Host scenarios
+Host: Dep in default context = Widget(Dep 1.0.0.0 @ALC 'Default')
+
+=== Q1.1: B(Y) uses A(X); A loaded into X first (eager)
+    expectation: all OK
+  [OK  ] Q1 A's type lives in: A 1.0.0.0 @ALC 'X'
+  [OK  ] Q1 call A static, get IAService, cast to AService: cast ok, Name=AService
+  [OK  ] Q1 object-typed A instance cast to AService: is AService: True; cast ok: AService
+  [OK  ] Q1 B implements A's callback interface, A calls back: A.Invoke -> B callback got 'from A'
+  [OK  ] Q1 B implements IAService, passes to A: A accepted foreign IAService B.BService (B 1.0.0.0 @ALC 'Y'): BService
+  [OK  ] Q1 A generic Box<BThing> via A's generic method: Box<B.BThing from B 1.0.0.0 @ALC 'Y'> holding 'BThing'
+  [OK  ] Q1 B constructs Box<BThing> itself, passes to A: Box<B.BThing from B 1.0.0.0 @ALC 'Y'> holding 'BThing'
+  [OK  ] Q1 B implements IHandler<BThing>, A invokes it: B handled BThing
+  [OK  ] Q1 List<Box<string>> from A: x,y
+  [OK  ] Q1 typeof(Box<>) in B == A's own Box<>: equal: True
+  [OK  ] Q1 catch A's exception type: caught AException: boom from A
+  [OK  ] Q1 B subclasses A's class, A calls override: BDerived (overrides A's virtual)
+  [OK  ] Q2a B's assembly references: System.Runtime, A, Contracts, System.Collections, System.Linq, System.Runtime.Loader
+  [OK  ] Q2a object round trip of A's Widget: A: object IS my Widget: Widget(Dep 2.0.0.0 @ALC 'X')
+  [OK  ] Q2a A's private Dep usage: Widget(Dep 2.0.0.0 @ALC 'X')
+  [OK  ] Q5 GetLoadContext(A) from B: X; B's own: Y
+  [OK  ] Q5 Type.GetType("A.AService, A") from B: A 1.0.0.0 @ALC 'X'; same as typeof: True
+  [OK  ] Q5 Type.GetType(generic with B arg) from B: A.Box`1[B.BThing]; same as typeof: True
+  [OK  ] Q5 Assembly.Load("A") from B: X; same instance: True
+  [OK  ] Q5 Activator.CreateInstance("A","A.AService") from B: is AService: True
+  [OK  ] Q5 Activator.CreateInstance(typeof(Box<BThing>), ...): is Box<BThing>: True
+  [OK  ] Q5 AssemblyLoadContext.CurrentContextualReflectionContext: null
+  [OK  ] host: Y.LoadFromAssemblyName(A) is X's instance: True; GetLoadContext=X
+  [OK  ] host: Y.Assemblies: B
+  [OK  ] host: X.Assemblies: A, Dep
+  [OK  ] host: A's AGreeter as host-owned IGreeter: hello from A (A 1.0.0.0 @ALC 'X')
+  [OK  ] host: B's BGreeter as host-owned IGreeter: hello from B (B 1.0.0.0 @ALC 'Y')
+    trace [X] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [X] Load(Dep 2.0.0.0) -> 3 private -> 2.0.0.0 from packages/Dep/2.0.0/Dep.dll
+    trace [Y] Load(B ) -> 3 private -> 1.0.0.0 from packages/B/1.0.0/B.dll
+    trace [Y] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(A 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+    trace [Y] Load(A ) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+
+=== Q1.2: B(Y) loaded before anything loaded in X (lazy, AskProvider)
+    expectation: all OK; A gets loaded into X on demand
+  [OK  ] Q1 A's type lives in: A 1.0.0.0 @ALC 'X'
+  [OK  ] Q1 call A static, get IAService, cast to AService: cast ok, Name=AService
+  [OK  ] Q1 object-typed A instance cast to AService: is AService: True; cast ok: AService
+  [OK  ] host: X.Assemblies before/after: before=[] after=[A,Dep]
+    trace [X] Load(A 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/A/1.0.0/A.dll
+    trace [X] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [X] Load(Dep 2.0.0.0) -> 3 private -> 2.0.0.0 from packages/Dep/2.0.0/Dep.dll
+    trace [Y] Load(B ) -> 3 private -> 1.0.0.0 from packages/B/1.0.0/B.dll
+    trace [Y] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(A 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+    trace [Y] Load(A ) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+
+=== Q1.3: Same as Q1.2 but Y only returns assemblies X has ALREADY loaded
+    expectation: FAIL: A not found (order-dependent)
+  [FAIL] Q1 A's type lives in: System.IO.FileNotFoundException: Could not load file or assembly 'A, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+ -- at JIT/bind time (inner method body never started)
+  [FAIL] Q1 call A static, get IAService, cast to AService: System.IO.FileNotFoundException: Could not load file or assembly 'A, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+ -- at JIT/bind time (inner method body never started)
+    trace [Y] Load(B ) -> 3 private -> 1.0.0.0 from packages/B/1.0.0/B.dll
+    trace [Y] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(A 1.0.0.0) -> 2 provided by 'X' (AlreadyLoadedOnly) -> null
+
+=== Q2b.1: BD2 (refs Dep 2.0) in Y; Y loads its OWN copy of the very same Dep 2.0 file
+    expectation: leaky calls FAIL (two Dep instances)
+  [OK  ] Dep as seen by B: Dep 2.0.0.0 @ALC 'Y'
+  [OK  ] non-leaky A API: AService
+  [FAIL] A.Make().Describe()  [Widget return type]: System.MissingMethodException: Method not found: 'Dep.Widget A.AWidgets.Make()'. -- at JIT/bind time (inner method body never started)
+  [FAIL] A.Inspect(new Widget())  [Widget parameter]: System.MissingMethodException: Method not found: 'System.String A.AWidgets.Inspect(Dep.Widget)'. -- at JIT/bind time (inner method body never started)
+  [FAIL] A.MakeMany()  [List<Widget>]: System.MissingMethodException: Method not found: 'System.Collections.Generic.List`1<Dep.Widget> A.AWidgets.MakeMany()'. -- at JIT/bind time (inner method body never started)
+  [FAIL] A.Describer(new Widget())  [Func<Widget,string> property]: System.MissingMethodException: Method not found: 'System.Func`2<Dep.Widget,System.String> A.AWidgets.get_Describer()'. -- at JIT/bind time (inner method body never started)
+  [FAIL] (Widget)A.MakeAsObject()  [cast]: System.InvalidCastException: [A]Dep.Widget cannot be cast to [B]Dep.Widget. Type A originates from 'Dep, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null' in the context '"X" Host.Compartment #7' at location '/home/adam/git/net-plugin-thing/spike/cross-compartment-deps/layout/packages/Dep/2.0.0/Dep.dll'. Type B originates from 'Dep, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null' in the context '"Y" Host.Compartment #8' at location '/home/adam/git/net-plugin-thing/spike/cross-compartment-deps/layout/packages/Dep/2.0.0/Dep.dll'. -- at CALL time (inner method body was running)
+  [OK  ] A.InspectObject(new Widget())  [object-typed, A does 'is Widget']: A: object is NOT my Widget! it is Dep.Widget from Dep 2.0.0.0 @ALC 'Y'; mine is Dep 2.0.0.0 @ALC 'X'
+  [OK  ] new SpecialWidget().NewApi()  [A type derived from Dep type]: NewApi (v2+): code from Dep 2.0.0.0 @'Y' running on a SpecialWidget whose Widget base is Dep 2.0.0.0 @'X'  <-- TYPE-SAFETY HOLE: method of a different Widget type ran on this object
+  [OK  ] B's own Widget.NewApi(): NewApi (v2+): code from Dep 2.0.0.0 @'Y' running on a Widget whose Widget base is Dep 2.0.0.0 @'Y'
+    trace [X] Load(A 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/A/1.0.0/A.dll
+    trace [X] Load(Dep 2.0.0.0) -> 3 private -> 2.0.0.0 from packages/Dep/2.0.0/Dep.dll
+    trace [X] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(BD2 ) -> 3 private -> 1.0.0.0 from packages/BD2/1.0.0/BD2.dll
+    trace [Y] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(Dep 2.0.0.0) -> 3 private -> 2.0.0.0 from packages/Dep/2.0.0/Dep.dll
+    trace [Y] Load(A 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+
+=== Q2b.2: BD2 (refs Dep 2.0) in Y; Y treats Dep as host-shared (default ctx has Dep 1.0)
+    expectation: FAIL: default can't satisfy 2.0
+  [FAIL] Dep as seen by B: System.IO.FileNotFoundException: Could not load file or assembly 'Dep, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+ -- at JIT/bind time (inner method body never started)
+  [OK  ] non-leaky A API: AService
+  [FAIL] A.Make().Describe()  [Widget return type]: System.IO.FileNotFoundException: Could not load file or assembly 'Dep, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+ -- at JIT/bind time (inner method body never started)
+  [FAIL] A.Inspect(new Widget())  [Widget parameter]: System.IO.FileNotFoundException: Could not load file or assembly 'Dep, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+ -- at JIT/bind time (inner method body never started)
+  [FAIL] A.MakeMany()  [List<Widget>]: System.IO.FileNotFoundException: Could not load file or assembly 'Dep, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+ -- at JIT/bind time (inner method body never started)
+  [FAIL] A.Describer(new Widget())  [Func<Widget,string> property]: System.IO.FileNotFoundException: Could not load file or assembly 'Dep, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+ -- at JIT/bind time (inner method body never started)
+  [FAIL] (Widget)A.MakeAsObject()  [cast]: System.IO.FileNotFoundException: Could not load file or assembly 'Dep, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+ -- at JIT/bind time (inner method body never started)
+  [FAIL] A.InspectObject(new Widget())  [object-typed, A does 'is Widget']: System.IO.FileNotFoundException: Could not load file or assembly 'Dep, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+ -- at JIT/bind time (inner method body never started)
+  [FAIL] new SpecialWidget().NewApi()  [A type derived from Dep type]: System.IO.FileNotFoundException: Could not load file or assembly 'Dep, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+ -- at JIT/bind time (inner method body never started)
+  [FAIL] B's own Widget.NewApi(): System.IO.FileNotFoundException: Could not load file or assembly 'Dep, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+ -- at JIT/bind time (inner method body never started)
+    trace [X] Load(A 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/A/1.0.0/A.dll
+    trace [X] Load(Dep 2.0.0.0) -> 3 private -> 2.0.0.0 from packages/Dep/2.0.0/Dep.dll
+    trace [Y] Load(BD2 ) -> 3 private -> 1.0.0.0 from packages/BD2/1.0.0/BD2.dll
+    trace [Y] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(Dep 2.0.0.0) -> 4 host-shared -> null
+    trace [Y] Load(A 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+
+=== Q2b.3: BD3 (refs Dep 3.0) in Y with private Dep 3.0; A(X) has Dep 2.0
+    expectation: leaky calls FAIL; own v3 use OK
+  [OK  ] Dep as seen by B: Dep 3.0.0.0 @ALC 'Y'
+  [OK  ] non-leaky A API: AService
+  [FAIL] A.Make().Describe()  [Widget return type]: System.MissingMethodException: Method not found: 'Dep.Widget A.AWidgets.Make()'. -- at JIT/bind time (inner method body never started)
+  [FAIL] A.Inspect(new Widget())  [Widget parameter]: System.MissingMethodException: Method not found: 'System.String A.AWidgets.Inspect(Dep.Widget)'. -- at JIT/bind time (inner method body never started)
+  [FAIL] A.MakeMany()  [List<Widget>]: System.MissingMethodException: Method not found: 'System.Collections.Generic.List`1<Dep.Widget> A.AWidgets.MakeMany()'. -- at JIT/bind time (inner method body never started)
+  [FAIL] A.Describer(new Widget())  [Func<Widget,string> property]: System.MissingMethodException: Method not found: 'System.Func`2<Dep.Widget,System.String> A.AWidgets.get_Describer()'. -- at JIT/bind time (inner method body never started)
+  [FAIL] (Widget)A.MakeAsObject()  [cast]: System.InvalidCastException: [A]Dep.Widget cannot be cast to [B]Dep.Widget. Type A originates from 'Dep, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null' in the context '"X" Host.Compartment #11' at location '/home/adam/git/net-plugin-thing/spike/cross-compartment-deps/layout/packages/Dep/2.0.0/Dep.dll'. Type B originates from 'Dep, Version=3.0.0.0, Culture=neutral, PublicKeyToken=null' in the context '"Y" Host.Compartment #12' at location '/home/adam/git/net-plugin-thing/spike/cross-compartment-deps/layout/packages/Dep/3.0.0/Dep.dll'. -- at CALL time (inner method body was running)
+  [OK  ] A.InspectObject(new Widget())  [object-typed, A does 'is Widget']: A: object is NOT my Widget! it is Dep.Widget from Dep 3.0.0.0 @ALC 'Y'; mine is Dep 2.0.0.0 @ALC 'X'
+  [OK  ] new SpecialWidget().NewApi()  [A type derived from Dep type]: NewApi (v2+): code from Dep 3.0.0.0 @'Y' running on a SpecialWidget whose Widget base is Dep 2.0.0.0 @'X'  <-- TYPE-SAFETY HOLE: method of a different Widget type ran on this object
+  [OK  ] B's own Widget.NewApi(): NewApi (v2+): code from Dep 3.0.0.0 @'Y' running on a Widget whose Widget base is Dep 3.0.0.0 @'Y'
+  [OK  ] B's own Widget.V3Api()  [needs Dep v3]: V3Api (v3 only)
+    trace [X] Load(A 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/A/1.0.0/A.dll
+    trace [X] Load(Dep 2.0.0.0) -> 3 private -> 2.0.0.0 from packages/Dep/2.0.0/Dep.dll
+    trace [X] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(BD3 ) -> 3 private -> 1.0.0.0 from packages/BD3/1.0.0/BD3.dll
+    trace [Y] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(Dep 3.0.0.0) -> 3 private -> 3.0.0.0 from packages/Dep/3.0.0/Dep.dll
+    trace [Y] Load(A 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+
+=== Q2c.1: BD2 in Y; Y delegates Dep to X (B uses A's copy)
+    expectation: all OK
+  [OK  ] Dep as seen by B: Dep 2.0.0.0 @ALC 'X'
+  [OK  ] non-leaky A API: AService
+  [OK  ] A.Make().Describe()  [Widget return type]: Widget(Dep 2.0.0.0 @ALC 'X')
+  [OK  ] A.Inspect(new Widget())  [Widget parameter]: A.Inspect(Widget(Dep 2.0.0.0 @ALC 'X')); A's Widget is Dep 2.0.0.0 @ALC 'X'
+  [OK  ] A.MakeMany()  [List<Widget>]: Widget(Dep 2.0.0.0 @ALC 'X') | Widget(Dep 2.0.0.0 @ALC 'X')
+  [OK  ] A.Describer(new Widget())  [Func<Widget,string> property]: Widget(Dep 2.0.0.0 @ALC 'X')
+  [OK  ] (Widget)A.MakeAsObject()  [cast]: cast ok: Widget(Dep 2.0.0.0 @ALC 'X')
+  [OK  ] A.InspectObject(new Widget())  [object-typed, A does 'is Widget']: A: object IS my Widget: Widget(Dep 2.0.0.0 @ALC 'X')
+  [OK  ] new SpecialWidget().NewApi()  [A type derived from Dep type]: NewApi (v2+): code from Dep 2.0.0.0 @'X' running on a SpecialWidget whose Widget base is Dep 2.0.0.0 @'X'
+  [OK  ] B's own Widget.NewApi(): NewApi (v2+): code from Dep 2.0.0.0 @'X' running on a Widget whose Widget base is Dep 2.0.0.0 @'X'
+    trace [X] Load(Dep 2.0.0.0) -> 3 private -> 2.0.0.0 from packages/Dep/2.0.0/Dep.dll
+    trace [X] Load(A 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/A/1.0.0/A.dll
+    trace [X] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(BD2 ) -> 3 private -> 1.0.0.0 from packages/BD2/1.0.0/BD2.dll
+    trace [Y] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(Dep 2.0.0.0) -> 2 provided by 'X' (AskProvider) -> 2.0.0.0 @'X'
+    trace [Y] Load(A 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+
+=== Q2c.2: BD3 (needs Dep 3.0) in Y; Y delegates Dep to X which has 2.0
+    expectation: FAIL: lower version than referenced
+  [OK  ] Dep as seen by B: Dep 2.0.0.0 @ALC 'X'
+  [OK  ] non-leaky A API: AService
+  [OK  ] A.Make().Describe()  [Widget return type]: Widget(Dep 2.0.0.0 @ALC 'X')
+  [OK  ] A.Inspect(new Widget())  [Widget parameter]: A.Inspect(Widget(Dep 2.0.0.0 @ALC 'X')); A's Widget is Dep 2.0.0.0 @ALC 'X'
+  [OK  ] A.MakeMany()  [List<Widget>]: Widget(Dep 2.0.0.0 @ALC 'X') | Widget(Dep 2.0.0.0 @ALC 'X')
+  [OK  ] A.Describer(new Widget())  [Func<Widget,string> property]: Widget(Dep 2.0.0.0 @ALC 'X')
+  [OK  ] (Widget)A.MakeAsObject()  [cast]: cast ok: Widget(Dep 2.0.0.0 @ALC 'X')
+  [OK  ] A.InspectObject(new Widget())  [object-typed, A does 'is Widget']: A: object IS my Widget: Widget(Dep 2.0.0.0 @ALC 'X')
+  [OK  ] new SpecialWidget().NewApi()  [A type derived from Dep type]: NewApi (v2+): code from Dep 2.0.0.0 @'X' running on a SpecialWidget whose Widget base is Dep 2.0.0.0 @'X'
+  [OK  ] B's own Widget.NewApi(): NewApi (v2+): code from Dep 2.0.0.0 @'X' running on a Widget whose Widget base is Dep 2.0.0.0 @'X'
+  [FAIL] B's own Widget.V3Api()  [needs Dep v3]: System.MissingMethodException: Method not found: 'System.String Dep.Widget.V3Api()'. -- at JIT/bind time (inner method body never started)
+    trace [X] Load(Dep 3.0.0.0) -> 3 private -> 2.0.0.0 from packages/Dep/2.0.0/Dep.dll
+    trace [X] Load(A 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/A/1.0.0/A.dll
+    trace [X] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(BD3 ) -> 3 private -> 1.0.0.0 from packages/BD3/1.0.0/BD3.dll
+    trace [Y] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(Dep 3.0.0.0) -> 2 provided by 'X' (AskProvider) -> 2.0.0.0 @'X'
+    trace [Y] Load(A 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+
+=== Q2c.3: BOwnD1 (own use of Dep 1.0, no leaky A calls) in Y with private Dep 1.0
+    expectation: OK; object exchange shows 'NOT my Widget'
+  [OK  ] Dep as seen by B: Dep 1.0.0.0 @ALC 'Y'
+  [OK  ] non-leaky A API: A.Invoke -> BOwnD1 cb: from A
+  [OK  ] B's own Widget.OldApi()  [v1-only member]: OldApi (v1 only)
+  [OK  ] A.InspectObject(B's Widget)  [object-typed exchange]: A: object is NOT my Widget! it is Dep.Widget from Dep 1.0.0.0 @ALC 'Y'; mine is Dep 2.0.0.0 @ALC 'X'
+  [OK  ] A's internal Dep usage: Widget(Dep 2.0.0.0 @ALC 'X')
+    trace [X] Load(A 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/A/1.0.0/A.dll
+    trace [X] Load(Dep 2.0.0.0) -> 3 private -> 2.0.0.0 from packages/Dep/2.0.0/Dep.dll
+    trace [X] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(BOwnD1 ) -> 3 private -> 1.0.0.0 from packages/BOwnD1/1.0.0/BOwnD1.dll
+    trace [Y] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(Dep 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/Dep/1.0.0/Dep.dll
+    trace [Y] Load(A 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+
+=== Q2c.4: BOwnD1 in Y with Dep host-shared (default 1.0)
+    expectation: OK
+  [OK  ] Dep as seen by B: Dep 1.0.0.0 @ALC 'Default'
+  [OK  ] non-leaky A API: A.Invoke -> BOwnD1 cb: from A
+  [OK  ] B's own Widget.OldApi()  [v1-only member]: OldApi (v1 only)
+  [OK  ] A.InspectObject(B's Widget)  [object-typed exchange]: A: object is NOT my Widget! it is Dep.Widget from Dep 1.0.0.0 @ALC 'Default'; mine is Dep 2.0.0.0 @ALC 'X'
+  [OK  ] A's internal Dep usage: Widget(Dep 2.0.0.0 @ALC 'X')
+    trace [X] Load(A 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/A/1.0.0/A.dll
+    trace [X] Load(Dep 2.0.0.0) -> 3 private -> 2.0.0.0 from packages/Dep/2.0.0/Dep.dll
+    trace [X] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(BOwnD1 ) -> 3 private -> 1.0.0.0 from packages/BOwnD1/1.0.0/BOwnD1.dll
+    trace [Y] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(Dep 1.0.0.0) -> 4 host-shared -> null
+    trace [Y] Load(A 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+
+=== Q2c.5: BOwnD1 in Y; Y delegates Dep to X (2.0, which removed OldApi)
+    expectation: OldApi FAILS (MissingMethod)
+  [OK  ] Dep as seen by B: Dep 2.0.0.0 @ALC 'X'
+  [OK  ] non-leaky A API: A.Invoke -> BOwnD1 cb: from A
+  [FAIL] B's own Widget.OldApi()  [v1-only member]: System.MissingMethodException: Method not found: 'System.String Dep.Widget.OldApi()'. -- at JIT/bind time (inner method body never started)
+  [OK  ] A.InspectObject(B's Widget)  [object-typed exchange]: A: object IS my Widget: Widget(Dep 2.0.0.0 @ALC 'X')
+  [OK  ] A's internal Dep usage: Widget(Dep 2.0.0.0 @ALC 'X')
+    trace [X] Load(Dep 1.0.0.0) -> 3 private -> 2.0.0.0 from packages/Dep/2.0.0/Dep.dll
+    trace [X] Load(A 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/A/1.0.0/A.dll
+    trace [X] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(BOwnD1 ) -> 3 private -> 1.0.0.0 from packages/BOwnD1/1.0.0/BOwnD1.dll
+    trace [Y] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(Dep 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 2.0.0.0 @'X'
+    trace [Y] Load(A 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+
+=== Q2c.6: Y delegates Contracts to X, where X answers 'host-owned -> null' (default context)
+    expectation: OK: delegation returns the DEFAULT context's Contracts
+  [OK  ] Q1 A's type lives in: A 1.0.0.0 @ALC 'X'
+  [OK  ] Q1 call A static, get IAService, cast to AService: cast ok, Name=AService
+  [OK  ] host: Y.LoadFromAssemblyName(Contracts) == typeof(IGreeter).Assembly: True; ctx=Default
+    trace [X] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [X] Load(A 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/A/1.0.0/A.dll
+    trace [X] Load(Dep 2.0.0.0) -> 3 private -> 2.0.0.0 from packages/Dep/2.0.0/Dep.dll
+    trace [X] Load(Contracts ) -> 1 host-owned -> null
+    trace [Y] Load(B ) -> 3 private -> 1.0.0.0 from packages/B/1.0.0/B.dll
+    trace [Y] Load(Contracts 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'Default'
+    trace [Y] Load(A 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+    trace [Y] Load(A ) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+    trace [Y] Load(Contracts ) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'Default'
+
+=== Q4.1: Diamond C(Z)->A(X) and C(Z)->B(Y)->A(X); C loaded first, nothing else loaded yet
+    expectation: all OK
+  [OK  ] A's type as seen by C: A 1.0.0.0 @ALC 'X'
+  [OK  ] B's type as seen by C: B 1.0.0.0 @ALC 'Y'
+  [OK  ] typeof(AService) in C == B's typeof(AService): True
+  [OK  ] IAService from B -> A.Accept (C->B->A object to C->A call): A recognised its own AService instance
+  [OK  ] A object created by C -> B.UseService: B used AService -> A recognised its own AService instance
+  [OK  ] C callback -> A.Invoke (object from B): A.Invoke -> C callback got 'from A'
+  [OK  ] B.Wrap<CThing> -> A.Describe: Box<C.CThing from C 1.0.0.0 @ALC 'Z'> holding 'CThing'
+    trace [X] Load(A 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/A/1.0.0/A.dll
+    trace [X] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(B 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/B/1.0.0/B.dll
+    trace [Y] Load(A 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+    trace [Z] Load(C ) -> 3 private -> 1.0.0.0 from packages/C/1.0.0/C.dll
+    trace [Z] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Z] Load(A 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+    trace [Z] Load(B 1.0.0.0) -> 2 provided by 'Y' (AskProvider) -> 1.0.0.0 @'Y'
+
+=== Q4.2: Chain CChain(Z)->B(Y)->A(X); Z maps only B (C has no metadata ref to A)
+    expectation: OK
+  [OK  ] CChain assembly references: System.Runtime, Contracts, System.Linq, B
+  [OK  ] B.HelloViaA(): B says: A.Invoke -> B callback got 'from A'
+    trace [X] Load(A 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/A/1.0.0/A.dll
+    trace [Y] Load(B 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/B/1.0.0/B.dll
+    trace [Y] Load(A 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+    trace [Z] Load(CChain ) -> 3 private -> 1.0.0.0 from packages/CChain/1.0.0/CChain.dll
+    trace [Z] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Z] Load(B 1.0.0.0) -> 2 provided by 'Y' (AskProvider) -> 1.0.0.0 @'Y'
+
+=== Q4.3: C(Z) references A, but Z maps only its DIRECT dep B (A not in table)
+    expectation: FAIL: A unresolvable from Z
+  [FAIL] A's type as seen by C: System.IO.FileNotFoundException: Could not load file or assembly 'A, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+ -- at JIT/bind time (inner method body never started)
+  [OK  ] B's type as seen by C: B 1.0.0.0 @ALC 'Y'
+  [FAIL] typeof(AService) in C == B's typeof(AService): System.IO.FileNotFoundException: Could not load file or assembly 'A, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+ -- at JIT/bind time (inner method body never started)
+  [FAIL] IAService from B -> A.Accept (C->B->A object to C->A call): System.IO.FileNotFoundException: Could not load file or assembly 'A, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+ -- at JIT/bind time (inner method body never started)
+  [FAIL] A object created by C -> B.UseService: System.IO.FileNotFoundException: Could not load file or assembly 'A, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+ -- at JIT/bind time (inner method body never started)
+  [FAIL] C callback -> A.Invoke (object from B): System.IO.FileNotFoundException: Could not load file or assembly 'A, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+ -- at JIT/bind time (inner method body never started)
+  [FAIL] B.Wrap<CThing> -> A.Describe: System.IO.FileNotFoundException: Could not load file or assembly 'A, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+ -- at JIT/bind time (inner method body never started)
+    trace [Y] Load(B 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/B/1.0.0/B.dll
+    trace [Z] Load(C ) -> 3 private -> 1.0.0.0 from packages/C/1.0.0/C.dll
+    trace [Z] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Z] Load(A 1.0.0.0) -> 5 unknown -> null
+    trace [Z] Load(B 1.0.0.0) -> 2 provided by 'Y' (AskProvider) -> 1.0.0.0 @'Y'
+
+=== Q4.4: C(Z) loads its OWN copy of A while B(Y) uses X's A
+    expectation: FAIL: type identity split
+  [OK  ] A's type as seen by C: A 1.0.0.0 @ALC 'Z'
+  [OK  ] B's type as seen by C: B 1.0.0.0 @ALC 'Y'
+  [OK  ] typeof(AService) in C == B's typeof(AService): False
+  [FAIL] IAService from B -> A.Accept (C->B->A object to C->A call): System.MissingMethodException: Method not found: 'A.IAService B.BApi.GetService()'. -- at JIT/bind time (inner method body never started)
+  [FAIL] A object created by C -> B.UseService: System.MissingMethodException: Method not found: 'System.String B.BApi.UseService(A.IAService)'. -- at JIT/bind time (inner method body never started)
+  [FAIL] C callback -> A.Invoke (object from B): System.MissingMethodException: Method not found: 'A.IAService B.BApi.GetService()'. -- at JIT/bind time (inner method body never started)
+  [FAIL] B.Wrap<CThing> -> A.Describe: System.MissingMethodException: Method not found: 'A.Box`1<!!0> B.BApi.Wrap(!!0)'. -- at JIT/bind time (inner method body never started)
+    trace [X] Load(A 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/A/1.0.0/A.dll
+    trace [Y] Load(B 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/B/1.0.0/B.dll
+    trace [Y] Load(A 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+    trace [Z] Load(C ) -> 3 private -> 1.0.0.0 from packages/C/1.0.0/C.dll
+    trace [Z] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Z] Load(A 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/A/1.0.0/A.dll
+    trace [Z] Load(B 1.0.0.0) -> 2 provided by 'Y' (AskProvider) -> 1.0.0.0 @'Y'
+
+=== Q4.5: Two siblings BD2(Y1)->A(X) and B(Y2)->A(X), Y1 delegates Dep to X
+    expectation: all OK; one A, one Dep v2
+  [OK  ] Dep as seen by B: Dep 2.0.0.0 @ALC 'X'
+  [OK  ] non-leaky A API: AService
+  [OK  ] A.Make().Describe()  [Widget return type]: Widget(Dep 2.0.0.0 @ALC 'X')
+  [OK  ] A.Inspect(new Widget())  [Widget parameter]: A.Inspect(Widget(Dep 2.0.0.0 @ALC 'X')); A's Widget is Dep 2.0.0.0 @ALC 'X'
+  [OK  ] Q1 A's type lives in: A 1.0.0.0 @ALC 'X'
+  [OK  ] host: A instances across X/Y1/Y2: True
+    trace [X] Load(Dep 2.0.0.0) -> 3 private -> 2.0.0.0 from packages/Dep/2.0.0/Dep.dll
+    trace [X] Load(A 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/A/1.0.0/A.dll
+    trace [X] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y1] Load(BD2 ) -> 3 private -> 1.0.0.0 from packages/BD2/1.0.0/BD2.dll
+    trace [Y1] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y1] Load(Dep 2.0.0.0) -> 2 provided by 'X' (AskProvider) -> 2.0.0.0 @'X'
+    trace [Y1] Load(A 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+    trace [Y1] Load(A ) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+    trace [Y2] Load(B ) -> 3 private -> 1.0.0.0 from packages/B/1.0.0/B.dll
+    trace [Y2] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y2] Load(A 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+    trace [Y2] Load(A ) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+
+=== Q5.1: Reflection APIs called from the HOST (default context)
+    expectation: AQN lookups fail unless contextual reflection is entered
+  [OK  ] Type.GetType("A.AService, A") from host: null
+  [FAIL] Type.GetType("A.AService, A", throwOnError) from host: System.IO.FileNotFoundException: Could not load file or assembly 'A, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+ -- at JIT/bind time (inner method body never started)
+  [OK  ] Y.EnterContextualReflection + Type.GetType("A.AService, A"): A 1.0.0.0 @ALC 'X'; same as X's: True
+  [OK  ] Y contextual + Type.GetType("A.Box`1[[B.BThing, B]], A"): A.Box`1[B.BThing] args@Y
+  [OK  ] aInX.GetType("A.Box`1[[B.BThing, B]]") (no contextual): null
+  [OK  ] Y contextual + aInX.GetType("A.Box`1[[B.BThing, B]]"): A.Box`1[B.BThing]
+  [OK  ] Y.LoadFromAssemblyName(A) == X's A: True
+  [FAIL] Activator.CreateInstance("A", "A.AService") from host: System.IO.FileNotFoundException: Could not load file or assembly 'A, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+ -- at JIT/bind time (inner method body never started)
+  [OK  ] Y contextual + Activator.CreateInstance("A", "A.AService"): A.AService from A 1.0.0.0 @ALC 'X'
+  [OK  ] Activator.CreateInstance(aInX.GetType("A.AService")): A.AService from A 1.0.0.0 @ALC 'X'
+  [OK  ] AssemblyLoadContext.All names: Default,X,Y,Z,Y1,Y2
+    trace [X] Load(B ) -> 5 unknown -> null
+    trace [Y] Load(A ) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+
+=== Q5.2: Reflection APIs from inside B (in Y), with A not yet loaded in X
+    expectation: Type.GetType/Assembly.Load route through Y.Load -> X
+  [OK  ] Q5 GetLoadContext(A) from B: X; B's own: Y
+  [OK  ] Q5 Type.GetType("A.AService, A") from B: A 1.0.0.0 @ALC 'X'; same as typeof: True
+  [OK  ] Q5 Type.GetType(generic with B arg) from B: A.Box`1[B.BThing]; same as typeof: True
+  [OK  ] Q5 Assembly.Load("A") from B: X; same instance: True
+  [OK  ] Q5 Activator.CreateInstance("A","A.AService") from B: is AService: True
+  [OK  ] Q5 Activator.CreateInstance(typeof(Box<BThing>), ...): is Box<BThing>: True
+  [OK  ] Q5 AssemblyLoadContext.CurrentContextualReflectionContext: null
+    trace [X] Load(A 1.0.0.0) -> 3 private -> 1.0.0.0 from packages/A/1.0.0/A.dll
+    trace [X] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [X] Load(Dep 2.0.0.0) -> 3 private -> 2.0.0.0 from packages/Dep/2.0.0/Dep.dll
+    trace [Y] Load(B ) -> 3 private -> 1.0.0.0 from packages/B/1.0.0/B.dll
+    trace [Y] Load(Contracts 1.0.0.0) -> 1 host-owned -> null
+    trace [Y] Load(A 1.0.0.0) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+    trace [Y] Load(A ) -> 2 provided by 'X' (AskProvider) -> 1.0.0.0 @'X'
+
+Ran 19 scenarios.
+
+##### Q3: public-surface scan of A and B
+## A.dll  (9 KiB): 16 visible types, 41 visible members, 4 exposed assemblies, 14.2 ms
+   Contracts: 1 site(s)
+      A.AGreeter : interface
+   Dep: 17 site(s)
+      A.AWidgets.Describer (property)
+      A.AWidgets.get_Describer() (method)
+      A.AWidgets.Inspect() (method)
+      A.AWidgets.Make() (method)
+      A.AWidgets.MakeMany() (method)
+      A.Constrained`1 generic constraint
+      A.Decorated [attribute]
+      A.Holder.add_Changed() (method)
+      A.Holder.Changed (event)
+      A.Holder.Field (field)
+      A.Holder.get_Prop() (method)
+      A.Holder.Prop (property)
+      A.Holder.Prot (field)
+      A.Holder.remove_Changed() (method)
+      A.Holder.set_Prop() (method)
+      A.IWidgetSource : interface
+      A.SpecialWidget : base type
+   System.Collections: 2 site(s)
+      A.AGenerics.Many() (method)
+      A.AWidgets.MakeMany() (method)
+   System.Runtime: 31 site(s)
+      A.ABase : base type
+      A.ABase [attribute]
+      A.ABase [attribute]
+      A.AException : base type
+      A.AGenerics : base type
+      A.AGenerics [attribute]
+      A.AGenerics [attribute]
+      A.AGreeter : base type
+      A.AService : base type
+      A.AService [attribute]
+      A.AService [attribute]
+      A.AThrower : base type
+      A.AWidgets : base type
+      A.AWidgets [attribute]
+      A.AWidgets [attribute]
+      A.AWidgets.Describer (property)
+      A.AWidgets.get_Describer() (method)
+      A.Box`1 : base type
+      A.Box`1 [attribute]
+      A.Box`1 [attribute]
+      A.Constrained`1 : base type
+      A.Decorated : base type
+      A.Holder : base type
+      A.Holder [attribute]
+      A.Holder [attribute]
+      A.Holder.add_Changed() (method)
+      A.Holder.Changed (event)
+      A.Holder.remove_Changed() (method)
+      A.IACallback [attribute]
+      A.IAService [attribute]
+      A.IHandler`1 [attribute]
+## B.dll  (14 KiB): 8 visible types, 20 visible members, 3 exposed assemblies, 0.1 ms
+   A: 8 site(s)
+      B.BApi.GetService() (method)
+      B.BApi.UseService() (method)
+      B.BApi.Wrap() (method)
+      B.BCallback : interface
+      B.BDerived : base type
+      B.BHandler : interface
+      B.BService : interface
+      B.BService.Invoke() (method)
+   Contracts: 3 site(s)
+      B.BGreeter : interface
+      B.Scenarios : interface
+      B.Scenarios.Run() (method)
+   System.Runtime: 14 site(s)
+      B.BApi : base type
+      B.BApi [attribute]
+      B.BApi [attribute]
+      B.BApi.AServiceType (property)
+      B.BApi.get_AServiceType() (method)
+      B.BCallback : base type
+      B.BGreeter : base type
+      B.BHandler : base type
+      B.BService : base type
+      B.BService [attribute]
+      B.BService [attribute]
+      B.BThing : base type
+      B.Scenarios : base type
+      B.Scenarios.Run() (method)
+
+##### Q3: consumer scans
+## B.dll using A.dll: 0 member/type references mention other assemblies (16.6 ms)
+## BD2.dll using A.dll: 4 member/type references mention other assemblies (16.1 ms)
+   [A]A.AWidgets::get_Describer mentions Dep
+   [A]A.AWidgets::Inspect mentions Dep
+   [A]A.AWidgets::Make mentions Dep
+   [A]A.AWidgets::MakeMany mentions Dep
+## BD3.dll using A.dll: 4 member/type references mention other assemblies (15.8 ms)
+   [A]A.AWidgets::get_Describer mentions Dep
+   [A]A.AWidgets::Inspect mentions Dep
+   [A]A.AWidgets::Make mentions Dep
+   [A]A.AWidgets::MakeMany mentions Dep
+## BOwnD1.dll using A.dll: 0 member/type references mention other assemblies (15.2 ms)
+## C.dll using A.dll: 0 member/type references mention other assemblies (15.5 ms)
+## C.dll using B.dll: 3 member/type references mention other assemblies (15.7 ms)
+   [B]B.BApi::GetService mentions A
+   [B]B.BApi::UseService mentions A
+   [B]B.BApi::Wrap mentions A
+
+##### Q3: cost on real assemblies (first line includes JIT warm-up)
+## A.dll  (9 KiB): 16 visible types, 41 visible members, 4 exposed assemblies, 13.5 ms
+   exposed: Contracts, Dep, System.Collections, System.Runtime
+## Newtonsoft.Json.dll  (1779 KiB): 145 visible types, 1797 visible members, 9 exposed assemblies, 3.6 ms
+   exposed: System.Collections, System.ComponentModel.TypeConverter, System.Diagnostics.TraceSource, System.Linq.Expressions, System.ObjectModel, System.Runtime, System.Runtime.Serialization.Formatters, System.Xml.ReaderWriter, System.Xml.XDocument
+## NuGet.Protocol.dll  (2049 KiB): 339 visible types, 1840 visible members, 12 exposed assemblies, 3.6 ms
+   exposed: Newtonsoft.Json, NuGet.Common, NuGet.Configuration, NuGet.Frameworks, NuGet.Packaging, NuGet.Versioning, System.Collections, System.Diagnostics.Process, System.Net.Http, System.Net.Primitives, System.Runtime, System.Threading
+## Microsoft.CodeAnalysis.dll  (8117 KiB): 452 visible types, 3963 visible members, 7 exposed assemblies, 6.2 ms
+   exposed: System.Collections, System.Collections.Immutable, System.Reflection.Metadata, System.Runtime, System.Runtime.InteropServices, System.Runtime.Serialization.Primitives, System.Security.Cryptography
+## Microsoft.CodeAnalysis.CSharp.dll  (18778 KiB): 323 visible types, 5960 visible members, 4 exposed assemblies, 25.0 ms
+   exposed: Microsoft.CodeAnalysis, System.Collections, System.Collections.Immutable, System.Runtime
+## System.Private.CoreLib.dll  (15218 KiB): 1379 visible types, 26167 visible members, 0 exposed assemblies, 36.1 ms
+   exposed: 

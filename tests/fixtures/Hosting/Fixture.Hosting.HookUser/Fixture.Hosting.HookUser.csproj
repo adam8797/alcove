@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- Attribute-only plugin depending on the Hook plugin: installing it loads Hook first, in the same batch. -->
+  <ItemGroup>
+    <ProjectReference Include="../Fixture.Hosting.Hook/Fixture.Hosting.Hook.csproj" />
+  </ItemGroup>
+</Project>

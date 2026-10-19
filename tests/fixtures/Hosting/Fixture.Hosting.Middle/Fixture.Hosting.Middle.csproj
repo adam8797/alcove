@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- Middle of a chain: depends on Provider and exposes Provider's types. -->
+  <ItemGroup>
+    <ProjectReference Include="../Fixture.Hosting.Provider/Fixture.Hosting.Provider.csproj" />
+  </ItemGroup>
+</Project>

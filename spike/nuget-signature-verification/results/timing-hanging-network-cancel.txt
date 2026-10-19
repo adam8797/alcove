@@ -1,0 +1,8 @@
+first: 120146.0 ms accepted=True errors=[] warnings=[NU3018: The author primary signature found a chain building issue: The revocation function was unable to check revocation because the revocation se
+Unhandled exception. System.ArgumentOutOfRangeException: Index was out of range. Must be non-negative and less than the size of the collection. (Parameter 'index')
+
+real	2m0.676s
+user	0m0.361s
+sys	0m0.140s
+
+[exited with code 0]

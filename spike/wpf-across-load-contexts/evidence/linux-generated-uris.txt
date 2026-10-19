@@ -1,0 +1,10 @@
+$ grep -rh "System.Uri(" --include=*.g.cs src/*/obj   (generated InitializeComponent resource locators)
+System.Uri resourceLocater = new System.Uri("/HostSdk;V1.0.0.0;component/sharedbanner.xaml", System.UriKind.Relative);
+System.Uri resourceLocater = new System.Uri("/PluginA;V1.0.0.0;component/pluginaview.xaml", System.UriKind.Relative);
+System.Uri resourceLocater = new System.Uri("/PluginB;V1.0.0.0;component/pluginbview.xaml", System.UriKind.Relative);
+System.Uri resourceLocater = new System.Uri("/PluginC;V1.0.0.0;component/plugincview.xaml", System.UriKind.Relative);
+System.Uri resourceLocater = new System.Uri("/PluginD;V1.0.0.0;component/plugindview.xaml", System.UriKind.Relative);
+System.Uri resourceLocater = new System.Uri("/SharedControls;V1.0.0.0;component/unversionedbadge.xaml", System.UriKind.Relative);
+System.Uri resourceLocater = new System.Uri("/SharedControls;V1.0.0.0;component/versionbadge.xaml", System.UriKind.Relative);
+System.Uri resourceLocater = new System.Uri("/SharedControls;V2.0.0.0;component/unversionedbadge.xaml", System.UriKind.Relative);
+System.Uri resourceLocater = new System.Uri("/SharedControls;V2.0.0.0;component/versionbadge.xaml", System.UriKind.Relative);

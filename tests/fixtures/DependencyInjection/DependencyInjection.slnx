@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Fixture.DI.Alpha/Fixture.DI.Alpha.csproj" />
+  <Project Path="Fixture.DI.Beta/Fixture.DI.Beta.csproj" />
+  <Project Path="Fixture.DI.Plain/Fixture.DI.Plain.csproj" />
+</Solution>

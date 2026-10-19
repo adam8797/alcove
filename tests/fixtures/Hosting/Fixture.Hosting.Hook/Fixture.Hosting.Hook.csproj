@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- Its InitializeAsync runs a hook the test host offers as a service (install from plugin code, block, cancel). -->
+  <PropertyGroup>
+    <PluginEntryPoint>Fixture.Hosting.Hook.HookPlugin</PluginEntryPoint>
+  </PropertyGroup>
+</Project>

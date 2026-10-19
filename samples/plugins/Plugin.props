@@ -1,0 +1,8 @@
+<Project>
+  <!-- What a plugin of the console host references: Alcove.Sdk and the host's contracts (which bring
+       Alcove.Abstractions and configure the SDK). -->
+  <ItemGroup>
+    <PackageReference Include="Alcove.Sdk" Version="$(AlcoveVersion)" PrivateAssets="all" />
+    <PackageReference Include="ConsoleHost.Contracts" Version="$(AlcoveVersion)" />
+  </ItemGroup>
+</Project>

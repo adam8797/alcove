@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Alcove.Abstractions\Alcove.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Alcove\Alcove.csproj" />
+    <!-- PublicApi/ snapshots every shipping assembly. -->
+    <ProjectReference Include="..\..\src\Alcove.DependencyInjection\Alcove.DependencyInjection.csproj" />
+    <ProjectReference Include="..\..\src\Alcove.Autofac\Alcove.Autofac.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="AlcoveRepoRoot" Value="$(AlcoveRepoRoot)" />
+  </ItemGroup>
+
+  <!-- Metadata/ tests inspect these fixture assemblies without loading them. Build order only; each fixture
+       builds into tests/fixtures/Metadata/bin/<ProjectName>/ (see that folder's Directory.Build.props). -->
+  <ItemGroup>
+    <MetadataFixture Include="..\fixtures\Metadata\Fixture.Leak.Surface\Fixture.Leak.Surface.csproj" />
+    <MetadataFixture Include="..\fixtures\Metadata\Fixture.Services.Plugin\Fixture.Services.Plugin.csproj" />
+    <MetadataFixture Include="..\fixtures\Metadata\Fixture.Wpf.Code\Fixture.Wpf.Code.csproj" />
+    <MetadataFixture Include="..\fixtures\Metadata\Fixture.Wpf.Controls.V1\Fixture.Wpf.Controls.V1.csproj" />
+    <MetadataFixture Include="..\fixtures\Metadata\Fixture.Wpf.Controls.V2\Fixture.Wpf.Controls.V2.csproj" />
+    <MetadataFixture Include="..\fixtures\Metadata\Fixture.Wpf.Controls.Unversioned\Fixture.Wpf.Controls.Unversioned.csproj" />
+    <ProjectReference Include="@(MetadataFixture)" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" Private="false" />
+  </ItemGroup>
+
+</Project>

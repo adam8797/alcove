@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Holds the type that Fixture.Leak.Surface forwards to (a type forwarder is part of the public surface). -->
+</Project>

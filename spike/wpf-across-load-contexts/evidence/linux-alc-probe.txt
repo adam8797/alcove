@@ -1,0 +1,33 @@
+$ dotnet tools/AlcProbe/bin/Debug/net10.0/AlcProbe.dll
+plugins: /home/adam/git/net-plugin-thing/spike/wpf-across-load-contexts/src/WpfHost/bin/Debug/net10.0-windows/plugins
+
+[1] Default context alone: Assembly.Load("SharedControls, Version=1.0.0.0") from a default-context caller (= PresentationFramework's situation)
+  OK   default-context Assembly.Load fails when nobody loaded SharedControls
+         -> FileNotFoundException: Could not load file or assembly 'SharedControls, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+
+[2] Same call inside d.EnterContextualReflection()  (prediction for scenario 9b)
+  OK   contextual reflection routes the default-context Assembly.Load to compartment D
+         -> SharedControls, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null [alc=D, PluginD]
+
+[3] Load v1 in A, then v2 in B, then v1b in C. AppDomain.GetAssemblies() order:
+     SharedControls, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null [alc=D, PluginD]
+     SharedControls, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null [alc=A, PluginA]
+     SharedControls, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null [alc=B, PluginB]
+     SharedControls, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null [alc=C, PluginC]
+  OK   WPF lookup by name only -> LAST loaded (C's v1b)
+         -> SharedControls, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null [alc=C, PluginC]
+  OK   WPF lookup with Version=1.0.0.0 -> last loaded 1.0.0.0 = C's v1b, not A's v1 (scenario 7)
+         -> SharedControls, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null [alc=C, PluginC]
+  OK   WPF lookup with Version=2.0.0.0 -> B's v2 (scenario 5)
+         -> SharedControls, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null [alc=B, PluginB]
+
+[4] Roll-forward: compartment RF only has SharedControls 2.0.0.0; a request for 1.0.0.0 (scenario 10)
+  OK   custom ALC Load() may return 2.0.0.0 for a 1.0.0.0 request (10b relies on this)
+         -> SharedControls, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null [alc=RF, PluginA-rollforward]
+
+[5] Default.Resolving forwarder returning another context's assembly (scenarios 9d/10c)
+         (Default.Resolving: SharedControls, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null -> SharedControls, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null from RF)
+  OK   default-context Assembly.Load(1.0.0.0) is satisfied by the forwarder with RF's 2.0.0.0
+         -> SharedControls, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null [alc=RF, PluginA-rollforward]
+
+ALL OK

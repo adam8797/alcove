@@ -1,0 +1,335 @@
+=== q1-loadfrompath ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+  loaded D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+  LoadFromAssemblyPath(D 2.0) -> EX: FileLoadException: Could not load file or assembly 'D, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null'. Assembly with same name is already loaded
+  [PASS] loading D 2.0 into a compartment that holds D 1.0 throws FileLoadException
+  LoadFromAssemblyPath(D 1.0 same path) again -> OK: True
+  LoadFromAssemblyName(D) -> OK: D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+    [q1a] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q1a] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q1a] Load(System.Runtime.Loader, 10.0.0.0) -> null -> default context
+  after the failure, PluginA.UseD -> OK: D 1.0 (asmver 1.0.0.0) in ALC 'q1a'
+  [PASS] compartment still usable after the failed load
+  compartment 'q1a' assemblies: [D 1.0.0.0, PluginA 1.0.0.0]
+  RESULT: all checks PASS
+
+=== q1-load-override ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+    [q1b] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q1b] Load(D, 1.0.0.0) -> private 1.0.0.0 (D1)
+    [q1b] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q1b] Load(System.Runtime.Loader, 10.0.0.0) -> null -> default context
+  PluginA.UseD -> OK: D 1.0 (asmver 1.0.0.0) in ALC 'q1b'
+    [q1b] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q1b] Load(D, 2.0.0.0) -> threw FileLoadException: Could not load file or assembly '/home/adam/git/net-plugin-thing/spike/hot-load-into-loaded-compartment/out/D2/D.dll'. The requested assembly version conflicts with what is already bound in the app domain or specified in the manifest. (0x80131053)
+  PluginB.UseD (needs D 2.0, Load returns LoadFromAssemblyPath(D2)) -> EX: FileLoadException: Could not load file or assembly 'D, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null'. The requested assembly version conflicts with what is already bound in the app domain or specified in the manifest. (0x80131053)
+  [PASS] binding D 2.0 through Load when D 1.0 is already in the compartment fails
+    [q1b] Load(D, 2.0.0.0) -> threw FileLoadException: Could not load file or assembly '/home/adam/git/net-plugin-thing/spike/hot-load-into-loaded-compartment/out/D2/D.dll'. The requested assembly version conflicts with what is already bound in the app domain or specified in the manifest. (0x80131053)
+  retry PluginB.UseD -> EX: FileLoadException: Could not load file or assembly 'D, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null'. The requested assembly version conflicts with what is already bound in the app domain or specified in the manifest. (0x80131053)
+  PluginA.UseDLater (new method in A, still references D 1.0) -> OK: later: D 1.0 (asmver 1.0.0.0) in ALC 'q1b'
+  compartment 'q1b' assemblies: [PluginA 1.0.0.0, D 1.0.0.0, PluginB 1.0.0.0]
+  RESULT: all checks PASS
+
+=== q1-return-existing-lower ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+    [q1c] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q1c] Load(D, 1.0.0.0) -> private 1.0.0.0 (D1)
+    [q1c] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q1c] Load(System.Runtime.Loader, 10.0.0.0) -> null -> default context
+  PluginA.UseD -> OK: D 1.0 (asmver 1.0.0.0) in ALC 'q1c'
+    [q1c] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q1c] Load(D, 2.0.0.0) -> private 1.0.0.0 (D1)
+  PluginB.UseD (requests D 2.0.0.0, Load hands back D 1.0) -> OK: D 1.0 (asmver 1.0.0.0) in ALC 'q1c'
+  PluginB.UseNewIn2 -> EX: MissingMethodException: Method not found: 'System.String DLib.Info.NewIn2()'.
+  [PASS] NEGATIVE: the runtime silently accepts a LOWER version returned by Load (failure surfaces later as MissingMethodException)
+  compartment 'q1c' assemblies: [PluginA 1.0.0.0, D 1.0.0.0, PluginB 1.0.0.0]
+  RESULT: all checks PASS
+
+=== q1-return-existing-higher ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+    [q1d] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q1d] Load(D, 2.0.0.0) -> private 2.0.0.0 (D2)
+    [q1d] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q1d] Load(System.Runtime.Loader, 10.0.0.0) -> null -> default context
+  PluginB.UseNewIn2 -> OK: NewIn2 present / D 2.0 (asmver 2.0.0.0) in ALC 'q1d'
+    [q1d] Load(System.Runtime, 10.0.0.0) -> null -> default context
+  PluginA.UseD (requests D 1.0.0.0, gets D 2.0 already loaded) -> OK: D 2.0 (asmver 2.0.0.0) in ALC 'q1d'
+  [PASS] a higher already-loaded version satisfies a lower request
+  compartment 'q1d' assemblies: [PluginB 1.0.0.0, D 2.0.0.0, PluginA 1.0.0.0]
+  RESULT: all checks PASS
+
+=== q1-same-version-second-plugin ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+    [q1e] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q1e] Load(D, 1.0.0.0) -> private 1.0.0.0 (D1)
+    [q1e] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q1e] Load(System.Runtime.Loader, 10.0.0.0) -> null -> default context
+  PluginA.UseD -> OK: D 1.0 (asmver 1.0.0.0) in ALC 'q1e'
+    [q1e] Load(System.Runtime, 10.0.0.0) -> null -> default context
+  PluginB1.UseD (also D 1.0) -> OK: D 1.0 (asmver 1.0.0.0) in ALC 'q1e'
+  [PASS] second plugin needing the same D version shares it
+  Load calls: Load(System.Runtime, 10.0.0.0) -> null -> default context | Load(D, 1.0.0.0) -> private 1.0.0.0 (D1) | Load(System.Runtime, 10.0.0.0) -> null -> default context | Load(System.Runtime.Loader, 10.0.0.0) -> null -> default context | Load(System.Runtime, 10.0.0.0) -> null -> default context
+  RESULT: all checks PASS
+
+=== q2-default-then-private ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+    [q2] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q2] Load(D, 1.0.0.0) -> null -> default context
+  PluginA.UseD -> OK: D 1.0 (asmver 1.0.0.0) in ALC 'Default'
+  [PASS] D resolved from the default context
+  --- table changed: D -> private D 2.0 ---
+  PluginA.UseDLater (not yet JIT-compiled, same assembly) -> OK: later: D 1.0 (asmver 1.0.0.0) in ALC 'Default'   [Load calls: 0]
+    [q2] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q2] Load(D, 1.0.0.0) -> private 2.0.0.0 (D2)
+    [q2] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q2] Load(System.Runtime.Loader, 10.0.0.0) -> null -> default context
+  PluginB1.UseD (new assembly, requests D 1.0.0.0) -> OK: D 2.0 (asmver 2.0.0.0) in ALC 'q2'   [Load calls: 4]
+    [q2] Load(System.Runtime, 10.0.0.0) -> null -> default context
+  PluginB.UseNewIn2 (new assembly, requests D 2.0.0.0) -> OK: NewIn2 present / D 2.0 (asmver 2.0.0.0) in ALC 'q2'   [Load calls: 1]
+  c.LoadFromAssemblyName("D") -> OK: 2.0.0.0 in q2   [Load calls: 0]
+  [PASS] A keeps the host's D (its references are already bound)
+  compartment 'q2' assemblies: [PluginA 1.0.0.0, PluginB1 1.0.0.0, D 2.0.0.0, PluginB 1.0.0.0]
+  Load calls: Load(System.Runtime, 10.0.0.0) -> null -> default context | Load(D, 1.0.0.0) -> null -> default context | Load(System.Runtime, 10.0.0.0) -> null -> default context | Load(D, 1.0.0.0) -> private 2.0.0.0 (D2) | Load(System.Runtime, 10.0.0.0) -> null -> default context | Load(System.Runtime.Loader, 10.0.0.0) -> null -> default context | Load(System.Runtime, 10.0.0.0) -> null -> default context
+  A's BaseThing comes from ALC 'Default' v1.0.0.0
+  RESULT: all checks PASS
+
+=== q2-default-then-private-unversioned-first ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+    [q2b] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q2b] Load(D, 1.0.0.0) -> null -> default context
+  PluginB1.UseD (D 1.0 -> default) -> OK: D 1.0 (asmver 1.0.0.0) in ALC 'Default'
+    [q2b] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q2b] Load(D, 2.0.0.0) -> private 2.0.0.0 (D2)
+    [q2b] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q2b] Load(System.Runtime.Loader, 10.0.0.0) -> null -> default context
+  PluginB.UseNewIn2 (D 2.0 -> private) -> OK: NewIn2 present / D 2.0 (asmver 2.0.0.0) in ALC 'q2b'
+    [q2b] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q2b] Load(D, 1.0.0.0) -> private 2.0.0.0 (D2)
+  PluginA.UseD (D 1.0, new assembly, table now says private 2.0) -> OK: D 2.0 (asmver 2.0.0.0) in ALC 'q2b'
+  compartment 'q2b' assemblies: [PluginB1 1.0.0.0, PluginB 1.0.0.0, D 2.0.0.0, PluginA 1.0.0.0]
+  Load calls: Load(System.Runtime, 10.0.0.0) -> null -> default context | Load(D, 1.0.0.0) -> null -> default context | Load(System.Runtime, 10.0.0.0) -> null -> default context | Load(D, 2.0.0.0) -> private 2.0.0.0 (D2) | Load(System.Runtime, 10.0.0.0) -> null -> default context | Load(System.Runtime.Loader, 10.0.0.0) -> null -> default context | Load(System.Runtime, 10.0.0.0) -> null -> default context | Load(D, 1.0.0.0) -> private 2.0.0.0 (D2)
+  RESULT: all checks PASS
+
+=== q2-private-then-default ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+    [q2c] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q2c] Load(D, 1.0.0.0) -> private 1.0.0.0 (D1)
+    [q2c] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q2c] Load(System.Runtime.Loader, 10.0.0.0) -> null -> default context
+  PluginA.UseD -> OK: D 1.0 (asmver 1.0.0.0) in ALC 'q2c'
+    [q2c] Load(System.Runtime, 10.0.0.0) -> null -> default context
+  PluginB1.UseD after removing D from the private table -> OK: D 1.0 (asmver 1.0.0.0) in ALC 'q2c'
+  [PASS] once loaded in the compartment, the compartment's own copy wins (Load not consulted)
+  Load calls: Load(System.Runtime, 10.0.0.0) -> null -> default context | Load(D, 1.0.0.0) -> private 1.0.0.0 (D1) | Load(System.Runtime, 10.0.0.0) -> null -> default context | Load(System.Runtime.Loader, 10.0.0.0) -> null -> default context | Load(System.Runtime, 10.0.0.0) -> null -> default context
+  RESULT: all checks PASS
+
+=== q3-failure-then-available ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+    [q3] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q3] Load(E, 1.0.0.0) -> null -> default context
+  PluginC.UseE with E unknown -> EX: FileNotFoundException: Could not load file or assembly 'E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+  [PASS] unknown dependency -> FileNotFoundException
+    [q3] Load(E, 1.0.0.0) -> null -> default context
+  retry PluginC.UseE while still unknown -> EX: FileNotFoundException: Could not load file or assembly 'E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.   [Load calls so far: 3]
+  --- table changed: E -> private ---
+    [q3] Load(E, 1.0.0.0) -> private 1.0.0.0 (E)
+    [q3] Load(System.Runtime, 10.0.0.0) -> null -> default context
+  retry PluginC.UseE (same method) -> OK: E says hello   [Load calls: 2]
+  PluginC.UseEOther (other method, same assembly) -> OK: other: E says hello   [Load calls: 0]
+    [q3] Load(System.Runtime, 10.0.0.0) -> null -> default context
+  PluginC2.UseE (new assembly) -> OK: E says hello   [Load calls: 1]
+  [PASS] compartment recovers once E becomes resolvable
+  compartment 'q3' assemblies: [PluginC 1.0.0.0, E 1.0.0.0, PluginC2 1.0.0.0]
+  Load calls: Load(System.Runtime, 10.0.0.0) -> null -> default context | Load(E, 1.0.0.0) -> null -> default context | Load(E, 1.0.0.0) -> null -> default context | Load(E, 1.0.0.0) -> private 1.0.0.0 (E) | Load(System.Runtime, 10.0.0.0) -> null -> default context | Load(System.Runtime, 10.0.0.0) -> null -> default context
+  RESULT: all checks PASS
+
+=== q3-failure-loadfromname ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+    [q3b] Load(E, ) -> null -> default context
+  c.LoadFromAssemblyName(E) unknown -> EX: FileNotFoundException: Could not load file or assembly 'E, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+    [q3b] Load(E, ) -> private 1.0.0.0 (E)
+  c.LoadFromAssemblyName(E) after table change -> OK: E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+  [PASS] failure not cached for LoadFromAssemblyName
+  Load calls: Load(E, ) -> null -> default context | Load(E, ) -> private 1.0.0.0 (E)
+  RESULT: all checks PASS
+
+=== q3-load-throws ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+    [q3c] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q3c] Load(E, 1.0.0.0) -> threw InvalidOperationException
+  PluginC.UseE while Load throws -> EX: FileLoadException: Could not load file or assembly 'E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. An operation is not legal in the current state. (0x80131509)
+    [q3c] Load(E, 1.0.0.0) -> private 1.0.0.0 (E)
+    [q3c] Load(System.Runtime, 10.0.0.0) -> null -> default context
+  retry after fixing -> OK: E says hello
+  [PASS] recovers after Load threw
+  Load calls: Load(System.Runtime, 10.0.0.0) -> null -> default context | Load(E, 1.0.0.0) -> threw InvalidOperationException | Load(E, 1.0.0.0) -> private 1.0.0.0 (E) | Load(System.Runtime, 10.0.0.0) -> null -> default context
+  RESULT: all checks PASS
+
+=== q3-resolving-event ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+    [q3d] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q3d] Load(E, 1.0.0.0) -> null -> default context
+  PluginC.UseE -> EX: FileNotFoundException: Could not load file or assembly 'E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified. [Resolving calls 1]
+    [q3d] Load(E, 1.0.0.0) -> null -> default context
+  PluginC.UseE again -> EX: FileNotFoundException: Could not load file or assembly 'E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified. [Resolving calls 2]
+  RESULT: all checks PASS
+
+=== q2-null-answer-not-cached ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+    [q2n] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q2n] Load(D, 1.0.0.0) -> null -> default context
+  PluginA.UseD -> OK: D 1.0 (asmver 1.0.0.0) in ALC 'Default'
+    [q2n] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q2n] Load(D, 1.0.0.0) -> null -> default context
+  PluginB1.UseD -> OK: D 1.0 (asmver 1.0.0.0) in ALC 'Default'
+  [PASS] a null (default) answer is NOT remembered per compartment: Load(D) is asked again for each new referencing assembly
+  RESULT: all checks PASS
+
+=== q2-split-identity ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+    [q2s] Load(D, 1.0.0.0) -> null -> default context
+    [q2s] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q2s] Load(D, 2.0.0.0) -> private 2.0.0.0 (D2)
+    [q2s] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q2s] Load(System.Runtime.Loader, 10.0.0.0) -> null -> default context
+  PluginB.UseD -> OK: D 2.0 (asmver 2.0.0.0) in ALC 'q2s'
+  A sees DLib.BaseThing from 'Default' 1.0.0.0; B sees it from 'q2s' 2.0.0.0
+  [PASS] two plugins in ONE compartment now disagree on DLib.BaseThing (type identity split, no error raised)
+  an A object is-a B's BaseThing? False
+  RESULT: all checks PASS
+
+=== q4-new-assemblies ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+    [q4] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q4] Load(D, 1.0.0.0) -> private 1.0.0.0 (D1)
+    [q4] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q4] Load(System.Runtime.Loader, 10.0.0.0) -> null -> default context
+  PluginA.UseD -> OK: D 1.0 (asmver 1.0.0.0) in ALC 'q4'
+    [q4] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q4] Load(F, 1.0.0.0) -> private 1.0.0.0 (F)
+    [q4] Load(System.Runtime, 10.0.0.0) -> null -> default context
+  hot-added PluginG (+ new private F) -> OK: F says hello
+  [PASS] brand-new names can be added to a loaded compartment
+  host forced D into default context: OK: 1.0.0.0
+    [q4b] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q4b] Load(D, 2.0.0.0) -> private 2.0.0.0 (D2)
+    [q4b] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q4b] Load(System.Runtime.Loader, 10.0.0.0) -> null -> default context
+  compartment-private D 2.0 while default has D 1.0 -> OK: NewIn2 present / D 2.0 (asmver 2.0.0.0) in ALC 'q4b'
+  [PASS] private copy alongside a different version in the default context works
+  loading PluginA again from another path into the same compartment -> OK: True
+  loading PluginA again from the same path -> OK: True
+  RESULT: all checks PASS
+
+=== q4-same-version-different-file ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+  LoadFromAssemblyPath(D1b: same name+version, different file) -> EX: FileLoadException: Could not load file or assembly 'D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. Assembly with same name is already loaded
+  [PASS] same name+version but different contents (different MVID) -> FileLoadException, like a version clash
+  RESULT: all checks PASS
+
+=== q4-lower-path-after-higher ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+  LoadFromAssemblyPath(D 1.0) when D 2.0 is loaded -> EX: FileLoadException: Could not load file or assembly 'D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. Assembly with same name is already loaded
+  RESULT: all checks PASS
+
+=== q5-what-triggers-resolution ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+  load assembly only                                      -> Load(D) requested: False
+  call A.Self()                                           -> Load(D) requested: False
+  GetReferencedAssemblies()                               -> Load(D) requested: False
+  GetType(AWithParam) + GetMethods()                      -> Load(D) requested: False
+  GetMethod(M).GetParameters()[0].ParameterType           -> Load(D) requested: True
+  new AWithParam().Plain()                                -> Load(D) requested: False
+  GetType("PluginA.ADerived") (base type in D)            -> Load(D) requested: True
+  GetTypes() (what [Extension] scanning does)             -> Load(D) requested: True
+  GetCustomAttributes on assembly                         -> Load(D) requested: False
+  call A.MaybeD(false) (D only in untaken branch)         -> Load(D) requested: True
+  call A.UseD()                                           -> Load(D) requested: True
+    [q5-late] Load(System.Runtime, 10.0.0.0) -> null -> default context
+  A loaded, A.Self() -> OK: A ok (no D needed)
+    [q5-late] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q5-late] Load(D, 2.0.0.0) -> private 2.0.0.0 (D2)
+    [q5-late] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q5-late] Load(System.Runtime.Loader, 10.0.0.0) -> null -> default context
+  PluginB.UseNewIn2 -> OK: NewIn2 present / D 2.0 (asmver 2.0.0.0) in ALC 'q5-late'
+  PluginA.UseD (compiled against 1.0) -> OK: D 2.0 (asmver 2.0.0.0) in ALC 'q5-late'
+  [PASS] an unrequested name can still be decided late (A gets 2.0, no clash)
+  RESULT: all checks PASS
+
+=== q6-native-remap ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+    [q6a] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q6a] LoadUnmanagedDll(nat) -> v1/libnat.so handle=0x5bdcc82d5b70
+  N1.Version -> OK: 1
+  --- native table changed: nat -> v2 ---
+  N1.Version again (already bound P/Invoke) -> OK: 1   [LoadUnmanagedDll calls: 0]
+    [q6a] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q6a] LoadUnmanagedDll(nat) -> v2/libnat.so handle=0x5bdcc8241250
+  N2.Version (new assembly, same compartment) -> OK: 2   [LoadUnmanagedDll calls: 2]
+  Native calls: Load(System.Runtime, 10.0.0.0) -> null -> default context | LoadUnmanagedDll(nat) -> v1/libnat.so handle=0x5bdcc82d5b70 | Load(System.Runtime, 10.0.0.0) -> null -> default context | LoadUnmanagedDll(nat) -> v2/libnat.so handle=0x5bdcc8241250
+  RESULT: all checks PASS
+
+=== q6-native-already-in-process ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+  default/host loaded v1 libnat.so handle=0x5751584986a0
+    [q6b] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q6b] LoadUnmanagedDll(nat) -> v2/libnat.so handle=0x5751584a2850
+  compartment maps nat -> v2 by full path; N1.Version -> OK: 2
+  [PASS] a second copy (different file, same soname) loads side by side when loaded by full path
+    [q6c] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q6c] LoadUnmanagedDll(natuser) -> v2/libnatuser.so handle=0x57515849a2d0
+  libnatuser.so (v2 dir, DT_NEEDED libnat.so) sees nat_version -> OK: 1
+  [PASS] DT_NEEDED dependency resolves to the copy already loaded with the same soname (v1), not the one next to it
+  RESULT: all checks PASS
+
+=== q6-native-soname-control ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+    [q6d] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q6d] LoadUnmanagedDll(natuser) -> v2/libnatuser.so handle=0x635beff27ca0
+  libnatuser.so (v2 dir) with nothing loaded before -> OK: 2
+  [PASS] control: picks the libnat.so next to it (v2)
+  RESULT: all checks PASS
+
+=== q6-native-failure-then-available ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+    [q6e] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q6e] LoadUnmanagedDll(nat) -> IntPtr.Zero (unknown)
+  N1.Version with nat unknown -> EX: DllNotFoundException: Unable to load shared library 'nat' or one of its dependencies. In order to help diagnose loading problems, consider using a tool like strace. If you're using glibc, consider setting the LD_DEBUG environment variable: 
+    [q6e] LoadUnmanagedDll(nat) -> v1/libnat.so handle=0x584fc9c9d890
+  retry N1.Version after mapping nat -> OK: 1   [LoadUnmanagedDll calls: 1]
+    [q6e] Load(System.Runtime, 10.0.0.0) -> null -> default context
+    [q6e] LoadUnmanagedDll(nat) -> v1/libnat.so handle=0x584fc9c9d890
+  N2.Version (new assembly) -> OK: 1   [LoadUnmanagedDll calls: 2]
+  [PASS] native failures are not cached
+  RESULT: all checks PASS
+
+=== rule-demo ===
+  default context already has D? False (host references D 1.0 => it is in the TPA list either way)
+  PluginA.UseD -> OK: D 1.0 (asmver 1.0.0.0) in ALC 'Default'
+  PluginC.UseE (E unknown) -> EX: FileNotFoundException: Could not load file or assembly 'E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+  committed: PluginA=private 1.0.0.0 (PluginA), D=default, PluginC=private 1.0.0.0 (PluginC), E=failed
+  B1: needs D 1.0 from host (same answer)       -> HOT LOAD
+  [PASS] rule verdict for B1
+  B: needs D 2.0 private (host has 1.0)         -> PendingRestart: D: compartment already uses default, plugin needs private 2.0.0.0 (D2)
+  [PASS] rule verdict for B
+  G: needs brand-new F                          -> HOT LOAD
+  [PASS] rule verdict for G
+  C2: needs E (earlier request for E failed)    -> HOT LOAD
+  [PASS] rule verdict for C2
+  hot-loaded G -> OK: F says hello
+  hot-loaded C2 -> OK: E says hello; and the earlier-failing C.UseE now -> OK: E says hello
+  [PASS] hot loads allowed by the rule work
+  bypassing the rule: B.UseNewIn2 -> EX: FileNotFoundException: Could not load file or assembly 'D, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
+  [PASS] frozen answers prevent a silent split (B fails loudly instead of getting a second D)
+  committed D after the bypass attempt: default
+  [PASS] D stays frozen at 'default' after the failed bypass
+  log: Load(D, 1.0.0.0) -> default
+  log: Load(E, 1.0.0.0) -> default
+  log: Resolving(E, 1.0.0.0) -> failed
+  log: Load(F, 1.0.0.0) -> private 1.0.0.0 (F)
+  log: Load(E, 1.0.0.0) -> private 1.0.0.0 (E)
+  log: WARNING D: plan now says private 2.0.0.0 (D2) but default was already given; keeping default
+  log: Load(D, 2.0.0.0) -> default
+  log: Resolving(D, 2.0.0.0) -> failed
+  RESULT: all checks PASS
+

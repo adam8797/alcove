@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Microsoft.Extensions.DependencyInjection add-on for Alcove: services.AddPlugins(), constructor injection for extensions, and IServicePlugin so plugins register services in their cell's provider.</Description>
+    <PackageTags>plugins;nuget;assemblyloadcontext;dependency-injection</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Alcove\Alcove.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The container builds the cells' providers. Lowest supported version (as for Logging.Abstractions): this
+         package is host-owned, so its dependencies' versions are a floor for every plugin that references it. -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Alcove.IntegrationTests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Plugins built with Alcove.Sdk treat this package as host-owned (never copied to their output). -->
+    <None Include="buildTransitive\Alcove.DependencyInjection.props" Pack="true" PackagePath="buildTransitive\" />
+  </ItemGroup>
+
+</Project>

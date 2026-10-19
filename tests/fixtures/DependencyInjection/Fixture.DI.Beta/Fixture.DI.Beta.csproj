@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../ServicePlugin.props" />
+  <!-- A second service plugin, to share a cell with Alpha or not. -->
+  <PropertyGroup>
+    <PluginEntryPoint>Fixture.DI.Beta.BetaPlugin</PluginEntryPoint>
+  </PropertyGroup>
+</Project>

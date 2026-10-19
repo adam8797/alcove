@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <PackageId>Spike.SamplePlugin</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>spike</Authors>
+    <Description>Unsigned test package for the signature spike.</Description>
+  </PropertyGroup>
+</Project>

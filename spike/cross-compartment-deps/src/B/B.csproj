@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>B</AssemblyName><RootNamespace>B</RootNamespace>
+    <Version>1.0.0</Version>
+    <OutDir>$(LayoutDir)packages/B/1.0.0/</OutDir>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Contracts/Contracts.csproj" Private="false" />
+    <Reference Include="A"><HintPath>$(LayoutDir)packages/A/1.0.0/A.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Asks for a named cell and keeps a private copy of a dependency. EnableDynamicLoading copies package
+       assets to the output, which shows that host-owned packages are still left out. -->
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <PluginCell>Fixture.Shared</PluginCell>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PluginPrivateDependency Include="Fixture.Library" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Alcove.Sdk" Version="$(AlcoveVersion)" PrivateAssets="all" />
+    <PackageReference Include="Alcove.Abstractions" Version="$(AlcoveVersion)" />
+    <PackageReference Include="Fixture.Contracts" Version="[1.0,2.0)" />
+    <PackageReference Include="Fixture.Library" Version="1.0.0" />
+  </ItemGroup>
+</Project>

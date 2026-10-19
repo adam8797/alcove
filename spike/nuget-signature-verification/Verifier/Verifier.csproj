@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NuGet.Packaging" Version="7.3.1" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+  </ItemGroup>
+
+  <!-- Experiment: ship the SDK's fallback certificate bundles next to NuGet.Packaging.dll (output/trustedroots/*.pem),
+       which is where NuGet looks for them. Enabled with -p:BundleTrustedRoots=true. -->
+  <ItemGroup Condition="'$(BundleTrustedRoots)' == 'true'">
+    <None Include="$(NetCoreRoot)sdk/$(NETCoreSdkVersion)/trustedroots/*.pem" Link="trustedroots/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Experiment: single-file publish breaks NuGet's bundle lookup (Assembly.Location is empty). Keep NuGet.Packaging.dll on disk. -->
+  <Target Name="KeepNuGetPackagingOutOfBundle" AfterTargets="ComputeResolvedFilesToPublishList" Condition="'$(KeepNuGetPackagingOnDisk)' == 'true'">
+    <ItemGroup>
+      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="'%(Filename)%(Extension)' == 'NuGet.Packaging.dll'" ExcludeFromSingleFile="true" />
+    </ItemGroup>
+  </Target>
+
+</Project>

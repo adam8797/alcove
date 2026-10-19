@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- Depends on the Provider plugin (another cell) and uses its leaky API with Dep 2.0. -->
+  <ItemGroup>
+    <ProjectReference Include="../Fixture.Hosting.Provider/Fixture.Hosting.Provider.csproj" />
+    <ProjectReference Include="../Fixture.Hosting.Dep.V2/Fixture.Hosting.Dep.V2.csproj" />
+  </ItemGroup>
+</Project>

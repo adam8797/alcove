@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Dep</AssemblyName><RootNamespace>Dep</RootNamespace>
+    <Version>2.0.0</Version><AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <DefineConstants>$(DefineConstants);V2</DefineConstants>
+    <OutDir>$(LayoutDir)packages/Dep/2.0.0/</OutDir>
+  </PropertyGroup>
+  <ItemGroup><Compile Include="../Dep/Widget.cs" /></ItemGroup>
+</Project>

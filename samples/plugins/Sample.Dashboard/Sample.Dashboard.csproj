@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- The top of a chain of three: Dashboard -> Report -> Formatting. -->
+  <ItemGroup>
+    <ProjectReference Include="../Sample.Report/Sample.Report.csproj" />
+    <ProjectReference Include="../Sample.Text.V2/Sample.Text.V2.csproj" />
+  </ItemGroup>
+</Project>

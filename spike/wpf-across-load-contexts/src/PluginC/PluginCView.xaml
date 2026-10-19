@@ -1,0 +1,10 @@
+<UserControl x:Class="PluginC.PluginCView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:shared="clr-namespace:SharedControls;assembly=SharedControls">
+    <StackPanel Margin="4">
+        <TextBlock Text="MARK:PluginC.PluginCView" FontWeight="Bold" />
+        <shared:VersionBadge x:Name="Badge" />
+        <shared:FancyBox x:Name="Fancy" />
+    </StackPanel>
+</UserControl>

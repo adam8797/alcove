@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- A library Fixture.Leak.Surface uses only internally: it must never be reported as exposed. -->
+</Project>

@@ -1,0 +1,12 @@
+<Project>
+  <!-- Libraries the test host ships and plugin fixtures build against (e.g. the host's contracts). They
+       use the repository settings, not tests/Directory.Build.props (they aren't test projects), and are
+       packed on build so the fixture plugins can reference them from the local test feed. -->
+  <Import Project="$(MSBuildThisFileDirectory)../../Directory.Build.props" />
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+</Project>

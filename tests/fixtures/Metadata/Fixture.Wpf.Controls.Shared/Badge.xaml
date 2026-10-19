@@ -1,0 +1,9 @@
+<UserControl x:Class="Fixture.Wpf.Controls.Badge"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:code="clr-namespace:Fixture.Wpf.Code;assembly=Fixture.Wpf.Code">
+    <StackPanel>
+        <TextBlock Text="Badge" />
+        <code:CodeOnlyControl />
+    </StackPanel>
+</UserControl>

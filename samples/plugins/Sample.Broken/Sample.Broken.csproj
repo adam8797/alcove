@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- Fails while initialising: it is marked Faulted and the other plugins load anyway. -->
+  <PropertyGroup>
+    <PluginEntryPoint>Sample.Broken.BrokenPlugin</PluginEntryPoint>
+  </PropertyGroup>
+</Project>

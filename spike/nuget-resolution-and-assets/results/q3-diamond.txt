@@ -1,0 +1,76 @@
+== compartment: A + B (LibShared >=1.0.0 and >=2.0.0; Newtonsoft 12.0.1 and 13.0.1)
+-- RemoteDependencyWalker (PackageReference semantics), host pinned
+  walks: 1
+  PluginA                                          1.0.0      Plugin                 src=/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/work/feed
+      requested by (install request) -> (= 1.0.0)
+  PluginB                                          1.0.0      Plugin                 src=/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/work/feed
+      requested by (install request) -> (= 1.0.0)
+  LibShared                                        2.0.0      PrivateMissing         src=/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/work/feed
+      requested by PluginA 1.0.0 -> (>= 1.0.0)
+      requested by PluginB 1.0.0 -> (>= 2.0.0)
+  Newtonsoft.Json                                  13.0.3     HostSharedProvided     src=host deps.json
+      requested by PluginA 1.0.0 -> (>= 12.0.1)
+      requested by PluginB 1.0.0 -> (>= 13.0.1)
+  analysis: downgrades=0 versionConflicts=0 cycles=0
+  DIAMOND LibShared: ranges (>= 1.0.0) , (>= 2.0.0) -> chose 2.0.0
+  DIAMOND Newtonsoft.Json: ranges (>= 12.0.1) , (>= 13.0.1) -> chose 13.0.3
+-- NuGet.Resolver PackageResolver (packages.config semantics: every range must hold), DependencyBehavior.Lowest
+  resolved (2554 candidate versions gathered): LibShared 2.0.0, Newtonsoft.Json 13.0.1, PluginA 1.0.0, PluginB 1.0.0
+
+== compartment: B + C (LibShared >=2.0.0 and [1.0.0,2.0.0) -> range conflict)
+-- RemoteDependencyWalker (PackageReference semantics), host pinned
+  walks: 1
+  PluginB                                          1.0.0      Plugin                 src=/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/work/feed
+      requested by (install request) -> (= 1.0.0)
+  PluginC                                          1.0.0      Plugin                 src=/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/work/feed
+      requested by (install request) -> (= 1.0.0)
+  LibShared                                        2.0.0      PrivateMissing         src=/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/work/feed
+      requested by PluginB 1.0.0 -> (>= 2.0.0)
+      requested by PluginC 1.0.0 -> (>= 1.0.0 && < 2.0.0)
+  Newtonsoft.Json                                  13.0.3     HostSharedProvided     src=host deps.json
+      requested by PluginB 1.0.0 -> (>= 13.0.1)
+      requested by PluginC 1.0.0 -> (>= 13.0.1)
+  analysis: downgrades=0 versionConflicts=1 cycles=0
+      CONFLICT: selected __compartment__ -> PluginB 1.0.0 -> LibShared (>= 2.0.0) (2.0.0)  vs  __compartment__ -> PluginC 1.0.0 -> LibShared (>= 1.0.0 && < 2.0.0)
+  DIAMOND LibShared: ranges (>= 2.0.0) , (>= 1.0.0 && < 2.0.0) -> chose 2.0.0
+  RANGE CONFLICT LibShared: no version satisfies all of (>= 2.0.0) , (>= 1.0.0 && < 2.0.0)
+  RANGE VIOLATION LibShared 2.0.0: PluginC 1.0.0 -> (>= 1.0.0 && < 2.0.0)
+-- NuGet.Resolver PackageResolver (packages.config semantics: every range must hold), DependencyBehavior.Lowest
+  FAILED (NuGetResolverConstraintException): Unable to resolve dependencies.
+
+== compartment: A + C (LibShared >=1.0.0 and [1.0.0,2.0.0) -> 1.0.0 satisfies both)
+-- RemoteDependencyWalker (PackageReference semantics), host pinned
+  walks: 1
+  PluginA                                          1.0.0      Plugin                 src=/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/work/feed
+      requested by (install request) -> (= 1.0.0)
+  PluginC                                          1.0.0      Plugin                 src=/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/work/feed
+      requested by (install request) -> (= 1.0.0)
+  LibShared                                        1.0.0      PrivateMissing         src=/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/work/feed
+      requested by PluginA 1.0.0 -> (>= 1.0.0)
+      requested by PluginC 1.0.0 -> (>= 1.0.0 && < 2.0.0)
+  Newtonsoft.Json                                  13.0.3     HostSharedProvided     src=host deps.json
+      requested by PluginA 1.0.0 -> (>= 12.0.1)
+      requested by PluginC 1.0.0 -> (>= 13.0.1)
+  analysis: downgrades=0 versionConflicts=0 cycles=0
+  DIAMOND LibShared: ranges (>= 1.0.0) , (>= 1.0.0 && < 2.0.0) -> chose 1.0.0
+  DIAMOND Newtonsoft.Json: ranges (>= 12.0.1) , (>= 13.0.1) -> chose 13.0.3
+-- NuGet.Resolver PackageResolver (packages.config semantics: every range must hold), DependencyBehavior.Lowest
+  resolved (2554 candidate versions gathered): LibShared 1.0.0, Newtonsoft.Json 13.0.1, PluginA 1.0.0, PluginC 1.0.0
+
+== compartment: D + E (D: LibShared >=1.0.0 direct; E -> LibMid -> LibShared >=3.0.0, one level deeper)
+-- RemoteDependencyWalker (PackageReference semantics), host pinned
+  walks: 1
+  PluginD                                          1.0.0      Plugin                 src=/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/work/feed
+      requested by (install request) -> (= 1.0.0)
+  PluginE                                          1.0.0      Plugin                 src=/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/work/feed
+      requested by (install request) -> (= 1.0.0)
+  LibShared                                        3.0.0      PrivateMissing         src=/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/work/feed
+      requested by PluginD 1.0.0 -> (>= 1.0.0)
+      requested by LibMid 1.0.0 -> (>= 3.0.0)
+  LibMid                                           1.0.0      PrivateMissing         src=/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/work/feed
+      requested by PluginE 1.0.0 -> (>= 1.0.0)
+  analysis: downgrades=0 versionConflicts=0 cycles=0
+  DIAMOND LibShared: ranges (>= 1.0.0) , (>= 3.0.0) -> chose 3.0.0
+-- NuGet.Resolver PackageResolver (packages.config semantics: every range must hold), DependencyBehavior.Lowest
+  resolved (6 candidate versions gathered): LibShared 3.0.0, LibMid 1.0.0, PluginD 1.0.0, PluginE 1.0.0
+

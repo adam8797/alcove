@@ -1,0 +1,13 @@
+/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/fixtures/PluginA/PluginA.csproj : warning NU1903: Package 'Newtonsoft.Json' 12.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-5crp-9r3c-p9vr
+/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/fixtures/PluginA/PluginA.csproj : warning NU1903: Package 'Newtonsoft.Json' 12.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-5crp-9r3c-p9vr
+/home/adam/git/net-plugin-thing/spike/nuget-resolution-and-assets/fixtures/PluginA/PluginA.csproj : warning NU1903: Package 'Newtonsoft.Json' 12.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-5crp-9r3c-p9vr
+AssetsLib.1.0.0.nupkg
+LibMid.1.0.0.nupkg
+LibShared.1.0.0.nupkg
+LibShared.2.0.0.nupkg
+LibShared.3.0.0.nupkg
+PluginA.1.0.0.nupkg
+PluginB.1.0.0.nupkg
+PluginC.1.0.0.nupkg
+PluginD.1.0.0.nupkg
+PluginE.1.0.0.nupkg

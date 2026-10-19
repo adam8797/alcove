@@ -1,0 +1,10 @@
+<Project>
+  <!-- Configures Alcove.Sdk for plugins of the console sample host. -->
+  <PropertyGroup>
+    <PluginPackageType Condition="'$(PluginPackageType)' == ''">ConsoleHostPlugin</PluginPackageType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PluginHostOwnedPackage Include="ConsoleHost.Contracts" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- Registers fine, then throws in InitializeAsync: none of its extensions reach the catalog. -->
+  <PropertyGroup>
+    <PluginEntryPoint>Fixture.Hosting.FaultyInit.FaultyInitPlugin</PluginEntryPoint>
+  </PropertyGroup>
+</Project>

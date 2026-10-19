@@ -1,0 +1,109 @@
+== linux-x64/AssetsApp.deps.json: ours = Select(tfm net10.0, rid linux-x64)
+  same  AssetsLib.1.0.0                                                native:runtimes/linux-x64/native/libfake.so resources:lib/net8.0/de/AssetsLib.resources.dll resources:lib/net8.0/fr/AssetsLib.resources.dll runtime:lib/net8.0/AssetsLib.dll
+  same  Humanizer.Core.2.14.1                                          runtime:lib/net6.0/Humanizer.dll
+  same  Humanizer.Core.de.2.14.1                                       resources:lib/net6.0/de/Humanizer.resources.dll
+  same  Microsoft.Data.Sqlite.10.0.13                                  
+  same  Microsoft.Data.Sqlite.Core.10.0.13                             runtime:lib/net8.0/Microsoft.Data.Sqlite.dll
+  same  runtime.linux-x64.runtime.native.System.IO.Ports.10.0.13       native:runtimes/linux-x64/native/libSystem.IO.Ports.Native.so
+  same  runtime.native.System.IO.Ports.10.0.13                         
+  same  SQLitePCLRaw.bundle_e_sqlite3.2.1.13                           runtime:lib/netstandard2.0/SQLitePCLRaw.batteries_v2.dll
+  same  SQLitePCLRaw.core.2.1.13                                       runtime:lib/netstandard2.0/SQLitePCLRaw.core.dll
+  same  SQLitePCLRaw.lib.e_sqlite3.2.1.13                              native:runtimes/linux-x64/native/libe_sqlite3.so
+  same  SQLitePCLRaw.provider.e_sqlite3.2.1.13                         runtime:lib/net6.0/SQLitePCLRaw.provider.e_sqlite3.dll
+  same  System.IO.Ports.10.0.13                                        runtime:runtimes/unix/lib/net10.0/System.IO.Ports.dll
+== linux-musl-x64/AssetsApp.deps.json: ours = Select(tfm net10.0, rid linux-musl-x64)
+  same  AssetsLib.1.0.0                                                native:runtimes/linux-x64/native/libfake.so resources:lib/net8.0/de/AssetsLib.resources.dll resources:lib/net8.0/fr/AssetsLib.resources.dll runtime:lib/net8.0/AssetsLib.dll
+  same  Humanizer.Core.2.14.1                                          runtime:lib/net6.0/Humanizer.dll
+  same  Humanizer.Core.de.2.14.1                                       resources:lib/net6.0/de/Humanizer.resources.dll
+  same  Microsoft.Data.Sqlite.10.0.13                                  
+  same  Microsoft.Data.Sqlite.Core.10.0.13                             runtime:lib/net8.0/Microsoft.Data.Sqlite.dll
+  same  runtime.linux-musl-x64.runtime.native.System.IO.Ports.10.0.13  native:runtimes/linux-musl-x64/native/libSystem.IO.Ports.Native.so
+  same  runtime.native.System.IO.Ports.10.0.13                         
+  same  SQLitePCLRaw.bundle_e_sqlite3.2.1.13                           runtime:lib/netstandard2.0/SQLitePCLRaw.batteries_v2.dll
+  same  SQLitePCLRaw.core.2.1.13                                       runtime:lib/netstandard2.0/SQLitePCLRaw.core.dll
+  same  SQLitePCLRaw.lib.e_sqlite3.2.1.13                              native:runtimes/linux-musl-x64/native/libe_sqlite3.so
+  same  SQLitePCLRaw.provider.e_sqlite3.2.1.13                         runtime:lib/net6.0/SQLitePCLRaw.provider.e_sqlite3.dll
+  same  System.IO.Ports.10.0.13                                        runtime:runtimes/unix/lib/net10.0/System.IO.Ports.dll
+== win-x64/AssetsApp.deps.json: ours = Select(tfm net10.0, rid win-x64)
+  same  AssetsLib.1.0.0                                                native:runtimes/win-x64/native/fake.dll resources:lib/net8.0/de/AssetsLib.resources.dll resources:lib/net8.0/fr/AssetsLib.resources.dll runtime:lib/net8.0/AssetsLib.dll
+  same  Humanizer.Core.2.14.1                                          runtime:lib/net6.0/Humanizer.dll
+  same  Humanizer.Core.de.2.14.1                                       resources:lib/net6.0/de/Humanizer.resources.dll
+  same  Microsoft.Data.Sqlite.10.0.13                                  
+  same  Microsoft.Data.Sqlite.Core.10.0.13                             runtime:lib/net8.0/Microsoft.Data.Sqlite.dll
+  same  SQLitePCLRaw.bundle_e_sqlite3.2.1.13                           runtime:lib/netstandard2.0/SQLitePCLRaw.batteries_v2.dll
+  same  SQLitePCLRaw.core.2.1.13                                       runtime:lib/netstandard2.0/SQLitePCLRaw.core.dll
+  same  SQLitePCLRaw.lib.e_sqlite3.2.1.13                              native:runtimes/win-x64/native/e_sqlite3.dll
+  same  SQLitePCLRaw.provider.e_sqlite3.2.1.13                         runtime:lib/net6.0/SQLitePCLRaw.provider.e_sqlite3.dll
+  same  System.IO.Ports.10.0.13                                        runtime:runtimes/win/lib/net10.0/System.IO.Ports.dll
+== osx-arm64/AssetsApp.deps.json: ours = Select(tfm net10.0, rid osx-arm64)
+  same  AssetsLib.1.0.0                                                native:runtimes/osx/native/libfake.dylib resources:lib/net8.0/de/AssetsLib.resources.dll resources:lib/net8.0/fr/AssetsLib.resources.dll runtime:lib/net8.0/AssetsLib.dll
+  same  Humanizer.Core.2.14.1                                          runtime:lib/net6.0/Humanizer.dll
+  same  Humanizer.Core.de.2.14.1                                       resources:lib/net6.0/de/Humanizer.resources.dll
+  same  Microsoft.Data.Sqlite.10.0.13                                  
+  same  Microsoft.Data.Sqlite.Core.10.0.13                             runtime:lib/net8.0/Microsoft.Data.Sqlite.dll
+  same  runtime.native.System.IO.Ports.10.0.13                         
+  same  runtime.osx-arm64.runtime.native.System.IO.Ports.10.0.13       native:runtimes/osx-arm64/native/libSystem.IO.Ports.Native.dylib
+  same  SQLitePCLRaw.bundle_e_sqlite3.2.1.13                           runtime:lib/netstandard2.0/SQLitePCLRaw.batteries_v2.dll
+  same  SQLitePCLRaw.core.2.1.13                                       runtime:lib/netstandard2.0/SQLitePCLRaw.core.dll
+  same  SQLitePCLRaw.lib.e_sqlite3.2.1.13                              native:runtimes/osx-arm64/native/libe_sqlite3.dylib
+  same  SQLitePCLRaw.provider.e_sqlite3.2.1.13                         runtime:lib/net6.0/SQLitePCLRaw.provider.e_sqlite3.dll
+  same  System.IO.Ports.10.0.13                                        runtime:runtimes/unix/lib/net10.0/System.IO.Ports.dll
+== portable/AssetsApp.deps.json: ours = Select(tfm net10.0, rid (none))
+  same  AssetsLib.1.0.0                                                resources:lib/net8.0/de/AssetsLib.resources.dll resources:lib/net8.0/fr/AssetsLib.resources.dll runtime:lib/net8.0/AssetsLib.dll
+  same  Humanizer.Core.2.14.1                                          runtime:lib/net6.0/Humanizer.dll
+  same  Humanizer.Core.de.2.14.1                                       resources:lib/net6.0/de/Humanizer.resources.dll
+  same  Microsoft.Data.Sqlite.10.0.13                                  
+  same  Microsoft.Data.Sqlite.Core.10.0.13                             runtime:lib/net8.0/Microsoft.Data.Sqlite.dll
+  same  runtime.android-arm.runtime.native.System.IO.Ports.10.0.13     
+  same  runtime.android-arm64.runtime.native.System.IO.Ports.10.0.13   
+  same  runtime.android-x64.runtime.native.System.IO.Ports.10.0.13     
+  same  runtime.android-x86.runtime.native.System.IO.Ports.10.0.13     
+  same  runtime.linux-arm.runtime.native.System.IO.Ports.10.0.13       
+  same  runtime.linux-arm64.runtime.native.System.IO.Ports.10.0.13     
+  same  runtime.linux-bionic-arm64.runtime.native.System.IO.Ports.10.0.13 
+  same  runtime.linux-bionic-x64.runtime.native.System.IO.Ports.10.0.13 
+  same  runtime.linux-musl-arm.runtime.native.System.IO.Ports.10.0.13  
+  same  runtime.linux-musl-arm64.runtime.native.System.IO.Ports.10.0.13 
+  same  runtime.linux-musl-x64.runtime.native.System.IO.Ports.10.0.13  
+  same  runtime.linux-x64.runtime.native.System.IO.Ports.10.0.13       
+  same  runtime.maccatalyst-arm64.runtime.native.System.IO.Ports.10.0.13 
+  same  runtime.maccatalyst-x64.runtime.native.System.IO.Ports.10.0.13 
+  same  runtime.native.System.IO.Ports.10.0.13                         
+  same  runtime.osx-arm64.runtime.native.System.IO.Ports.10.0.13       
+  same  runtime.osx-x64.runtime.native.System.IO.Ports.10.0.13         
+  same  SQLitePCLRaw.bundle_e_sqlite3.2.1.13                           runtime:lib/netstandard2.0/SQLitePCLRaw.batteries_v2.dll
+  same  SQLitePCLRaw.core.2.1.13                                       runtime:lib/netstandard2.0/SQLitePCLRaw.core.dll
+  same  SQLitePCLRaw.lib.e_sqlite3.2.1.13                              
+  same  SQLitePCLRaw.provider.e_sqlite3.2.1.13                         runtime:lib/net6.0/SQLitePCLRaw.provider.e_sqlite3.dll
+  same  System.IO.Ports.10.0.13                                        runtime:lib/net10.0/System.IO.Ports.dll
+== win-portable/WinApp.deps.json: ours = Select(tfm net10.0-windows, rid (none))
+  DIFF  AssetsLib.1.0.0                                                resources:lib/net8.0/de/AssetsLib.resources.dll resources:lib/net8.0/fr/AssetsLib.resources.dll runtime:lib/net8.0/AssetsLib.dll
+        sdk only : resources:lib/net8.0-windows7.0/de/AssetsLib.resources.dll resources:lib/net8.0-windows7.0/fr/AssetsLib.resources.dll runtime:lib/net8.0-windows7.0/AssetsLib.dll
+        ours only: resources:lib/net8.0/de/AssetsLib.resources.dll resources:lib/net8.0/fr/AssetsLib.resources.dll runtime:lib/net8.0/AssetsLib.dll
+  same  Microsoft.Data.Sqlite.10.0.13                                  
+  same  Microsoft.Data.Sqlite.Core.10.0.13                             runtime:lib/net8.0/Microsoft.Data.Sqlite.dll
+  same  SQLitePCLRaw.bundle_e_sqlite3.2.1.13                           runtime:lib/netstandard2.0/SQLitePCLRaw.batteries_v2.dll
+  same  SQLitePCLRaw.core.2.1.13                                       runtime:lib/netstandard2.0/SQLitePCLRaw.core.dll
+  same  SQLitePCLRaw.lib.e_sqlite3.2.1.13                              
+  DIFF  SQLitePCLRaw.provider.e_sqlite3.2.1.13                         runtime:lib/net6.0/SQLitePCLRaw.provider.e_sqlite3.dll
+        sdk only : runtime:lib/net6.0-windows7.0/SQLitePCLRaw.provider.e_sqlite3.dll
+        ours only: runtime:lib/net6.0/SQLitePCLRaw.provider.e_sqlite3.dll
+== win-portable/WinApp.deps.json: ours = Select(tfm net10.0-windows7.0, rid (none))
+  same  AssetsLib.1.0.0                                                resources:lib/net8.0-windows7.0/de/AssetsLib.resources.dll resources:lib/net8.0-windows7.0/fr/AssetsLib.resources.dll runtime:lib/net8.0-windows7.0/AssetsLib.dll
+  same  Microsoft.Data.Sqlite.10.0.13                                  
+  same  Microsoft.Data.Sqlite.Core.10.0.13                             runtime:lib/net8.0/Microsoft.Data.Sqlite.dll
+  same  SQLitePCLRaw.bundle_e_sqlite3.2.1.13                           runtime:lib/netstandard2.0/SQLitePCLRaw.batteries_v2.dll
+  same  SQLitePCLRaw.core.2.1.13                                       runtime:lib/netstandard2.0/SQLitePCLRaw.core.dll
+  same  SQLitePCLRaw.lib.e_sqlite3.2.1.13                              
+  same  SQLitePCLRaw.provider.e_sqlite3.2.1.13                         runtime:lib/net6.0-windows7.0/SQLitePCLRaw.provider.e_sqlite3.dll
+== win10-x64/WinApp.deps.json: ours = Select(tfm net10.0-windows10.0.19041.0, rid win-x64)
+  same  AssetsLib.1.0.0                                                native:runtimes/win-x64/native/fake.dll resources:lib/net9.0-windows10.0.19041/de/AssetsLib.resources.dll resources:lib/net9.0-windows10.0.19041/fr/AssetsLib.resources.dll runtime:lib/net9.0-windows10.0.19041/AssetsLib.dll
+  same  Microsoft.Data.Sqlite.10.0.13                                  
+  same  Microsoft.Data.Sqlite.Core.10.0.13                             runtime:lib/net8.0/Microsoft.Data.Sqlite.dll
+  same  SQLitePCLRaw.bundle_e_sqlite3.2.1.13                           runtime:lib/netstandard2.0/SQLitePCLRaw.batteries_v2.dll
+  same  SQLitePCLRaw.core.2.1.13                                       runtime:lib/netstandard2.0/SQLitePCLRaw.core.dll
+  same  SQLitePCLRaw.lib.e_sqlite3.2.1.13                              native:runtimes/win-x64/native/e_sqlite3.dll
+  same  SQLitePCLRaw.provider.e_sqlite3.2.1.13                         runtime:lib/net6.0-windows7.0/SQLitePCLRaw.provider.e_sqlite3.dll
+== 94 package/target combinations compared, 2 differences
+== System.Threading.Tasks.Extensions 4.5.4 (pruned by the SDK; contains lib/netcoreapp2.1/_._)
+  System.Threading.Tasks.Extensions: runtime group [tfm=.NETCoreApp,Version=v2.1] native group [-]

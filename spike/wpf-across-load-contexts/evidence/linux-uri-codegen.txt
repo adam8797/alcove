@@ -1,0 +1,9 @@
+$ dotnet build 
+System.Uri resourceLocater = new System.Uri("/UriCodegenCheck;component/v.xaml", System.UriKind.Relative);
+   identity: UriCodegenCheck, Version=1.0.0.0
+$ dotnet build -p:Version=3.4.5
+System.Uri resourceLocater = new System.Uri("/UriCodegenCheck;component/v.xaml", System.UriKind.Relative);
+   identity: UriCodegenCheck, Version=3.4.5.0
+$ dotnet build -p:AssemblyVersion=3.4.5.0
+System.Uri resourceLocater = new System.Uri("/UriCodegenCheck;V3.4.5.0;component/v.xaml", System.UriKind.Relative);
+   identity: UriCodegenCheck, Version=3.4.5.0

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Fixture.Provider/Fixture.Provider.csproj" Private="false" />
+    <ProjectReference Include="../Fixture.Dep.V3/Fixture.Dep.V3.csproj" Private="false" />
+  </ItemGroup>
+</Project>

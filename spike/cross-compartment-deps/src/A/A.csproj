@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>A</AssemblyName><RootNamespace>A</RootNamespace>
+    <Version>1.0.0</Version>
+    <OutDir>$(LayoutDir)packages/A/1.0.0/</OutDir>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Contracts/Contracts.csproj" Private="false" />
+    <ProjectReference Include="../Dep.v2/Dep.v2.csproj" Private="false" />
+  </ItemGroup>
+</Project>

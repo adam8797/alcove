@@ -1,0 +1,5 @@
+<Project>
+  <Target Name="_SampleRequireAlcoveVersion" BeforeTargets="_GenerateRestoreGraph;CollectPackageReferences;Build">
+    <Error Condition="'$(AlcoveVersion)' == ''" Text="Build the sample plugins with samples/run-console-sample.sh (it passes -p:AlcoveVersion=...)." />
+  </Target>
+</Project>

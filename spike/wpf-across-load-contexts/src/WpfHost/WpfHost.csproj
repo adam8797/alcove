@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- WPF host with a minimal compartment loader. Run on Windows with the arguments
+         all / scenario N / list (see Program.cs and REPORT.md), or no arguments for an interactive window. -->
+  <PropertyGroup>
+    <!-- Exe (not WinExe) so stdout reaches the terminal and child-process output can be captured. -->
+    <OutputType>Exe</OutputType>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <StartupObject>WpfHost.Program</StartupObject>
+    <!-- Plugin projects are built (for ordering) but must NOT leak into the host's deps.json/output:
+         SharedControls must only exist inside plugin folders. -->
+    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Host-owned assembly: referenced normally, so it is in the default context (TPA). -->
+    <ProjectReference Include="..\HostSdk\HostSdk.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PluginProject Include="..\PluginA\PluginA.csproj" />
+    <PluginProject Include="..\PluginB\PluginB.csproj" />
+    <PluginProject Include="..\PluginC\PluginC.csproj" />
+    <PluginProject Include="..\PluginD\PluginD.csproj" />
+    <PluginProject Include="..\SharedControls.v2\SharedControls.v2.csproj" />
+    <ProjectReference Include="@(PluginProject)" ReferenceOutputAssembly="false" Private="false" />
+  </ItemGroup>
+
+  <!-- Lay out plugin folders next to the exe: plugins/<Name>/ = the plugin's own build output minus host-owned files. -->
+  <Target Name="DeploySpikePlugins" AfterTargets="Build">
+    <PropertyGroup>
+      <_Src>$(MSBuildThisFileDirectory)..\</_Src>
+      <_PluginOut>$(Configuration)\net10.0-windows\</_PluginOut>
+      <_Dst>$(OutDir)plugins\</_Dst>
+    </PropertyGroup>
+    <ItemGroup>
+      <_A Include="$(_Src)PluginA\bin\$(_PluginOut)*.dll" />
+      <_B Include="$(_Src)PluginB\bin\$(_PluginOut)*.dll" />
+      <_C Include="$(_Src)PluginC\bin\$(_PluginOut)*.dll" />
+      <_D Include="$(_Src)PluginD\bin\$(_PluginOut)*.dll" />
+      <_ARollForward Include="$(_Src)PluginA\bin\$(_PluginOut)PluginA.dll;$(_Src)SharedControls.v2\bin\$(_PluginOut)SharedControls.dll" />
+    </ItemGroup>
+    <RemoveDir Directories="$(_Dst)" />
+    <Copy SourceFiles="@(_A)" DestinationFolder="$(_Dst)PluginA" />
+    <Copy SourceFiles="@(_B)" DestinationFolder="$(_Dst)PluginB" />
+    <Copy SourceFiles="@(_C)" DestinationFolder="$(_Dst)PluginC" />
+    <Copy SourceFiles="@(_D)" DestinationFolder="$(_Dst)PluginD" />
+    <!-- Scenario 10: PluginA compiled against SharedControls 1.0.0.0, deployed with 2.0.0.0 (NuGet picked a higher version). -->
+    <Copy SourceFiles="@(_ARollForward)" DestinationFolder="$(_Dst)PluginA-rollforward" />
+    <Error Condition="Exists('$(OutDir)SharedControls.dll')" Text="SharedControls.dll leaked into the host output; the spike would be invalid." />
+    <Error Condition="Exists('$(OutDir)PluginA.dll')" Text="PluginA.dll leaked into the host output; the spike would be invalid." />
+  </Target>
+</Project>

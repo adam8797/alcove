@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Cross-platform (runs on Linux). Verifies the RUNTIME half of the WPF predictions without running WPF:
+       assembly ordering in AppDomain.GetAssemblies(), WPF's name lookup algorithm (copied verbatim from
+       dotnet/wpf SafeSecurityHelper.GetLoadedAssembly), and how Assembly.Load from the default context
+       behaves with/without contextual reflection and a Default.Resolving forwarder.
+       It only loads the SharedControls DLLs as metadata+IL; no WPF code executes. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <UseWPF>false</UseWPF>
+    <EnableWindowsTargeting>false</EnableWindowsTargeting>
+  </PropertyGroup>
+</Project>

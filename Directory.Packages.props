@@ -1,0 +1,40 @@
+<Project>
+  <!-- Central package management: every package version lives here and only here. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Every PackageVersion below also pins transitive references (needed for the Pkcs pin). -->
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup Label="Alcove.Abstractions (host-owned; keep at the lowest supported versions, ADR 0009)">
+    <!-- Same version the core's NuGet client libraries bring, so the host always carries it. -->
+    <PackageVersion Include="NuGet.Versioning" Version="7.9.0" />
+    <!-- Lowest supported: .NET 8 is the oldest supported .NET release line. Raising this raises
+         the minimum for every plugin, so don't. -->
+    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="NuGet client (core, tests)">
+    <PackageVersion Include="NuGet.Packaging" Version="7.9.0" />
+    <PackageVersion Include="NuGet.Protocol" Version="7.9.0" />
+    <PackageVersion Include="NuGet.DependencyResolver.Core" Version="7.9.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="DI add-ons (host-owned when used; keep at the lowest supported versions, ADR 0008/0009)">
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <!-- Lowest Autofac.Extensions.DependencyInjection with keyed services (needs Autofac 8.1). -->
+    <PackageVersion Include="Autofac" Version="8.1.0" />
+    <PackageVersion Include="Autofac.Extensions.DependencyInjection" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Transitive pins">
+    <!-- The version NuGet.Packaging brings has known vulnerabilities (spike: nuget-signature-verification). -->
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+  </ItemGroup>
+
+  <ItemGroup Label="Tests">
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
+    <PackageVersion Include="xunit.v3" Version="3.2.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+  </ItemGroup>
+</Project>

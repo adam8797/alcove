@@ -1,0 +1,7 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+                    xmlns:host="clr-namespace:HostSdk">
+    <SolidColorBrush x:Key="{x:Static host:HostKeys.AccentBrush}" Color="SteelBlue" />
+    <sys:String x:Key="Host.Title">MARK:HostSdk.Title</sys:String>
+</ResourceDictionary>

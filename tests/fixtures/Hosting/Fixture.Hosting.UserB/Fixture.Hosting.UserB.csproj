@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- Entry-point plugin built against Fixture.Dep 2.0. -->
+  <PropertyGroup>
+    <PluginEntryPoint>Fixture.Hosting.UserB.UserBPlugin</PluginEntryPoint>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Fixture.Hosting.Dep.V2/Fixture.Hosting.Dep.V2.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- No PluginEntryPoint and two public IPlugin classes: a validation error (set PluginEntryPoint). -->
+</Project>

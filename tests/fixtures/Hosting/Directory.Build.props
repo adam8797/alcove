@@ -1,0 +1,14 @@
+<Project>
+  <!-- Plugin fixtures for PluginHost tests: packed together (Hosting.slnx) into a folder, then installed into
+       a plugin root without a feed. Plugins build with Alcove.Sdk against Fixture.HostContracts, which the
+       test host ships. Plugin dependencies are ProjectReferences, which pack as package dependencies. -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Version Condition="'$(Version)' == ''">1.0.0</Version>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- Each fixture sees only what it references directly (e.g. Consumer3: Dep 3.0, not the provider's 2.0). -->
+    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
+  </PropertyGroup>
+</Project>

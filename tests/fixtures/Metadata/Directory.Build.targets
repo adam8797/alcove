@@ -1,0 +1,3 @@
+<Project>
+  <!-- Intentionally empty: stops tests/fixtures/Directory.Build.targets (which requires AlcoveVersion) applying here. -->
+</Project>

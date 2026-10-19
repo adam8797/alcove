@@ -1,0 +1,264 @@
+== resolve Serilog.Sinks.File (= 7.0.0) for net10.0  (host-owned: NuGet.Versioning, Microsoft.Extensions.Logging.Abstractions)
+-- strategy: host packages pinned at the root (nearest-wins), re-walk on host-shared downgrade
+  walk 1: host-shared Serilog 3.1.1 doesn't satisfy package/Serilog.Sinks.File 7.0.0 -> Serilog [4.2.0, ); unpinning, will be compartment-private
+  walks: 2
+  Serilog.Sinks.File                               7.0.0      Plugin                 src=https://api.nuget.org/v3/index.json
+      requested by (install request) -> (= 7.0.0)
+  Serilog                                          4.2.0      PrivateConflict        src=https://api.nuget.org/v3/index.json  (host has 3.1.1)
+      requested by Serilog.Sinks.File 7.0.0 -> (>= 4.2.0)
+  analysis: downgrades=0 versionConflicts=0 cycles=0
+  (95 ms)
+-- strategy: walk plugin alone, compare with host afterwards
+  walks: 1
+  Serilog.Sinks.File                               7.0.0      Plugin                 src=https://api.nuget.org/v3/index.json
+      requested by (install request) -> (= 7.0.0)
+  Serilog                                          4.2.0      PrivateConflict        src=https://api.nuget.org/v3/index.json  (host has 3.1.1)
+      requested by Serilog.Sinks.File 7.0.0 -> (>= 4.2.0)
+  analysis: downgrades=0 versionConflicts=0 cycles=0
+  (3 ms)
+== resolve Microsoft.Extensions.Http (= 10.0.13) for net10.0  (host-owned: NuGet.Versioning, Microsoft.Extensions.Logging.Abstractions)
+-- strategy: host packages pinned at the root (nearest-wins), re-walk on host-shared downgrade
+  walk 1: host-shared Microsoft.Extensions.DependencyInjection.Abstractions 8.0.0 doesn't satisfy package/Microsoft.Extensions.Http 10.0.13 -> Microsoft.Extensions.DependencyInjection.Abstractions [10.0.13, ); unpinning, will be compartment-private
+  walks: 2
+  Microsoft.Extensions.Http                        10.0.13    Plugin                 src=https://api.nuget.org/v3/index.json
+      requested by (install request) -> (= 10.0.13)
+  Microsoft.Extensions.Configuration.Abstractions  10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Http 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Configuration 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Configuration.Binder 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.DependencyInjection.Abstractions 10.0.13    PrivateConflict        src=https://api.nuget.org/v3/index.json  (host has 8.0.0)
+      requested by Microsoft.Extensions.Http 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Options 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Diagnostics.Abstractions 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.DependencyInjection 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.Diagnostics                 10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Http 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.Logging.Abstractions        8.0.0      IncompatibleHostOwned  src=host deps.json  (package/Microsoft.Extensions.Http 10.0.13 needs Microsoft.Extensions.Logging.Abstractions [10.0.13, ), host-owned version is 8.0.0)
+      requested by Microsoft.Extensions.Http 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Logging 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.Logging                     10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Http 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.Options                     10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Http 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Logging 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Diagnostics.Abstractions 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.Primitives                  10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Configuration.Abstractions 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Options 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Configuration 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.Configuration               10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Diagnostics 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Configuration.Binder 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.Diagnostics.Abstractions    10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Diagnostics 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.Options.ConfigurationExtensions 10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Diagnostics 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.DependencyInjection         10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Logging 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.Configuration.Binder        10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 10.0.13 -> (>= 10.0.13)
+  analysis: downgrades=1 versionConflicts=0 cycles=0
+      downgrade: __compartment__ -> Microsoft.Extensions.Http 10.0.13 -> Microsoft.Extensions.Logging.Abstractions (>= 10.0.13)  ->  Microsoft.Extensions.Logging.Abstractions 8.0.0
+  (102 ms)
+-- strategy: walk plugin alone, compare with host afterwards
+  walks: 1
+  Microsoft.Extensions.Http                        10.0.13    Plugin                 src=https://api.nuget.org/v3/index.json
+      requested by (install request) -> (= 10.0.13)
+  Microsoft.Extensions.Configuration.Abstractions  10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Http 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Configuration 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Configuration.Binder 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.DependencyInjection.Abstractions 10.0.13    PrivateConflict        src=https://api.nuget.org/v3/index.json  (host has 8.0.0)
+      requested by Microsoft.Extensions.Http 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Logging.Abstractions 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Options 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Diagnostics.Abstractions 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.DependencyInjection 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.Diagnostics                 10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Http 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.Logging.Abstractions        10.0.13    IncompatibleHostOwned  src=https://api.nuget.org/v3/index.json  (host has 8.0.0)
+      requested by Microsoft.Extensions.Http 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Logging 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.Logging                     10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Http 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.Options                     10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Http 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Logging 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Diagnostics.Abstractions 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.Primitives                  10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Configuration.Abstractions 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Options 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Configuration 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.Configuration               10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Diagnostics 10.0.13 -> (>= 10.0.13)
+      requested by Microsoft.Extensions.Configuration.Binder 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.Diagnostics.Abstractions    10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Diagnostics 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.Options.ConfigurationExtensions 10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Diagnostics 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.DependencyInjection         10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Logging 10.0.13 -> (>= 10.0.13)
+  Microsoft.Extensions.Configuration.Binder        10.0.13    PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 10.0.13 -> (>= 10.0.13)
+  analysis: downgrades=0 versionConflicts=0 cycles=0
+  (18 ms)
+== resolve Microsoft.Extensions.Http (= 8.0.0) for net10.0  (host-owned: NuGet.Versioning, Microsoft.Extensions.Logging.Abstractions)
+-- strategy: host packages pinned at the root (nearest-wins), re-walk on host-shared downgrade
+  walks: 1
+  Microsoft.Extensions.Http                        8.0.0      Plugin                 src=https://api.nuget.org/v3/index.json
+      requested by (install request) -> (= 8.0.0)
+  Microsoft.Extensions.Configuration.Abstractions  8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Http 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Configuration 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Configuration.Binder 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.DependencyInjection.Abstractions 8.0.0      HostSharedProvided     src=host deps.json
+      requested by Microsoft.Extensions.Http 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Options 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Diagnostics.Abstractions 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.DependencyInjection 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.Diagnostics                 8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Http 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.Logging.Abstractions        8.0.0      HostOwnedProvided      src=host deps.json
+      requested by Microsoft.Extensions.Http 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Logging 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.Logging                     8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Http 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.Options                     8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Http 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Logging 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Diagnostics.Abstractions 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.Primitives                  8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Configuration.Abstractions 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Options 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Configuration 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.Configuration               8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Diagnostics 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.Diagnostics.Abstractions    8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Diagnostics 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.Options.ConfigurationExtensions 8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Diagnostics 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.DependencyInjection         8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Logging 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.Configuration.Binder        8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 8.0.0 -> (>= 8.0.0)
+  pruned as framework-provided:
+      System.Diagnostics.DiagnosticSource [8.0.0, ) (from Microsoft.Extensions.Diagnostics.Abstractions 8.0.0)
+  analysis: downgrades=0 versionConflicts=0 cycles=0
+  (222 ms)
+-- strategy: walk plugin alone, compare with host afterwards
+  walks: 1
+  Microsoft.Extensions.Http                        8.0.0      Plugin                 src=https://api.nuget.org/v3/index.json
+      requested by (install request) -> (= 8.0.0)
+  Microsoft.Extensions.Configuration.Abstractions  8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Http 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Configuration 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Configuration.Binder 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.DependencyInjection.Abstractions 8.0.0      HostSharedProvided     src=https://api.nuget.org/v3/index.json  (host has 8.0.0)
+      requested by Microsoft.Extensions.Http 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Logging.Abstractions 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Options 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Diagnostics.Abstractions 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.DependencyInjection 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.Diagnostics                 8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Http 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.Logging.Abstractions        8.0.0      HostOwnedProvided      src=https://api.nuget.org/v3/index.json  (host has 8.0.0)
+      requested by Microsoft.Extensions.Http 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Logging 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.Logging                     8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Http 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.Options                     8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Http 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Logging 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Diagnostics.Abstractions 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.Primitives                  8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Configuration.Abstractions 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Options 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Configuration 8.0.0 -> (>= 8.0.0)
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.Configuration               8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Diagnostics 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.Diagnostics.Abstractions    8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Diagnostics 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.Options.ConfigurationExtensions 8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Diagnostics 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.DependencyInjection         8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Logging 8.0.0 -> (>= 8.0.0)
+  Microsoft.Extensions.Configuration.Binder        8.0.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Microsoft.Extensions.Options.ConfigurationExtensions 8.0.0 -> (>= 8.0.0)
+  pruned as framework-provided:
+      System.Diagnostics.DiagnosticSource [8.0.0, ) (from Microsoft.Extensions.Diagnostics.Abstractions 8.0.0)
+  analysis: downgrades=0 versionConflicts=0 cycles=0
+  (7 ms)
+== resolve NuGet.Packaging (= 6.0.0) for net10.0  (host-owned: NuGet.Versioning, Microsoft.Extensions.Logging.Abstractions)
+-- strategy: host packages pinned at the root (nearest-wins), re-walk on host-shared downgrade
+  walks: 1
+  NuGet.Packaging                                  6.0.0      Plugin                 src=https://api.nuget.org/v3/index.json
+      requested by (install request) -> (= 6.0.0)
+  NuGet.Configuration                              7.9.0      HostSharedProvided     src=host deps.json
+      requested by NuGet.Packaging 6.0.0 -> (>= 6.0.0)
+  NuGet.Versioning                                 7.9.0      HostOwnedProvided      src=host deps.json
+      requested by NuGet.Packaging 6.0.0 -> (>= 6.0.0)
+  Newtonsoft.Json                                  13.0.3     HostSharedProvided     src=host deps.json
+      requested by NuGet.Packaging 6.0.0 -> (>= 13.0.1)
+  System.Security.Cryptography.Pkcs                8.0.1      HostSharedProvided     src=host deps.json
+      requested by NuGet.Packaging 6.0.0 -> (>= 5.0.0)
+  pruned as framework-provided:
+      System.Security.Cryptography.Cng [5.0.0, ) (from NuGet.Packaging 6.0.0)
+  analysis: downgrades=0 versionConflicts=0 cycles=0
+  (194 ms)
+-- strategy: walk plugin alone, compare with host afterwards
+  walks: 1
+  NuGet.Packaging                                  6.0.0      Plugin                 src=https://api.nuget.org/v3/index.json
+      requested by (install request) -> (= 6.0.0)
+  NuGet.Configuration                              6.0.0      HostSharedProvided     src=https://api.nuget.org/v3/index.json  (host has 7.9.0)
+      requested by NuGet.Packaging 6.0.0 -> (>= 6.0.0)
+  NuGet.Versioning                                 6.0.0      HostOwnedProvided      src=https://api.nuget.org/v3/index.json  (host has 7.9.0)
+      requested by NuGet.Packaging 6.0.0 -> (>= 6.0.0)
+  Newtonsoft.Json                                  13.0.1     HostSharedProvided     src=https://api.nuget.org/v3/index.json  (host has 13.0.3)
+      requested by NuGet.Packaging 6.0.0 -> (>= 13.0.1)
+  System.Security.Cryptography.Pkcs                5.0.0      HostSharedProvided     src=https://api.nuget.org/v3/index.json  (host has 8.0.1)
+      requested by NuGet.Packaging 6.0.0 -> (>= 5.0.0)
+  NuGet.Common                                     6.0.0      HostSharedProvided     src=https://api.nuget.org/v3/index.json  (host has 7.9.0)
+      requested by NuGet.Configuration 6.0.0 -> (>= 6.0.0)
+  System.Security.Cryptography.ProtectedData       4.4.0      HostSharedProvided     src=https://api.nuget.org/v3/index.json  (host has 8.0.0)
+      requested by NuGet.Configuration 6.0.0 -> (>= 4.4.0)
+  NuGet.Frameworks                                 6.0.0      HostSharedProvided     src=https://api.nuget.org/v3/index.json  (host has 7.9.0)
+      requested by NuGet.Common 6.0.0 -> (>= 6.0.0)
+  pruned as framework-provided:
+      System.Security.Cryptography.Cng [5.0.0, ) (from NuGet.Packaging 6.0.0)
+      System.Formats.Asn1 [5.0.0, ) (from System.Security.Cryptography.Pkcs 5.0.0)
+      System.Security.Cryptography.Cng [5.0.0, ) (from System.Security.Cryptography.Pkcs 5.0.0)
+  analysis: downgrades=0 versionConflicts=0 cycles=0
+  (11 ms)
+== resolve Polly (= 8.8.0) for net10.0  (host-owned: NuGet.Versioning, Microsoft.Extensions.Logging.Abstractions)
+-- strategy: host packages pinned at the root (nearest-wins), re-walk on host-shared downgrade
+  walks: 1
+  Polly                                            8.8.0      Plugin                 src=https://api.nuget.org/v3/index.json
+      requested by (install request) -> (= 8.8.0)
+  Polly.Core                                       8.8.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Polly 8.8.0 -> (>= 8.8.0)
+  analysis: downgrades=0 versionConflicts=0 cycles=0
+  (91 ms)
+-- strategy: walk plugin alone, compare with host afterwards
+  walks: 1
+  Polly                                            8.8.0      Plugin                 src=https://api.nuget.org/v3/index.json
+      requested by (install request) -> (= 8.8.0)
+  Polly.Core                                       8.8.0      PrivateMissing         src=https://api.nuget.org/v3/index.json
+      requested by Polly 8.8.0 -> (>= 8.8.0)
+  analysis: downgrades=0 versionConflicts=0 cycles=0
+  (2 ms)

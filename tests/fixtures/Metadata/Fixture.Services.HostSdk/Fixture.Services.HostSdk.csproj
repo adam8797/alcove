@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Stands in for a host app's plugin SDK (host-owned): a base class implementing the add-on's service-plugin interface. -->
+  <ItemGroup>
+    <ProjectReference Include="..\Fixture.Services.Contracts\Fixture.Services.Contracts.csproj" />
+  </ItemGroup>
+</Project>

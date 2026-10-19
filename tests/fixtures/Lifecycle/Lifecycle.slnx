@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="../Hosting/Fixture.Hosting.Dep.V1/Fixture.Hosting.Dep.V1.csproj" />
+  <Project Path="../Hosting/Fixture.Hosting.Dep.V2/Fixture.Hosting.Dep.V2.csproj" />
+  <Project Path="../Hosting/Fixture.Hosting.Dep.V3/Fixture.Hosting.Dep.V3.csproj" />
+  <Project Path="Fixture.Lifecycle.Versioned.V1/Fixture.Lifecycle.Versioned.V1.csproj" />
+  <Project Path="Fixture.Lifecycle.Versioned.V2/Fixture.Lifecycle.Versioned.V2.csproj" />
+  <Project Path="Fixture.Lifecycle.Versioned.V3/Fixture.Lifecycle.Versioned.V3.csproj" />
+</Solution>

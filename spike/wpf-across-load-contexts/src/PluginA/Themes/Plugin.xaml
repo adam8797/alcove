@@ -1,0 +1,16 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+                    xmlns:vm="clr-namespace:PluginA.ViewModels">
+    <ResourceDictionary.MergedDictionaries>
+        <!-- Q5: cross-assembly dictionary reference WITHOUT a version. Resolved by name only. -->
+        <ResourceDictionary Source="/SharedControls;component/Themes/Shared.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <sys:String x:Key="PluginA.Greeting">MARK:PluginA.ThemeDictionary</sys:String>
+
+    <!-- Q4: implicit DataTemplate for a plugin view-model -->
+    <DataTemplate DataType="{x:Type vm:AItemViewModel}">
+        <TextBlock x:Name="VmText" Text="{Binding Label}" />
+    </DataTemplate>
+</ResourceDictionary>

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Attribute-only plugin, referenced like the plugin developer guide's sample: Alcove.Sdk + contracts only.
+       Alcove.Abstractions comes transitively through the contracts package. A four-part Version checks that
+       AssemblyVersion is derived as major.minor.patch.0. -->
+  <PropertyGroup>
+    <Version>2.1.0.5</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Alcove.Sdk" Version="$(AlcoveVersion)" PrivateAssets="all" />
+    <PackageReference Include="Fixture.Contracts" Version="[1.0,2.0)" />
+  </ItemGroup>
+</Project>

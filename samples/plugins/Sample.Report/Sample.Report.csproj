@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!-- Depends on the Sample.Formatting plugin (another cell) and uses its TextBlock-returning API. -->
+  <ItemGroup>
+    <ProjectReference Include="../Sample.Formatting/Sample.Formatting.csproj" />
+    <ProjectReference Include="../Sample.Text.V2/Sample.Text.V2.csproj" />
+  </ItemGroup>
+</Project>

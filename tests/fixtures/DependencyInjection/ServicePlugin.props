@@ -1,0 +1,8 @@
+<Project>
+  <!-- Imported by the service plugin fixtures: both dependency injection add-ons, which their buildTransitive
+       props make host-owned for Alcove.Sdk. -->
+  <ItemGroup>
+    <PackageReference Include="Alcove.DependencyInjection" Version="$(AlcoveVersion)" />
+    <PackageReference Include="Alcove.Autofac" Version="$(AlcoveVersion)" />
+  </ItemGroup>
+</Project>

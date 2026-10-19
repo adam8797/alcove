@@ -1,0 +1,12 @@
+bin/
+obj/
+# untrusted downloads from nuget.org
+downloaded/
+# generated packages (re-created by setup.sh)
+feed/
+# test certificates and PRIVATE KEYS (re-created by setup.sh)
+certs/
+*.pfx
+*.key
+*.p12
+out/

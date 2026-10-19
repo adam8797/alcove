@@ -1,0 +1,373 @@
+sealed record Alcove.AllowedSigner
+  .ctor()
+  bool AllowUntrustedRoot { get; init; }
+  bool Equals(AllowedSigner? other)
+  override bool Equals(object? obj)
+  string Fingerprint { get; init; }
+  override int GetHashCode()
+  SignerKind Kind { get; init; }
+  string? Name { get; init; }
+  static IEnumerable<AllowedSigner> NuGetOrg(params string[] owners)
+  IList<string> Owners { get; init; }
+  override string ToString()
+  static bool op_Equality(AllowedSigner? left, AllowedSigner? right)
+  static bool op_Inequality(AllowedSigner? left, AllowedSigner? right)
+sealed class Alcove.CellDefinition
+  .ctor(string name)
+  string Name { get; }
+  IList<string> Plugins { get; init; }
+sealed class Alcove.CellServicesContext
+  string Cell { get; }
+  IServiceProvider HostServices { get; }
+  IReadOnlyList<CellServicesPlugin> Plugins { get; }
+sealed class Alcove.CellServicesPlugin
+  IPlugin EntryPoint { get; }
+  PluginInfo Plugin { get; }
+sealed class Alcove.ChangeResult
+  IReadOnlyList<PendingChange> Changes { get; }
+  bool IsStaged { get; }
+  IReadOnlyList<ValidationIssue> Issues { get; }
+  string PluginId { get; }
+  string? Reason { get; }
+  IReadOnlyList<string> Reasons { get; }
+  ChangeStatus Status { get; }
+  override string ToString()
+  NuGetVersion? Version { get; }
+enum Alcove.ChangeStatus
+  Staged = 0
+  Unchanged = 1
+  Blocked = 2
+  Incompatible = 3
+  Failed = 4
+abstract class Alcove.Extension
+  Type ExtensionPoint { get; }
+  ExtensionLifetime Lifetime { get; }
+  object? Metadata { get; }
+  PluginInfo Plugin { get; }
+  override string ToString()
+sealed class Alcove.ExtensionActivationContext
+  Type ExtensionPoint { get; }
+  Func<object>? Factory { get; }
+  Type? ImplementationType { get; }
+  ExtensionLifetime Lifetime { get; }
+  PluginInfo Plugin { get; }
+  IServiceProvider Services { get; }
+sealed class Alcove.ExtensionCatalog
+  event EventHandler<ExtensionsAddedEventArgs>? ExtensionsAdded
+  IReadOnlyList<Extension<T, TMetadata?>> GetAll<T, TMetadata>() where T : class
+  IReadOnlyList<Extension<T>> GetAll<T>() where T : class
+  IDisposable Observe<T>(Action<Extension<T>> onAdded) where T : class
+class Alcove.Extension<T> : Extension where T : class
+  T CreateInstance()
+  T GetInstance()
+  T Value { get; }
+sealed class Alcove.Extension<T, TMetadata> : Extension<T> where T : class
+  TMetadata? Metadata { get; }
+sealed class Alcove.ExtensionsAddedEventArgs : EventArgs
+  IReadOnlyList<Extension> Extensions { get; }
+  PluginInfo Plugin { get; }
+interface Alcove.ICellServicesFactory
+  IServiceProvider CreateServices(CellServicesContext context)
+  IReadOnlyCollection<string> ServicePluginInterfaces { get; }
+interface Alcove.ICredentialProvider
+  Task<NetworkCredential?> GetCredentialsAsync(Uri feed, bool isRetry, CancellationToken cancellationToken = default)
+interface Alcove.IExtensionActivator
+  object CreateInstance(ExtensionActivationContext context)
+sealed record Alcove.IncompatibleVersion
+  .ctor(NuGetVersion Version, string Reason)
+  void Deconstruct(out NuGetVersion Version, out string Reason)
+  bool Equals(IncompatibleVersion? other)
+  override bool Equals(object? obj)
+  override int GetHashCode()
+  string Reason { get; init; }
+  override string ToString()
+  NuGetVersion Version { get; init; }
+  static bool op_Equality(IncompatibleVersion? left, IncompatibleVersion? right)
+  static bool op_Inequality(IncompatibleVersion? left, IncompatibleVersion? right)
+sealed record Alcove.InstallProgress
+  .ctor(InstallStep Step, string? PackageId = null, NuGetVersion? Version = null)
+  void Deconstruct(out InstallStep Step, out string? PackageId, out NuGetVersion? Version)
+  bool Equals(InstallProgress? other)
+  override bool Equals(object? obj)
+  override int GetHashCode()
+  string? PackageId { get; init; }
+  InstallStep Step { get; init; }
+  override string ToString()
+  NuGetVersion? Version { get; init; }
+  static bool op_Equality(InstallProgress? left, InstallProgress? right)
+  static bool op_Inequality(InstallProgress? left, InstallProgress? right)
+sealed class Alcove.InstallResult
+  IReadOnlyList<string> ConflictingNames { get; }
+  bool IsInstalled { get; }
+  IReadOnlyList<ValidationIssue> Issues { get; }
+  string PackageId { get; }
+  IReadOnlyList<PluginInfo> Plugins { get; }
+  string? Reason { get; }
+  IReadOnlyList<string> Reasons { get; }
+  InstallStatus Status { get; }
+  override string ToString()
+  NuGetVersion? Version { get; }
+enum Alcove.InstallStatus
+  Installed = 0
+  Loaded = 1
+  PendingRestart = 2
+  Faulted = 3
+  Incompatible = 4
+  Failed = 5
+enum Alcove.InstallStep
+  Resolving = 0
+  Downloading = 1
+  VerifyingSignatures = 2
+  Extracting = 3
+  Recording = 4
+  Loading = 5
+sealed record Alcove.PackageFeed
+  .ctor(string Source)
+  NetworkCredential? Credentials { get; init; }
+  void Deconstruct(out string Source)
+  bool Equals(PackageFeed? other)
+  override bool Equals(object? obj)
+  override int GetHashCode()
+  string? Name { get; init; }
+  string Source { get; init; }
+  override string ToString()
+  static bool op_Equality(PackageFeed? left, PackageFeed? right)
+  static bool op_Inequality(PackageFeed? left, PackageFeed? right)
+sealed record Alcove.PendingChange
+  .ctor(PendingChangeKind Kind, string PluginId, NuGetVersion? CurrentVersion, NuGetVersion? NewVersion, IReadOnlyList<string> Reasons, bool IsStaged)
+  NuGetVersion? CurrentVersion { get; init; }
+  void Deconstruct(out PendingChangeKind Kind, out string PluginId, out NuGetVersion? CurrentVersion, out NuGetVersion? NewVersion, out IReadOnlyList<string> Reasons, out bool IsStaged)
+  bool Equals(PendingChange? other)
+  override bool Equals(object? obj)
+  override int GetHashCode()
+  bool IsStaged { get; init; }
+  PendingChangeKind Kind { get; init; }
+  NuGetVersion? NewVersion { get; init; }
+  string PluginId { get; init; }
+  string? Reason { get; }
+  IReadOnlyList<string> Reasons { get; init; }
+  override string ToString()
+  static bool op_Equality(PendingChange? left, PendingChange? right)
+  static bool op_Inequality(PendingChange? left, PendingChange? right)
+enum Alcove.PendingChangeKind
+  Install = 0
+  Update = 1
+  Rollback = 2
+  Uninstall = 3
+  Enable = 4
+  Disable = 5
+  PendingRestart = 6
+  WillLoad = 7
+sealed class Alcove.PluginException : Exception, ISerializable
+  .ctor()
+  .ctor(string message)
+  .ctor(string message, Exception innerException)
+  string? PluginId { get; }
+  ValidationReport? Report { get; }
+sealed class Alcove.PluginFaultedEventArgs : EventArgs
+  Exception Fault { get; }
+  PluginInfo Plugin { get; }
+sealed class Alcove.PluginHost : IAsyncDisposable
+  ExtensionCatalog Catalog { get; }
+  Task<IReadOnlyList<PluginUpdate>> CheckForUpdatesAsync(CancellationToken cancellationToken = default)
+  static PluginHost Create(PluginHostOptions options)
+  Task<ChangeResult> DisableAsync(string pluginId, CancellationToken cancellationToken = default)
+  ValueTask DisposeAsync()
+  Task<ChangeResult> EnableAsync(string pluginId, CancellationToken cancellationToken = default)
+  Task<IReadOnlyList<PendingChange>> GetPendingChangesAsync(CancellationToken cancellationToken = default)
+  Task<IReadOnlyList<NuGetVersion>> GetVersionsAsync(string packageId, CancellationToken cancellationToken = default)
+  Task<InstallResult> InstallAsync(string packageId, CancellationToken cancellationToken)
+  Task<InstallResult> InstallAsync(string packageId, VersionRange? versionRange = null, bool? includePrerelease = null, IProgress<InstallProgress>? progress = null, CancellationToken cancellationToken = default)
+  Task LoadAsync(CancellationToken cancellationToken = default)
+  event EventHandler<PluginFaultedEventArgs>? PluginFaulted
+  IReadOnlyList<PluginInfo> Plugins { get; }
+  Task<RestoreResult> RestoreAsync(CancellationToken cancellationToken)
+  Task<RestoreResult> RestoreAsync(IProgress<InstallProgress>? progress = null, CancellationToken cancellationToken = default)
+  Task<ChangeResult> RollbackAsync(string pluginId, CancellationToken cancellationToken = default)
+  Task<IReadOnlyList<PluginSearchResult>> SearchAsync(string query, CancellationToken cancellationToken = default)
+  Task<IReadOnlyList<PluginSearchResult>> SearchAsync(string query, SearchOptions options, CancellationToken cancellationToken = default)
+  Task<ChangeResult> UninstallAsync(string pluginId, bool cascade = false, CancellationToken cancellationToken = default)
+  Task<ChangeResult> UpdateAsync(string pluginId, CancellationToken cancellationToken)
+  Task<ChangeResult> UpdateAsync(string pluginId, VersionRange? versionRange = null, bool? includePrerelease = null, IProgress<InstallProgress>? progress = null, CancellationToken cancellationToken = default)
+  Task<ValidationReport> ValidateAsync(CancellationToken cancellationToken = default)
+  Task<VerificationReport> VerifyAsync(CancellationToken cancellationToken)
+  Task<VerificationReport> VerifyAsync(bool verifySignatures = false, CancellationToken cancellationToken = default)
+sealed class Alcove.PluginHostOptions
+  .ctor()
+  IExtensionActivator? Activator { get; set; }
+  bool AllowPrerelease { get; set; }
+  ICellServicesFactory? CellServicesFactory { get; set; }
+  IList<CellDefinition> Cells { get; init; }
+  ICredentialProvider? CredentialProvider { get; set; }
+  bool FailFast { get; set; }
+  IList<PackageFeed> Feeds { get; init; }
+  IList<string> HostOwnedPackages { get; init; }
+  static PluginHostOptions Load(string path)
+  ILoggerFactory? LoggerFactory { get; set; }
+  string? NuGetConfigPath { get; set; }
+  string? PluginPackageType { get; set; }
+  string Root { get; set; }
+  void Save(string path)
+  IServiceProvider? Services { get; set; }
+  TrustPolicy TrustPolicy { get; set; }
+  int VersionsToKeep { get; set; }
+sealed class Alcove.PluginInfo
+  string? Cell { get; }
+  Exception? Fault { get; }
+  string Id { get; }
+  string? Reason { get; }
+  PluginStatus Status { get; }
+  override string ToString()
+  NuGetVersion Version { get; }
+sealed record Alcove.PluginSearchResult
+  string? Authors { get; init; }
+  string? Description { get; init; }
+  bool Equals(PluginSearchResult? other)
+  override bool Equals(object? obj)
+  override int GetHashCode()
+  Uri? IconUrl { get; init; }
+  string Id { get; }
+  string? IncompatibilityReason { get; init; }
+  bool IsCompatible { get; init; }
+  Uri? ProjectUrl { get; init; }
+  string Source { get; init; }
+  string Title { get; init; }
+  override string ToString()
+  NuGetVersion Version { get; }
+  static bool op_Equality(PluginSearchResult? left, PluginSearchResult? right)
+  static bool op_Inequality(PluginSearchResult? left, PluginSearchResult? right)
+enum Alcove.PluginStatus
+  NotLoaded = 0
+  Loaded = 1
+  Faulted = 2
+  Disabled = 3
+sealed record Alcove.PluginUpdate
+  .ctor(string PluginId, NuGetVersion InstalledVersion, NuGetVersion? AvailableVersion, IReadOnlyList<IncompatibleVersion> IncompatibleVersions)
+  NuGetVersion? AvailableVersion { get; init; }
+  void Deconstruct(out string PluginId, out NuGetVersion InstalledVersion, out NuGetVersion? AvailableVersion, out IReadOnlyList<IncompatibleVersion> IncompatibleVersions)
+  bool Equals(PluginUpdate? other)
+  override bool Equals(object? obj)
+  override int GetHashCode()
+  IReadOnlyList<IncompatibleVersion> IncompatibleVersions { get; init; }
+  NuGetVersion InstalledVersion { get; init; }
+  bool IsUpdateAvailable { get; }
+  string PluginId { get; init; }
+  override string ToString()
+  static bool op_Equality(PluginUpdate? left, PluginUpdate? right)
+  static bool op_Inequality(PluginUpdate? left, PluginUpdate? right)
+sealed class Alcove.RestoreResult
+  IReadOnlyList<ValidationIssue> Issues { get; }
+  IReadOnlyList<RestoredPackage> Packages { get; }
+  bool Succeeded { get; }
+  override string ToString()
+sealed record Alcove.RestoredPackage
+  .ctor(string PackageId, NuGetVersion Version, bool Restored, string? Reason = null)
+  void Deconstruct(out string PackageId, out NuGetVersion Version, out bool Restored, out string? Reason)
+  bool Equals(RestoredPackage? other)
+  override bool Equals(object? obj)
+  override int GetHashCode()
+  string PackageId { get; init; }
+  string? Reason { get; init; }
+  bool Restored { get; init; }
+  override string ToString()
+  NuGetVersion Version { get; init; }
+  static bool op_Equality(RestoredPackage? left, RestoredPackage? right)
+  static bool op_Inequality(RestoredPackage? left, RestoredPackage? right)
+enum Alcove.RevocationCheck
+  Online = 0
+  Offline = 1
+sealed class Alcove.SearchOptions
+  .ctor()
+  bool? IncludePrerelease { get; set; }
+  int Skip { get; set; }
+  int Take { get; set; }
+enum Alcove.SignerKind
+  Author = 0
+  Repository = 1
+static class Alcove.TrustIssueCodes
+  const string CertificateExpired = "CertificateExpired"
+  const string FeedNotAllowed = "FeedNotAllowed"
+  const string IdentityMismatch = "IdentityMismatch"
+  const string InvalidPolicy = "InvalidPolicy"
+  const string InvalidSignature = "InvalidSignature"
+  const string InvalidTimestamp = "InvalidTimestamp"
+  const string NotSigned = "NotSigned"
+  const string NotTimestamped = "NotTimestamped"
+  const string RevocationUnknown = "RevocationUnknown"
+  const string SignerNotAllowed = "SignerNotAllowed"
+  const string Tampered = "Tampered"
+  const string UnknownSource = "UnknownSource"
+  const string Unreadable = "Unreadable"
+  const string UnsignedAccepted = "UnsignedAccepted"
+  const string UntrustedCertificate = "UntrustedCertificate"
+  const string VerificationFailed = "VerificationFailed"
+sealed class Alcove.TrustPolicy
+  .ctor()
+  IList<string> AllowedFeeds { get; init; }
+  IList<AllowedSigner> AllowedSigners { get; init; }
+  bool RequireSignedPackages { get; set; }
+  RevocationCheck Revocation { get; set; }
+sealed class Alcove.UnsupportedHostException : NotSupportedException, ISerializable
+  .ctor()
+  .ctor(string message)
+  .ctor(string message, Exception innerException)
+static class Alcove.ValidationCodes
+  const string CellDefinitionConflict = "CellDefinitionConflict"
+  const string CellVersionConflict = "CellVersionConflict"
+  const string ContentHashMismatch = "ContentHashMismatch"
+  const string EntryPointAmbiguous = "EntryPointAmbiguous"
+  const string ExposedDependencyConflict = "ExposedDependencyConflict"
+  const string FileChanged = "FileChanged"
+  const string FileContentChanged = "FileContentChanged"
+  const string FileMissing = "FileMissing"
+  const string HostOwnedConflict = "HostOwnedConflict"
+  const string HostOwnedMissing = "HostOwnedMissing"
+  const string HostSharedConflict = "HostSharedConflict"
+  const string HostSharedDowngraded = "HostSharedDowngraded"
+  const string IsolatedPluginNotAlone = "IsolatedPluginNotAlone"
+  const string ManifestInvalid = "ManifestInvalid"
+  const string ManifestMissing = "ManifestMissing"
+  const string ManifestSchemaUnsupported = "ManifestSchemaUnsupported"
+  const string NativeLibraryCollision = "NativeLibraryCollision"
+  const string PackageMissing = "PackageMissing"
+  const string PluginDependencyConflict = "PluginDependencyConflict"
+  const string PluginDependencyCycle = "PluginDependencyCycle"
+  const string PluginDependencyDisabled = "PluginDependencyDisabled"
+  const string PluginDependencyMissing = "PluginDependencyMissing"
+  const string PluginDependencyNotLoadable = "PluginDependencyNotLoadable"
+  const string StateFileUnreadable = "StateFileUnreadable"
+  const string UnexpectedFile = "UnexpectedFile"
+  const string WpfDuplicateMayBreak = "WpfDuplicateMayBreak"
+  const string WpfDuplicateWillBreak = "WpfDuplicateWillBreak"
+sealed record Alcove.ValidationIssue
+  .ctor(ValidationSeverity Severity, string Code, string Message, string? PluginId = null, string? Cell = null)
+  string? Cell { get; init; }
+  string Code { get; init; }
+  void Deconstruct(out ValidationSeverity Severity, out string Code, out string Message, out string? PluginId, out string? Cell)
+  bool Equals(ValidationIssue? other)
+  override bool Equals(object? obj)
+  override int GetHashCode()
+  bool IsGlobal { get; }
+  string Message { get; init; }
+  string? PluginId { get; init; }
+  ValidationSeverity Severity { get; init; }
+  override string ToString()
+  static bool op_Equality(ValidationIssue? left, ValidationIssue? right)
+  static bool op_Inequality(ValidationIssue? left, ValidationIssue? right)
+sealed class Alcove.ValidationReport
+  IReadOnlyList<ValidationIssue> Errors { get; }
+  IReadOnlyList<ValidationIssue> ForPlugin(string pluginId)
+  bool HasErrors { get; }
+  bool HasGlobalErrors { get; }
+  IReadOnlyList<ValidationIssue> Issues { get; }
+  override string ToString()
+  IReadOnlyList<ValidationIssue> Warnings { get; }
+enum Alcove.ValidationSeverity
+  Warning = 0
+  Error = 1
+sealed class Alcove.VerificationReport
+  int FilesChecked { get; }
+  bool HasErrors { get; }
+  IReadOnlyList<ValidationIssue> Issues { get; }
+  int PackagesChecked { get; }
+  override string ToString()
