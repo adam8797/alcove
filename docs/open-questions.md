@@ -8,9 +8,6 @@ Nothing open right now. All design decisions so far are recorded under **Resolve
 
 ## Verification still needed
 
-### WPF spike on Windows
-All WPF outcomes in [the WPF report](../spike/wpf-across-load-contexts/REPORT.md) are **predictions** from the WPF source. The spike was built but not run, because this machine is Linux. Run `spike/wpf-across-load-contexts/run-windows.ps1` on Windows and check that it ends with `ALL PREDICTIONS MATCHED`. **Do this before Phase 3's cell design is finalised**, because ADR 0015 and the duplicate rule are based on these predictions. Checklist: report §5.
-
 ### Signature verification on Windows
 Run the signature spike's `Verifier matrix` on Windows to confirm identical verdicts with the shipped root bundle ([report](../spike/nuget-signature-verification/REPORT.md)). macOS is untested.
 
@@ -30,6 +27,9 @@ Only `lib/` and `runtimes/` (plus satellite resource assemblies) are used. `cont
 NuGet's trust store selection and the opt-in WPF resolving forwarder. (NuGet's user-wide HTTP cache is bypassed.) See [ADR 0012](adr/0012-app-supplies-root-no-global-state.md).
 
 ## Resolved
+
+*2026-10-19:*
+- **WPF spike on Windows:** run by the user. Every prediction matched except 7.4, which turned out better than predicted (lookless controls' theme styles survive same-identity duplicates). ADR 0015 and the duplicate rule stand. See the [WPF report](../spike/wpf-across-load-contexts/REPORT.md).
 
 *2026-10-18:*
 - **Sharing identical private packages across cells:** WPF-relevant packages only ([ADR 0015](adr/0015-share-identical-wpf-assemblies.md), accepted). Other identical packages stay per-cell.

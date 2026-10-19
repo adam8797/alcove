@@ -12,7 +12,7 @@ Throwaway proof-of-concept work that answers a specific question before we commi
 | [hot-load-into-loaded-compartment](hot-load-into-loaded-compartment.md) | Done (Linux), 30/30 checks | [REPORT](../../spike/hot-load-into-loaded-compartment/REPORT.md) |
 | [nuget-resolution-and-assets](nuget-resolution-and-assets.md) | Done (Linux) | [REPORT](../../spike/nuget-resolution-and-assets/REPORT.md) |
 | [nuget-signature-verification](nuget-signature-verification.md) | Done (Linux); Windows run wanted | [REPORT](../../spike/nuget-signature-verification/REPORT.md) |
-| [wpf-across-load-contexts](wpf-across-load-contexts.md) | Built on Linux; **Windows run needed** | [REPORT](../../spike/wpf-across-load-contexts/REPORT.md) |
+| [wpf-across-load-contexts](wpf-across-load-contexts.md) | Done (Windows run 2026-10-19: all matched except 7.4, better than predicted) | [REPORT](../../spike/wpf-across-load-contexts/REPORT.md) |
 
 Note: the spike agents' environment didn't allow them to write `REPORT.md` files, so each report was saved by the orchestrating session from the agent's returned findings. Each report says so at the top. For nuget-resolution-and-assets, the report was put together from the agent's summary plus the evidence logs, because the full draft couldn't be returned.
 

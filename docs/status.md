@@ -6,7 +6,7 @@
 
 | Phase | What | Notes |
 |---|---|---|
-| 0 | Spikes | All five ran on Linux. The WPF spike's results are predictions until it's run on Windows (Phase 0b). |
+| 0 | Spikes | All five ran on Linux; the WPF spike also ran on Windows (2026-10-19): all predictions matched except 7.4, which was better than predicted. |
 | 1 | Repository foundation | Solution, central package management, GitHub Actions CI. |
 | 2 | `Alcove.Abstractions`, `Alcove.Sdk` | Manifest generation, explicit `AssemblyVersion`, host-owned packages, `ALCOVE001`–`006`. |
 | 3 | Offline core | Cells (load order, answer freezing, version checks, natives, satellites), exposed-dependency scanner, WPF metadata analysis, validation, activation, extension catalog, `PluginHost`, console sample. |
@@ -23,13 +23,11 @@
 
 ## Waiting on you
 
-1. **Windows runs (Phase 0b):**
-   - `spike\wpf-across-load-contexts\run-windows.ps1`: should end with `ALL PREDICTIONS MATCHED`; paste back `results\summary.txt`.
-   - The signature spike's `Verifier matrix` on Windows.
-   - The full test suite on Windows now runs in CI (Windows job).
-2. **Phase 7 (WPF add-on):** on hold until the Windows run confirms the WPF spike's predictions.
-3. **CI:** GitHub Actions (`.github/workflows/ci.yml`) builds and tests on Linux and Windows on every push to `main` and on pull requests. The Windows job hasn't run yet; it's the first time the suite runs on Windows, so expect possible Windows-only failures to fix.
-4. **Publishing:** no packages have been published anywhere.
+1. **Signature verification on Windows:** the signature spike's `Verifier matrix` (the last Phase 0b item).
+2. **Phase 7 (WPF add-on):** ready to start; the WPF spike's predictions held on Windows.
+3. **Publishing:** no packages have been published anywhere.
+
+CI (`.github/workflows/ci.yml`) builds and tests on Linux and Windows on every push to `main` and on pull requests; both are green.
 
 ## Later (wanted, not v1)
 

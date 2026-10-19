@@ -24,7 +24,7 @@ Throwaway proof-of-concept code under `spike/<name>/`, described in [docs/spikes
 | [nuget-signature-verification](../spike/nuget-signature-verification/REPORT.md) | Works on Linux only with the SDK root bundle shipped next to `NuGet.Packaging.dll`. Online revocation on a hanging network takes 120 s per package. | Done (Linux) |
 | [wpf-across-load-contexts](../spike/wpf-across-load-contexts/REPORT.md) | Single copies work. Duplicate names break WPF, even identical copies. WPF never asks a cell for an assembly. | Built on Linux; **predictions need a Windows run** |
 
-### Phase 0b: Windows verification (outstanding; blocks Phase 7)
+### Phase 0b: Windows verification (WPF done 2026-10-19; signature matrix outstanding)
 - Run `spike/wpf-across-load-contexts/run-windows.ps1`. Expect `ALL PREDICTIONS MATCHED`. Any `!! UNEXPECTED` means revisiting §4/§5 of the architecture and ADR 0015.
 - Run the signature spike's `Verifier matrix` on Windows.
 - Check native soname/module-name collisions on Windows (hot-load spike `q6` scenarios).
@@ -48,7 +48,7 @@ Throwaway proof-of-concept code under `spike/<name>/`, described in [docs/spikes
 - Central package management (`Directory.Packages.props`). Pin `System.Security.Cryptography.Pkcs` ≥ 10.0.13 *(spike: nuget-signature-verification)*.
 - `global.json` pinning the SDK (the spikes used 10.0.203).
 - Test framework: xUnit v3.
-- CI on GitHub Actions (`.github/workflows/ci.yml`): build + test on Linux and Windows (a matrix; the Windows job covers file locks, sharing violations and native library names). WPF runtime checks stay manual until Phase 0b.
+- CI on GitHub Actions (`.github/workflows/ci.yml`): build + test on Linux and Windows (a matrix; the Windows job covers file locks, sharing violations and native library names). WPF runtime checks are manual (the WPF spike was run on Windows on 2026-10-19).
 - Versioning: one version for all packages, from a single property, prerelease (`0.x`) until the API settles.
 
 **Done when:** an empty solution builds and runs an empty test in CI.
@@ -87,7 +87,7 @@ Everything needed to load plugins from a populated plugin root, with no feed acc
   - **Version check:** reject assemblies lower than requested *(spikes: both)*.
   - Native libraries with soname-collision warning, and satellite assemblies.
   - A "cell created" hook for the WPF add-on's pre-loading *(spike: wpf-across-load-contexts)*.
-  - **Shared loading of identical WPF-relevant private assemblies** ([ADR 0015](adr/0015-share-identical-wpf-assemblies.md)). Confirm against the Phase 0b Windows run.
+  - **Shared loading of identical WPF-relevant private assemblies** ([ADR 0015](adr/0015-share-identical-wpf-assemblies.md)). Confirmed by the Windows run.
 - **Exposed-dependency scanner** (`System.Reflection.Metadata`; port from `spike/cross-compartment-deps/src/LeakScan`) *(spike: cross-compartment-deps)*.
 - **WPF relevance and duplicate detector** (`System.Reflection.Metadata`; port from `spike/wpf-across-load-contexts/tools/XamlAsmInspect`), giving "will break" / "may break" findings *(spike: wpf-across-load-contexts)*.
 - **Validation** (local):
@@ -158,7 +158,7 @@ Validation also reports `ExposedDependencyConflict` for a fixture built to trigg
 
 ## Phase 7: WPF add-on
 
-> **On hold (2026-10-18):** skipped until the WPF spike has been run on Windows (Phase 0b). The Phase 3 hooks it depends on (the "cell created" callback, WPF relevance detection, shared loading of identical WPF-relevant assemblies) are still built in Phase 3.
+> **Ready to start (2026-10-19):** the WPF spike ran on Windows and its predictions held (7.4 was better than predicted). It was on hold until then (2026-10-18). The Phase 3 hooks it depends on (the "cell created" callback, WPF relevance detection, shared loading of identical WPF-relevant assemblies) are still built in Phase 3.
 
 - Dispatcher-marshalling catalog wrapper.
 - Resource dictionary merging on plugin load.
@@ -195,7 +195,7 @@ Validation also reports `ExposedDependencyConflict` for a fixture built to trigg
 |---|---|
 | Cross-cell type identity | Spike done: exposed-dependency rule + static scanner + `ExposedDependencyConflict` *(spike: cross-compartment-deps)* |
 | Silent identity splits after hot installs | Answer freezing + hot-load rule; spike scenarios as regression tests *(spike: hot-load-into-loaded-compartment)* |
-| **WPF resolves assemblies by name process-wide**, with no load-context awareness | Duplicate detector, versioned URIs, pre-loading, forwarder, sharing of identical WPF-relevant packages (ADR 0015); **Windows verification in Phase 0b** *(spike: wpf-across-load-contexts)* |
+| **WPF resolves assemblies by name process-wide**, with no load-context awareness | Duplicate detector, versioned URIs, pre-loading, forwarder, sharing of identical WPF-relevant packages (ADR 0015); confirmed on Windows *(spike: wpf-across-load-contexts)* |
 | NuGet client libraries are large and poorly documented | Spike done: the APIs to use are identified; wrap them behind internal interfaces *(spike: nuget-resolution-and-assets)* |
 | Asset selection differs subtly from `dotnet build` | Spike: matched in all cases with the right framework; `deps.json` comparison as a test oracle; framework from entry-assembly attributes |
 | Linux trust store rejects nuget.org signatures | Solved by shipping the SDK root bundle; needs a refresh process *(spike: nuget-signature-verification)* |

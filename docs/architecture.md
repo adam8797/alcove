@@ -107,7 +107,7 @@ A plugin's **exposed dependencies** are the dependencies whose types appear in i
 WPF knows nothing about load contexts. It finds assemblies by scanning every loaded assembly in the process, matching by simple name (and `AssemblyVersion`/token only if the request names them), and **the most recently loaded match wins**. It also re-points its cached pack-URI lookups whenever another assembly with the same name loads. Consequences:
 
 - **One copy per name works fully:** BAML, `pack://` URIs, merged dictionaries, cross-plugin XAML types, implicit `DataTemplate`s, `DynamicResource`.
-- **Same identity** (name + `AssemblyVersion` + token), including identical copies of one package in two cells: the *earlier* copy's views **break** ("does not have a resource identified by the URI", `InvalidCastException`, templates not matching).
+- **Same identity** (name + `AssemblyVersion` + token), including identical copies of one package in two cells: the *earlier* copy's views **break** ("does not have a resource identified by the URI", `InvalidCastException`, templates not matching). Lookless controls' default styles from their own `Themes/Generic.xaml` are the exception: they keep working (confirmed on Windows).
 - **Different `AssemblyVersion`:** mostly works, but name-only lookups go to the newest copy. These are unversioned `pack://` URIs, cross-assembly `ResourceDictionary.Source`, loose XAML, and `InitializeComponent` of assemblies built without an explicit `AssemblyVersion` property (the SDK default).
 - What counts is the **`AssemblyVersion`, not the NuGet version**.
 - A hot install that loads a duplicate can break plugins **that are already running**.

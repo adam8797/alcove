@@ -4,7 +4,9 @@
 
 Spike description: [docs/spikes/wpf-across-load-contexts.md](../../docs/spikes/wpf-across-load-contexts.md). Terms are as in [CONTEXT.md](../../CONTEXT.md).
 
-> **Status:** built and partly verified on Linux. **Not yet run on Windows.** Anything that needs a running WPF is a **prediction** from the WPF source (dotnet/wpf `release/10.0`, commit `b784c5bd`), with a confidence level and the source it's based on. The Windows run (checklist in §5) checks every prediction automatically and reports `matches prediction` or `!! UNEXPECTED`.
+> **Windows run (2026-10-19, by the user):** every prediction matched **except 7.4**: A's lookless `FancyBox` kept v1's template (`shows [SharedControls.v1.FancyBoxTemplate]`) instead of rendering empty. Within a control's own theme dictionary (`Themes/Generic.xaml`), WPF resolves the assembly's own types against that assembly, so lookless controls' default styles survive a same-identity duplicate. The Windows, .NET and WPF versions weren't captured.
+>
+> **Original status:** built and partly verified on Linux. **Not yet run on Windows.** Anything that needs a running WPF is a **prediction** from the WPF source (dotnet/wpf `release/10.0`, commit `b784c5bd`), with a confidence level and the source it's based on. The Windows run (checklist in §5) checks every prediction automatically and reports `matches prediction` or `!! UNEXPECTED`.
 
 ## 1. Summary
 
@@ -149,7 +151,7 @@ The result depends on whether `AssemblyVersion` differs, not on the NuGet versio
 **Same `AssemblyVersion`, different content (v1 vs v1b, scenario 7), all after C loads:**
 - **7.2.** A's view: its BAML asks for `SharedControls, Version=1.0.0.0`; the last match is C's copy, so a v1b `VersionBadge` is created, and A's generated `Connect` cast `(SharedControls.VersionBadge)target` throws `InvalidCastException`. High confidence.
 - **7.3.** A `VersionBadge` created by A's code: "does not have a resource identified by the URI". High confidence.
-- **7.4.** A's `FancyBox`: v1's `generic.baml` is read from the right assembly, but its `{x:Type local:FancyBox}` resolves to C's type, so A's control gets no default style and renders empty. Medium confidence.
+- **7.4.** A's `FancyBox`: v1's `generic.baml` is read from the right assembly, but its `{x:Type local:FancyBox}` resolves to C's type, so A's control gets no default style and renders empty. Medium confidence. **Wrong on Windows:** A's `FancyBox` shows v1's template; a theme dictionary's references to its own assembly's types resolve against that assembly.
 
 **Identical copies (scenario 8: the same PluginA in compartments A1 and A2):** A1's views fail as soon as A2 loads (8.2), and A1's view-models lose their templates (8.3). High confidence.
 
