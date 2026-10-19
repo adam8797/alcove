@@ -28,6 +28,10 @@ Read [CONTEXT.md](CONTEXT.md) first: use its terms in code, comments and docs. T
 ## Tests
 
 - xUnit v3. Unit tests are in `tests/Alcove.Tests`, integration tests in `tests/Alcove.IntegrationTests`, and fixture projects in `tests/fixtures/`.
+- **`Alcove.Wpf` tests:**
+  - `tests/Alcove.Wpf.Tests` targets `net10.0` and runs on every OS. It compiles in the add-on's WPF-free code (pack URIs, keys, view conventions, the forwarder, pre-loading, resource lookup) and tests it with real cells.
+  - Its `Windows/` scenarios (`WpfScenarioTests`) pack the fixture plugins in `tests/fixtures/Wpf` once per run. They run `tests/Alcove.Wpf.TestHost`, a `net10.0-windows` WPF host, in a child process per scenario, because WPF's caches and loaded assemblies are process-wide. The host renders off-screen and prints `CHECK name=value` lines for the test to assert on.
+  - The WPF runtime scenarios only run on Windows, so in practice in the Windows CI job. On other OSes they're skipped with a reason. The test host builds everywhere.
 - **Integration tests use real packages**: fixture projects under `tests/fixtures/` are built and packed into a local folder feed during the test run. No mocked `AssemblyLoadContext`.
 - Every test that creates files uses its own temporary directory and deletes it afterwards. Tests never touch the user's real NuGet settings or global packages folder.
 - Tests must not need the network unless they're marked `[Trait("Category", "Network")]`. HTTP-feed tests use a throwaway localhost feed.
@@ -36,6 +40,7 @@ Read [CONTEXT.md](CONTEXT.md) first: use its terms in code, comments and docs. T
 ## Guard-rail tests
 
 - **Public API snapshots:** `tests/Alcove.Tests/PublicApi/PublicApi.<Assembly>.txt`. An intentional API change fails the test; accept it with `ALCOVE_UPDATE_PUBLIC_API=1 dotnet test tests/Alcove.Tests` and review the diff in the commit.
+  - `Alcove.Wpf` (`net10.0-windows`) can't be loaded on Linux, so its snapshot and its event IDs are read with a `MetadataLoadContext`, against the WPF reference assemblies from the targeting pack the build already uses (`tests/Alcove.Tests/TestSupport/WpfAddOnMetadata.cs`). That needs the test-only package `System.Reflection.MetadataLoadContext`, and the add-on must be built first: `tests/Alcove.Tests` has a build-order-only reference to it.
 - **Async conventions:** public awaitable methods end in `Async`, and the `CancellationToken` comes last with a default (a shorter overload of a method that has one may omit it).
 - **XML docs:** shipping projects treat CS1591, CS1572, CS1573, CS1574 and CS0419 as errors (`src/Directory.Build.props`), so every public member needs correct XML docs.
 - **Logging event IDs:** each log class owns one range of 100 (see [docs/logging.md](docs/logging.md)); IDs must be unique.

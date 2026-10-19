@@ -1,6 +1,6 @@
 # Logging
 
-Alcove logs through `Microsoft.Extensions.Logging` (`PluginHostOptions.LoggerFactory`), with source-generated `LoggerMessage` methods and stable event IDs. Each area owns a range of 100 IDs; a unit test (`EventIdTests`) enforces unique IDs and one range per log class.
+Alcove logs through `Microsoft.Extensions.Logging` (`PluginHostOptions.LoggerFactory`), with source-generated `LoggerMessage` methods and stable event IDs. Each area owns a range of 100 IDs; a unit test (`EventIdTests`) enforces unique IDs and one range per log class, including `Alcove.Wpf`'s (read with a `MetadataLoadContext`, since it can't load on Linux).
 
 Levels: **Error** only for things that went wrong unexpectedly (plugin faults, handlers that throw, invalid configuration); **Warning** for conditions an app developer should look at (validation errors are also returned in `ValidationReport`, failed installs in results); **Information** for lifecycle milestones; **Debug/Trace** for diagnostics.
 
@@ -14,6 +14,7 @@ Levels: **Error** only for things that went wrong unexpectedly (plugin faults, h
 | 3000–3099 | Feeds, resolution and install (`FeedLog`) |
 | 4000–4099 | Trust and signatures (`TrustLog`) |
 | 5000–5099 | Lifecycle: staged changes, cleanup, restore, verify (`LifecycleLog`) |
+| 6000–6099 | WPF add-on, package `Alcove.Wpf` (`WpfLog`) |
 
 | ID | Level | Event |
 |---|---|---|
@@ -35,6 +36,8 @@ Levels: **Error** only for things that went wrong unexpectedly (plugin faults, h
 | 2006 | Information | Load summary |
 | 2007 | Debug | Faulted again |
 | 2008 | Warning | Cancellation callback failed |
+| 2009 | Error | Cell observer threw (`CellCreated` / `CellExtended`; the load continues) |
+| 2010 | Warning | Cell observer dispose threw |
 | 2100 | Debug | Extensions added |
 | 2101 | Error | Observe callback threw |
 | 2102 | Error | ExtensionsAdded handler threw |
@@ -73,5 +76,16 @@ Levels: **Error** only for things that went wrong unexpectedly (plugin faults, h
 | 5007 | Warning | Restore failed |
 | 5008 | Warning | Verification issue |
 | 5009 | Warning | Cleanup failed |
+| 6000 | Debug | WPF-relevant assemblies pre-loaded into a cell |
+| 6001 | Warning | Pre-loading a WPF-relevant assembly failed |
+| 6002 | Debug | Default-context load forwarded to a cell |
+| 6003 | Warning | Default-context load not forwarded: several cells own different copies |
+| 6004 | Warning | Forwarded load failed in the cell |
+| 6005 | Debug | Default-context forwarder registered / removed |
+| 6006 | Warning | Plugin has resources to merge, but there's no target (no `Application`, no `Resources`) |
+| 6007 | Debug | Plugin's resource dictionaries merged |
+| 6008 | Warning | Removing a plugin's merged dictionaries failed |
+| 6009 | Information | `AppendLocalAssemblyVersionForSourceUri` AppContext switch not set |
+| 6010 | Debug | Plugin's view-models mapped to views |
 
-Alcove's own categories are `Alcove.PluginHost` (activation, feeds, install, lifecycle and cell service providers), `Alcove.Cells`, `Alcove.Catalog`, `Alcove.Validation` and `Alcove.Trust`. Plugins log under a category equal to their plugin ID.
+Alcove's own categories are `Alcove.PluginHost` (activation, feeds, install, lifecycle and cell service providers), `Alcove.Cells`, `Alcove.Catalog`, `Alcove.Validation` and `Alcove.Trust`; `Alcove.Wpf` logs under `Alcove.Wpf`. Plugins log under a category equal to their plugin ID.

@@ -10,7 +10,7 @@ A lightweight, opinion-light .NET library for **installing plugins from NuGet fe
 
 ## Status
 
-In development. Phases 0–6 and 8 of the [implementation plan](docs/implementation-plan.md) are done: repository foundation, `Alcove.Abstractions`, `Alcove.Sdk`, the offline core (cells, validation, activation, extension catalog, `PluginHost`), feeds and install (search, resolution, `InstallAsync` with hot loading, trust policy and signature verification), lifecycle (staged update, uninstall, enable/disable, rollback, restore, verify), the Microsoft DI and Autofac add-ons, and hardening (public API snapshot, logging review, performance check). Phase 7 (WPF add-on) is on hold until the WPF spike runs on Windows (Phase 0b). Try it with `samples/run-console-sample.sh`. Nothing is published yet.
+In development. Phases 0–8 of the [implementation plan](docs/implementation-plan.md) are done: repository foundation, `Alcove.Abstractions`, `Alcove.Sdk`, the offline core (cells, validation, activation, extension catalog, `PluginHost`), feeds and install (search, resolution, `InstallAsync` with hot loading, trust policy and signature verification), lifecycle (staged update, uninstall, enable/disable, rollback, restore, verify), the Microsoft DI and Autofac add-ons, the WPF add-on (`Alcove.Wpf`), and hardening (public API snapshot, logging review, performance check). The WPF add-on's runtime scenarios run in the Windows CI job; they're skipped on Linux. Try it with `samples/run-console-sample.sh`, or `samples\run-wpf-sample.ps1` on Windows. Nothing is published yet. See [docs/status.md](docs/status.md).
 
 ## Quick look
 
@@ -63,7 +63,7 @@ public sealed class ChartsPlugin : IPlugin
 | `Alcove` | App developers | The core: feeds, resolution, validation, cells, loading, catalog. No UI or DI dependencies. |
 | `Alcove.DependencyInjection` | App + plugin developers | Microsoft.Extensions.DependencyInjection integration. |
 | `Alcove.Autofac` | App + plugin developers | Autofac integration. |
-| `Alcove.Wpf` | App developers | Dispatcher-aware catalog, resource dictionary merging, pack URI and resource-key helpers (on hold). |
+| `Alcove.Wpf` | App + plugin developers | WPF plugins in cells: pre-loading, resource dictionary merging, dispatcher-aware catalog, versioned pack URIs, typed shared resource keys, view-model → view templates. |
 | `Alcove.Wpf.Manager` | App developers | Ready-made plugin manager UI (later). |
 | `Alcove.Templates` | Plugin developers | `dotnet new` templates (later). |
 | `Alcove.Testing` | Both | Test helpers: fake hosts, in-memory feeds (later). |
@@ -81,7 +81,7 @@ public sealed class ChartsPlugin : IPlugin
 - [docs/open-questions.md](docs/open-questions.md): unresolved items and planned spikes.
 - [docs/logging.md](docs/logging.md): logging event IDs.
 - [docs/reviews/](docs/reviews/): code reviews.
-- [samples/README.md](samples/README.md): the runnable console sample.
+- [samples/README.md](samples/README.md): the runnable console and WPF samples.
 - [CONTRIBUTING.md](CONTRIBUTING.md): toolchain, code style, guard-rail tests.
 
 ## License

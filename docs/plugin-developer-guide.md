@@ -98,12 +98,41 @@ Privacy is per **cell**, not per plugin: other plugins sharing your cell share y
 
 ### WPF in plugins
 
-WPF finds XAML resources and types by assembly **name** across the whole process, regardless of cells. Most recently loaded wins. *(spike: wpf-across-load-contexts, pending Windows confirmation)*
+WPF finds XAML resources and types by assembly **name** across the whole process, regardless of cells. Most recently loaded wins. *(spike: wpf-across-load-contexts, confirmed on Windows)* A host that uses `Alcove.Wpf` (`options.UseWpf(...)`) handles most of this for you. Reference `Alcove.Wpf` yourself only if you use its types (`PluginResources`, `PluginPackUri`, `SharedResourceKey<T>`). With `Alcove.Sdk` it's treated as host-owned automatically, so it stays a dependency but is never copied into your output.
 
+**Your resource dictionary.** Put your styles, brushes and templates in `Themes/Plugin.xaml` (a `ResourceDictionary`, built as a `Page`). The host merges it into the app's resources when your plugin loads, before `Register` runs, so your XAML can use it as a `StaticResource`. To merge other or several dictionaries instead, name them in the order you want:
+
+```csharp
+[assembly: PluginResources("Themes/Colors.xaml")]
+[assembly: PluginResources("Themes/Templates.xaml")]
+```
+
+A declared dictionary that doesn't exist faults your plugin. Every plugin shares the app's resources, so **prefix your keys with your plugin ID** (`x:Key="Contoso.Charts.AxisBrush"`). The app's own resources win over yours on a clash, and a plugin merged later wins over earlier ones.
+
+**The app's resources.** Use the keys from the host's SDK, not string literals. They're `SharedResourceKey<T>` constants:
+
+```xml
+<Border Background="{DynamicResource {x:Static sdk:AppKeys.Accent}}" />
+```
+
+From code, use `element.SetResourceReference(Border.BackgroundProperty, AppKeys.Accent)` or `element.TryFindResource(AppKeys.Accent, out var brush)`. Use `DynamicResource` for anything the app may change at run time, such as a theme.
+
+**Pack URIs.** When you refer to XAML from code (`ResourceDictionary.Source`, `Application.LoadComponent`), use `PluginPackUri` instead of writing the URI yourself. It always includes the loaded assembly's version (and public key token), so it can't reach another cell's copy:
+
+```csharp
+var colors = new ResourceDictionary { Source = PluginPackUri.Create(typeof(ChartView).Assembly, "Themes/Colors.xaml") };
+// /Contoso.Charts;v1.0.0.0;component/Themes/Colors.xaml
+```
+
+In XAML, reference other assemblies' dictionaries with a versioned URI (`/Lib;v2.0.0.0;component/...`), not `/Lib;component/...`.
+
+**Views for view-models.** If the host turns on `MapViewModelsToViews`, each public `FooViewModel` in your assembly is shown by `FooView` wherever a `ContentControl` (or an `ItemsControl` item) displays it. The view must be in the same namespace, or in the namespace with `ViewModels` replaced by `Views` (`Contoso.Charts.ViewModels.ChartViewModel` → `Contoso.Charts.Views.ChartView`). It must be **in the same assembly**, and be a `FrameworkElement` with a public parameterless constructor. You can also build the templates yourself with `ViewTemplates.Create(typeof(ChartViewModel), typeof(ChartView))`.
+
+**Cautions:**
 - `Alcove.Sdk` sets an explicit `AssemblyVersion`, so your own `InitializeComponent` URIs include the version. Keep it that way.
-- Reference other assemblies' resource dictionaries with a versioned URI (`/Lib;v2.0.0.0;component/...`), not `/Lib;component/...`. URI helpers are planned for `Alcove.Wpf` (on hold).
 - Prefer control libraries the **host** provides (host-owned) over bundling your own copy.
-- A control library used only from XAML (never touched from code) must be loaded before the XAML runs. Until the planned `Alcove.Wpf` add-on pre-loads them, touch a type from code first (e.g. `_ = typeof(SomeControl);`).
+- A control library used only from XAML (never touched from code) must be loaded before the XAML runs. `Alcove.Wpf` pre-loads such libraries into your cell (on by default). In a host without it, touch a type from code first (e.g. `_ = typeof(SomeControl);`).
+- Two plugins bundling the **same package and version** of a control library share one copy across their cells ([ADR 0015](adr/0015-share-identical-wpf-assemblies.md)), so its static state is shared too.
 - If another plugin bundles a different build of the same control library with the **same `AssemblyVersion`**, the two will conflict. The library reports this, but can't fix it.
 
 ## 4. Cells

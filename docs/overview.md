@@ -46,7 +46,7 @@ NuGet already solves delivery, versioning and dependency description, and every 
 - Core: feeds and authentication, search, install/update/uninstall/restore, rollback, validation, cells, loading, catalog, trust policy, configuration and state files.
 - `Alcove.Abstractions`, `Alcove.Sdk`.
 - `Alcove.DependencyInjection`, `Alcove.Autofac`.
-- `Alcove.Wpf` helpers (on hold until the WPF spike is verified on Windows; see the [implementation plan](implementation-plan.md#phase-7-wpf-add-on), Phase 7).
+- `Alcove.Wpf` add-on (built in Phase 7; see the [implementation plan](implementation-plan.md#phase-7-wpf-add-on--wpf-runtime-scenarios-verified-by-the-windows-ci-job-once-pushed) and [architecture §11](architecture.md#11-wpf-add-on-alcovewpf)).
 
 **Later**
 - `Alcove.Wpf.Manager` (plugin manager UI).

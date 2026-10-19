@@ -13,21 +13,22 @@
 | 4 | Feeds and install | Search, `RemoteDependencyWalker` resolution (matches `dotnet restore`), download, `InstallAsync` with the hot-load rule, trust policy and signature verification with the shipped root bundle, localhost test feed. |
 | 5 | Lifecycle | Staged update/uninstall/enable/disable/rollback, startup apply and cleanup, in-use records, pending changes, update checks, restore, verify. |
 | 6 | DI add-ons | `Alcove.DependencyInjection` and `Alcove.Autofac`, one service provider per cell, shared test suite. |
+| 7 | WPF add-on | `Alcove.Wpf`: `UseWpf` (pre-loading, resource merging, opt-in default-context forwarder and view-model → view mapping), `DispatcherExtensionCatalog`, `PluginPackUri`, `SharedResourceKey<T>`, `ViewTemplates`. Core hook `ICellObserver`. WPF sample (`samples/WpfHost`). The WPF runtime scenarios run in the Windows CI job and haven't run yet (not pushed). |
 | 8 | Hardening | Public API snapshots, XML docs enforced, logging registry ([logging.md](logging.md)), performance check, three rounds of independent code review ([reviews/](reviews/)), all findings fixed. |
 
-**Tests:** 310 unit + 258 integration, zero warnings. 8 tests are gated: 7 need the network (`ALCOVE_NETWORK_TESTS=1`) and 1 is the performance test (`ALCOVE_PERF_TESTS=1`).
+**Tests:** 311 unit + 263 integration + 42 WPF (Linux-runnable), zero warnings. Gated: 7 need the network (`ALCOVE_NETWORK_TESTS=1`), 1 is the performance test (`ALCOVE_PERF_TESTS=1`), and 6 WPF runtime scenarios run only on Windows.
 
 **Performance** (this Linux machine, Debug): `LoadAsync` with 50 plugins ≈ 35 ms warm / 95 ms cold; one hot `InstallAsync` from a folder feed ≈ 220 ms; `VerifyAsync` (52 packages) ≈ 15 ms.
 
-**Try it:** `samples/run-console-sample.sh`.
+**Try it:** `samples/run-console-sample.sh`, or on Windows `samples\run-wpf-sample.ps1` ([samples/README.md](../samples/README.md)).
 
 ## Waiting on you
 
 1. **Signature verification on Windows:** the signature spike's `Verifier matrix` (the last Phase 0b item).
-2. **Phase 7 (WPF add-on):** ready to start; the WPF spike's predictions held on Windows.
-3. **Publishing:** no packages have been published anywhere.
+2. **Publishing:** no packages have been published anywhere.
+3. **Push Phase 7** so the Windows CI job runs the WPF scenarios (`tests/Alcove.Wpf.Tests/Windows`). They're skipped on Linux, so the add-on hasn't run against a real WPF yet. Optionally, also try `samples\run-wpf-sample.ps1` by hand.
 
-CI (`.github/workflows/ci.yml`) builds and tests on Linux and Windows on every push to `main` and on pull requests; both are green.
+CI (`.github/workflows/ci.yml`) builds and tests on Linux and Windows on every push to `main` and on pull requests; both were green before Phase 7.
 
 ## Later (wanted, not v1)
 

@@ -58,6 +58,15 @@ Shared vocabulary for this project. Use these terms in code, docs and discussion
 
 Extensions are always obtained from the catalog, never from the root container's `IEnumerable<T>`.
 
+## UI add-ons
+
+| Term | Meaning |
+|---|---|
+| **Cell observer** (`ICellObserver`) | An object told by one host when a cell is created (`CellCreated`), when a hot install adds private assemblies to an existing cell (`CellExtended`), and when a plugin's assemblies are loaded, before it registers (`PluginLoading`). Created per host from the factories in `PluginHostOptions.CellObservers`, and disposed with the host. It's the core's only hook for UI frameworks; `Alcove.Wpf` uses it for pre-loading, the forwarder and resource merging. |
+| **Pre-loading** | `Alcove.Wpf` loading a cell's WPF-relevant private assemblies as soon as the cell exists, because WPF only finds assemblies that are already loaded. |
+| **Default-context forwarder** | `Alcove.Wpf`'s opt-in `AssemblyLoadContext.Default.Resolving` handler. It sends WPF's failed default-context loads to the single cell owning a private copy of that name. Process-wide while its host lives ([ADR 0012](docs/adr/0012-app-supplies-root-no-global-state.md)). |
+| **Shared resource key** (`SharedResourceKey<T>`) | A typed WPF resource key that the app defines once in its host-owned contracts package or app SDK, so the app and every plugin use the same key. |
+
 ## Cells
 
 | Term | Meaning |

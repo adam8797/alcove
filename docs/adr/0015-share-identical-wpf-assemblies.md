@@ -14,3 +14,6 @@ Sharing applies to **WPF-relevant assemblies only**. Other identical private pac
 - Two plugins with the same control library work by default.
 - Identical WPF-relevant packages are no longer fully isolated per cell, so their static state is shared.
 - Same-identity duplicates that are *not* the same package (same `AssemblyVersion`, different content) still conflict and are reported as "will break".
+
+## Amendments
+- *2026-10-19:* **Implemented** in the core's cell loading (Phase 3; `CellLog` event 1006 "WPF shared assembly reused"), with cell-level tests that run on Linux and Windows. **Confirmed on Windows:** the WPF spike's Windows run (2026-10-19) showed that identical copies in two cells break, as predicted, so the decision stands. With a running WPF, the implementation is checked by the `Alcove.Wpf` scenario `TwoPluginsInSeparateCells_ShareAnIdenticalControlLibrary_AndBothRender` in the Windows CI job, which first runs when Phase 7 is pushed. `Alcove.Wpf` builds on the sharing: pre-loading loads through the cell, so identical copies stay shared, and the default-context forwarder counts identical shared copies as one owner ([ADR 0012](0012-app-supplies-root-no-global-state.md)).

@@ -2,7 +2,7 @@
 
 Terms in **bold** are defined in [CONTEXT.md](../CONTEXT.md).
 
-> Updated 2026-10-17 with the results of the five spikes in [`spike/`](../spike/). Changes based on a spike are marked *(spike: name)*. Decisions taken on 2026-10-18 are noted where they apply.
+> Updated 2026-10-17 with the results of the five spikes in [`spike/`](../spike/). Changes based on a spike are marked *(spike: name)*. Decisions taken on 2026-10-18 are noted where they apply. §11 was rewritten on 2026-10-19 to describe the `Alcove.Wpf` add-on as built (Phase 7).
 
 ## 1. Package layering
 
@@ -17,11 +17,12 @@ Terms in **bold** are defined in [CONTEXT.md](../CONTEXT.md).
                  └──────────────────────┘
                      ▲        ▲       ▲
         ┌────────────┘        │       └─────────────┐
- Alcove.DependencyInjection  Alcove.Autofac   Alcove.Wpf ◀── Alcove.Wpf.Manager
+ Alcove.DependencyInjection  Alcove.Autofac   Alcove.Wpf ◀── Alcove.Wpf.Manager (later)
 ```
 
 - **`Alcove.Abstractions`** is the only library package a plugin references at runtime. It changes rarely and is backward compatible within a major version ([ADR 0009](adr/0009-separate-abstractions-package.md)). Its dependencies are `NuGet.Versioning` (version types) and `Microsoft.Extensions.Logging.Abstractions` (for `IPluginContext.Logger`). All three are always **host-owned assemblies**: loaded once, from the default context. Making logging host-owned means a plugin needing a *newer* `Microsoft.Extensions.Logging.Abstractions` than the host has is incompatible. This is accepted and documented: Abstractions references the lowest supported version, and the host's version caps what plugins can use ([ADR 0009](adr/0009-separate-abstractions-package.md)) *(spike: nuget-resolution-and-assets)*.
 - **`Alcove.Sdk`** is build-time only (`PrivateAssets="all"`). It contains MSBuild props/targets and nothing that ships in the plugin.
+- **Add-ons** depend on the core only, never on each other. Each one plugs into a core extension point: DI add-ons use `IExtensionActivator` and `ICellServicesFactory` (§10), and `Alcove.Wpf` (`net10.0-windows`) uses `ICellObserver` (§11). Each add-on is made host-owned automatically when it's set up, and its buildTransitive props do the same for plugin projects.
 - **Core** uses no DI library and no UI framework, and has no static or global state of its own. Several `PluginHost` instances can exist in one process. Documented process-wide exceptions are listed in [ADR 0012](adr/0012-app-supplies-root-no-global-state.md): NuGet's trust store selection and the opt-in WPF resolving forwarder. NuGet's user-wide HTTP cache is bypassed.
 - **NuGet client dependencies:** `NuGet.Protocol` (which brings Packaging, Configuration, Frameworks, Common, Versioning) and `NuGet.DependencyResolver.Core`, about 3.4 MB in 11 DLLs. Not NuGet.Resolver, not NuGet.Commands. `System.Security.Cryptography.Pkcs` is pinned to ≥ 10.0.13 (the version NuGet.Packaging brings has known vulnerabilities) *(spikes: nuget-resolution-and-assets, nuget-signature-verification)*.
 
@@ -102,7 +103,7 @@ Every assembly a plugin might load falls into exactly one of these classes. The 
 
 A plugin's **exposed dependencies** are the dependencies whose types appear in its public API. They're found at install time by scanning the plugin's assemblies with `System.Reflection.Metadata` (4–36 ms per assembly) and stored in the state file. Any cell using that plugin must resolve them **through the plugin's cell**: a separate copy, even an identical file, breaks type identity, sometimes silently (`is` checks return false). If a consumer needs a version the provider's cell doesn't satisfy, validation reports **`ExposedDependencyConflict`**. A silent duplicate is never loaded ([ADR 0014](adr/0014-cross-cell-dependencies.md)).
 
-### WPF and duplicate assembly names *(spike: wpf-across-load-contexts; predicted from WPF source, Windows run pending)*
+### WPF and duplicate assembly names *(spike: wpf-across-load-contexts; predicted from WPF source, confirmed on Windows 2026-10-19)*
 
 WPF knows nothing about load contexts. It finds assemblies by scanning every loaded assembly in the process, matching by simple name (and `AssemblyVersion`/token only if the request names them), and **the most recently loaded match wins**. It also re-points its cached pack-URI lookups whenever another assembly with the same name loads. Consequences:
 
@@ -118,6 +119,7 @@ The library therefore:
 - Turns a same-identity duplicate at hot install into `PendingRestart`.
 - Loads identical (same package ID + version) WPF-relevant private assemblies **once** and shares them across cells ([ADR 0015](adr/0015-share-identical-wpf-assemblies.md)). Other identical packages stay per-cell.
 - Recommends listing WPF control libraries in `HostOwnedPackages` where possible.
+- At runtime, `Alcove.Wpf` pre-loads WPF-relevant private assemblies and builds versioned pack URIs (§11).
 
 ## 5. Cells
 
@@ -307,7 +309,9 @@ There is no "removed" event during a run: nothing is removed until restart ([ADR
 - **Callbacks:** `PluginFaulted`, `ExtensionsAdded` and `Observe` callbacks are never raised under the library's locks, and logging never runs under the cell gate. Singleton extension constructors do run under their registration's own lock, so a constructor shouldn't block on another thread that resolves the same extension.
 
 - Catalog events fire on the thread that performed the install. In practice that's whatever thread the app's `await InstallAsync` continued on.
-- `Alcove.Wpf` provides a catalog wrapper that marshals events to the `Dispatcher`.
+- **`Alcove.Wpf` dispatcher policy** (§11):
+  - **Catalog callbacks:** `DispatcherExtensionCatalog` runs an `Observe` or `ExtensionsAdded` callback **inline** when it's raised on the UI thread. So `Observe` called on the UI thread has delivered the existing extensions when it returns. A callback raised on another thread (e.g. a hot install that continued on the thread pool) is queued with `Dispatcher.BeginInvoke`, so the loading thread never waits for the UI thread. Each subscription keeps its order, and nothing is delivered after the subscription is disposed. An exception from a queued callback surfaces on the dispatcher (`Dispatcher.UnhandledException`).
+  - **Resource merging and removal:** these run on the dispatcher's thread, inline when the host loads there, otherwise with a blocking `Dispatcher.Invoke`. Plugins' resources must be in place before their extensions can be created. This can deadlock only if the UI thread blocks synchronously on the host (`.Wait()` / `.Result` on `LoadAsync`, `InstallAsync` or `DisposeAsync`) while another thread loads. Awaiting them is safe.
 - `InitializeAsync` calls are awaited in dependency order. The core doesn't move work to the thread pool, so a WPF app that awaits `LoadAsync` from the UI thread keeps plugin initialisation on the UI thread unless plugins themselves move off it.
 - All async APIs take a `CancellationToken`. Install, update and restore accept an `IProgress<InstallProgress>` (step, package ID, version).
 
@@ -323,21 +327,42 @@ There is no "removed" event during a run: nothing is removed until restart ([ADR
 - Cell providers are disposed in reverse load order when the host is disposed.
 - Other containers: adapt them through `IExtensionActivator` + `IServiceProvider`. Only Microsoft DI and Autofac adapters are shipped.
 
-## 11. WPF add-on (planned; Phase 7 is on hold)
+## 11. WPF add-on (`Alcove.Wpf`)
 
-- Dispatcher-marshalling catalog wrapper.
-- Merges a plugin's resource dictionaries into `Application.Resources` when the plugin loads. The convention is a `Themes/Plugin.xaml` file, or one declared by the plugin.
-- `pack://` URI builder that **always includes the version** of the loaded assembly (`/Name;v1.2.3.4;component/path`), plus the token if strong-named. Resource dictionary merging uses it.
-- **Pre-loads cell-private assemblies** that are WPF-relevant when a cell is created. WPF only finds assemblies that are already loaded, so a control library used only from XAML would otherwise fail to load. Uses the core's internal "cell created" hook, built in Phase 3.
-- An **opt-in `Default.Resolving` forwarder**, registered per `PluginHost` and removed on dispose. It forwards default-context load failures to the single cell that owns a private copy with that simple name. That covers dependencies rolled forward to a newer version and external theme assemblies. It's process-wide, so it's documented in ADR 0012.
-- Activates extensions inside `cell.EnterContextualReflection()`. Cheap, but not enough alone, because templates expand later.
-- Host guidance: set `Switch.System.Windows.Baml2006.AppendLocalAssemblyVersionForSourceUri=true` (a `RuntimeHostConfigurationOption` in the host's project file).
-- Linking view-models to views by convention via generated `DataTemplate`s.
-- Typed `ResourceKey` helpers, so apps can define shared resource keys as constants in their contracts package.
+WPF knows nothing about load contexts (§4): it finds assemblies by simple name among everything loaded in the process, and its own fallback loads go to the default context, never to a cell. `Alcove.Wpf` (`net10.0-windows`) makes plugins' XAML work inside cells. It's set up with one call, `options.UseWpf(application)` (or `UseWpf(dispatcher)`), which adds a cell observer and makes `Alcove.Wpf` host-owned. Calling it twice on the same options throws. *(spike: wpf-across-load-contexts; the spike's predictions were confirmed on Windows 2026-10-19, and the add-on's own scenarios run in the Windows CI job)*
 
-*(spike: wpf-across-load-contexts; Windows run pending)*
+### The core hook: cell observers
 
-App-provided UI building blocks (`<TheApp>.Sdk` with UserControls, styles) are **host-owned assemblies**, so they're shared with all plugins automatically. Listing third-party WPF control libraries as host-owned too avoids the duplicate problem entirely. Docking, menus and ribbons are deliberately left out; the app defines those as its own extension points.
+The core knows no UI framework. It tells **cell observers** (`ICellObserver`) about cells, and UI add-ons plug in there:
+
+- `PluginHostOptions.CellObservers` is a code-only list of `CellObserverFactory` delegates (`ILoggerFactory → ICellObserver`). Each host calls every factory once, with its logger factory, so an observer only ever sees **one host's** cells. A factory that returns `null` makes `PluginHost.Create` throw.
+- `CellCreated(CellInfo)`: a cell was created, and nothing has loaded into it yet.
+- `CellExtended(CellInfo, added)`: a hot install added private assemblies to a cell that already exists, before they load. It isn't called for cells an install creates, which get `CellCreated`.
+- `PluginLoading(CellInfo, PluginInfo, assemblies)`: the plugin's own assemblies are loaded and its entry point is created, and the plugin is about to register its extensions. Runs inside the cell's contextual reflection scope.
+- `CellInfo` gives the cell's name, its `AssemblyLoadContext`, its plugins and its planned private assemblies (`CellAssembly`: name, path, package ID and version, and `IsWpfRelevant`). Planned doesn't mean loaded.
+- Observers are called on the thread that loads or installs, never under the library's locks, so they may load assemblies into the cell. An exception from `CellCreated` or `CellExtended` is logged (2009) and doesn't stop the load. One from `PluginLoading` faults that plugin.
+- **Lifetime:** when the host is disposed, after its plugins and cell service providers, it disposes the observers that implement `IAsyncDisposable` or `IDisposable`, in reverse order, on the thread that disposes the host. A failure there is logged (2010).
+
+### What `UseWpf` does
+
+- **Pre-loading** (`PreloadWpfAssemblies`, on by default). When a cell is created, every **WPF-relevant** cell-private assembly in its plan is loaded through the cell, and when a hot install extends a cell, the ones it adds are loaded too. WPF only finds assemblies that are already loaded, so a control library used only from XAML would otherwise not be found. Loading through the cell means the cell's answers apply, including sharing identical copies across cells ([ADR 0015](adr/0015-share-identical-wpf-assemblies.md)). A failed pre-load is logged (6001) and doesn't stop the others.
+- **The `Default.Resolving` forwarder** (`ForwardDefaultContextLoads`, opt-in). It's registered on `AssemblyLoadContext.Default.Resolving` when the host is created, and removed when the host disposes its observer, so it lives exactly as long as the host. A failed default-context load is forwarded to the **single** cell of that host that owns a private copy with that simple name. The version is ignored, though the cell still rejects a request for a higher version than its copy. This covers WPF's own fallback loads: a XAML library rolled forward to a newer version in its cell, and external theme assemblies. Identical WPF-relevant copies (same package ID and version) count as one owner, because the cells share them. If several cells own different copies, the forwarder doesn't choose; it logs a warning (6003) and returns nothing, since any choice would give the other cells' XAML a foreign copy. Satellite assemblies aren't forwarded. The forwarder is process-wide by nature, so it's the documented opt-in exception in [ADR 0012](adr/0012-app-supplies-root-no-global-state.md).
+- **No WPF activator.** The core already creates every extension inside `cell.EnterContextualReflection()`, whichever activator is set (including those of `Alcove.DependencyInjection` and `Alcove.Autofac`). So `UseWpf` sets no activator and combines with the DI add-ons in either order. Contextual reflection alone isn't enough, because templates expand later; pre-loading and versioned URIs cover the rest.
+- **Resource merging** (`MergePluginResources`, on by default). When a plugin loads, before it registers, its assemblies' dictionaries are merged into `WpfPluginOptions.Resources`. That defaults to the application's resources (the `Application` passed to `UseWpf`, or `Application.Current` when a dispatcher was passed). The dictionaries are those named by `[assembly: PluginResources("...")]` (in the order declared; a missing one faults the plugin), or `Themes/Plugin.xaml` if the assembly declares none and has that part. Each plugin gets **one container dictionary**, holding its dictionaries (loaded with versioned pack URIs) and its view templates. The container is inserted into `MergedDictionaries` **below the app's own dictionaries** and after earlier plugins' containers. WPF searches merged dictionaries last-first, so the app's resources win over every plugin's. The containers are removed again when the host is disposed (skipped if the dispatcher is already shutting down). If there is no target (no `Application` and no `Resources`), the plugin's resources aren't merged and a warning is logged (6006).
+- **View-model to view mapping** (`MapViewModelsToViews`, opt-in). When a plugin loads, each public `FooViewModel` gets an implicit `DataTemplate` showing `FooView`. The view must be in the same namespace, or in the namespace with its `ViewModels` segment replaced by `Views`, and in the same assembly. The templates go into the plugin's container dictionary. `ViewTemplates.Create` and `ViewTemplates.CreateForAssembly` expose the same convention for manual use.
+- **AppContext switch.** The host should set `Switch.System.Windows.Baml2006.AppendLocalAssemblyVersionForSourceUri=true` (a `RuntimeHostConfigurationOption` in its project file), so XAML that refers to its own assembly's dictionaries gets a versioned URI. If it isn't set, the observer logs an Information message (6009) when the host is created.
+
+### Helpers
+
+- **`DispatcherExtensionCatalog`** (`host.Catalog.OnDispatcher(dispatcher)`): the catalog with `Observe` and `ExtensionsAdded` callbacks on the UI thread (§9). `GetAll` passes through.
+- **`PluginPackUri`**: `Create`/`Format` give `/Name;v1.2.3.4;component/path` (plus the public key token if strong-named), and `CreateAbsolute` gives the `pack://application:,,,` form. The URIs **always name the loaded assembly's version**, so they can't reach another cell's copy. Resource merging uses them.
+- **`SharedResourceKey<T>`**: a typed resource key the app defines once as a constant in its contracts package or app SDK (host-owned, so every cell sees the same key object). Keys are equal by ID and value type. Use them from XAML as `{DynamicResource {x:Static sdk:AppKeys.Accent}}`, or from code with `SetResource`, `SetResourceReference` and `TryFindResource`.
+- **`[assembly: PluginResources("Themes/Colors.xaml")]`**: names the dictionaries a plugin assembly wants merged. It's read by name from metadata, so no type identity is needed.
+- **`buildTransitive`**: a plugin project that references `Alcove.Wpf` together with `Alcove.Sdk` treats it as host-owned automatically (`PluginHostOwnedPackage`).
+
+Logging uses the `Alcove.Wpf` category, event IDs 6000–6099 ([logging.md](logging.md)).
+
+App-provided UI building blocks (`<TheApp>.Sdk` with UserControls, styles and shared keys) are **host-owned assemblies**, so they're shared with all plugins automatically. Listing third-party WPF control libraries as host-owned too avoids the duplicate problem entirely. Docking, menus and ribbons are deliberately left out; the app defines those as its own extension points.
 
 ## 12. Feeds, authentication and trust
 

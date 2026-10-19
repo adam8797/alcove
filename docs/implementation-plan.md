@@ -22,7 +22,7 @@ Throwaway proof-of-concept code under `spike/<name>/`, described in [docs/spikes
 | [hot-load-into-loaded-compartment](../spike/hot-load-into-loaded-compartment/REPORT.md) | The runtime doesn't pin "use the host's copy" answers, so cells must **freeze answers**. That gives a precise hot-load rule. | Done (Linux), 30/30 checks |
 | [nuget-resolution-and-assets](../spike/nuget-resolution-and-assets/REPORT.md) | `RemoteDependencyWalker` + host pins matches `dotnet restore`; `ManagedCodeConventions` matches `dotnet build`. Single-file hosts have no inventory. | Done (Linux) |
 | [nuget-signature-verification](../spike/nuget-signature-verification/REPORT.md) | Works on Linux only with the SDK root bundle shipped next to `NuGet.Packaging.dll`. Online revocation on a hanging network takes 120 s per package. | Done (Linux) |
-| [wpf-across-load-contexts](../spike/wpf-across-load-contexts/REPORT.md) | Single copies work. Duplicate names break WPF, even identical copies. WPF never asks a cell for an assembly. | Built on Linux; **predictions need a Windows run** |
+| [wpf-across-load-contexts](../spike/wpf-across-load-contexts/REPORT.md) | Single copies work. Duplicate names break WPF, even identical copies. WPF never asks a cell for an assembly. | Built on Linux; run on Windows 2026-10-19: all predictions held (7.4 better than predicted) |
 
 ### Phase 0b: Windows verification (WPF done 2026-10-19; signature matrix outstanding)
 - Run `spike/wpf-across-load-contexts/run-windows.ps1`. Expect `ALL PREDICTIONS MATCHED`. Any `!! UNEXPECTED` means revisiting §4/§5 of the architecture and ADR 0015.
@@ -38,11 +38,11 @@ Throwaway proof-of-concept code under `spike/<name>/`, described in [docs/spikes
   src/Alcove.Sdk/                   MSBuild props/targets (no assembly)
   src/Alcove.DependencyInjection/
   src/Alcove.Autofac/
-  src/Alcove.Wpf/                   (Phase 7, not created yet)
+  src/Alcove.Wpf/                   (Phase 7)
   tests/Alcove.Tests/               unit tests
   tests/Alcove.IntegrationTests/    builds + packs fixture plugins, installs them
   tests/fixtures/                   fixture host contracts and plugin projects
-  samples/ConsoleHost/, samples/WpfHost/ (Phase 7, not created yet), samples/plugins/
+  samples/ConsoleHost/, samples/WpfHost/ (Phase 7), samples/plugins/
   ```
 - `Directory.Build.props`: `net10.0`, nullable, warnings as errors, deterministic builds. SourceLink via the SDK's built-in GitHub provider.
 - Central package management (`Directory.Packages.props`). Pin `System.Security.Cryptography.Pkcs` ≥ 10.0.13 *(spike: nuget-signature-verification)*.
@@ -86,7 +86,7 @@ Everything needed to load plugins from a populated plugin root, with no feed acc
   - **Answer freezing:** Plan/Given/Committed records, one lock shared with install *(spike: hot-load-into-loaded-compartment)*.
   - **Version check:** reject assemblies lower than requested *(spikes: both)*.
   - Native libraries with soname-collision warning, and satellite assemblies.
-  - A "cell created" hook for the WPF add-on's pre-loading *(spike: wpf-across-load-contexts)*.
+  - A "cell created" hook for the WPF add-on's pre-loading *(spike: wpf-across-load-contexts)*. Phase 7 exposes it publicly as `ICellObserver`.
   - **Shared loading of identical WPF-relevant private assemblies** ([ADR 0015](adr/0015-share-identical-wpf-assemblies.md)). Confirmed by the Windows run.
 - **Exposed-dependency scanner** (`System.Reflection.Metadata`; port from `spike/cross-compartment-deps/src/LeakScan`) *(spike: cross-compartment-deps)*.
 - **WPF relevance and duplicate detector** (`System.Reflection.Metadata`; port from `spike/wpf-across-load-contexts/tools/XamlAsmInspect`), giving "will break" / "may break" findings *(spike: wpf-across-load-contexts)*.
@@ -156,25 +156,26 @@ Validation also reports `ExposedDependencyConflict` for a fixture built to trigg
 
 **Done when:** extension constructors receive host and cell services under both containers, including for hot-installed plugins.
 
-## Phase 7: WPF add-on
+## Phase 7: WPF add-on ✅ (WPF runtime scenarios verified by the Windows CI job once pushed)
 
-> **Ready to start (2026-10-19):** the WPF spike ran on Windows and its predictions held (7.4 was better than predicted). It was on hold until then (2026-10-18). The Phase 3 hooks it depends on (the "cell created" callback, WPF relevance detection, shared loading of identical WPF-relevant assemblies) are still built in Phase 3.
+> **Built 2026-10-19.** The WPF spike ran on Windows first and its predictions held (7.4 was better than predicted). The add-on's WPF-free code is tested on every OS (`tests/Alcove.Wpf.Tests`). The WPF runtime scenarios (`tests/Alcove.Wpf.Tests/Windows`, which run `tests/Alcove.Wpf.TestHost` in a child process per scenario) are skipped on Linux and run in the Windows CI job. They haven't run yet, because the commit hasn't been pushed. See [architecture §11](architecture.md#11-wpf-add-on-alcovewpf).
 
-- Dispatcher-marshalling catalog wrapper.
-- Resource dictionary merging on plugin load.
-- **Versioned** `pack://` URI builder, typed `ResourceKey` helpers.
-- Linking view-models to views by convention through DataTemplates.
+- Core hook: `ICellObserver` / `PluginHostOptions.CellObservers` (`CellCreated`, `CellExtended`, `PluginLoading`), one observer per host, disposed with the host. Built on the internal "cell created" callback from Phase 3.
+- Dispatcher-marshalling catalog wrapper (`DispatcherExtensionCatalog`, `catalog.OnDispatcher(dispatcher)`).
+- Resource dictionary merging on plugin load (`Themes/Plugin.xaml` or `[assembly: PluginResources]`), below the app's own dictionaries, removed on dispose.
+- **Versioned** `pack://` URI builder (`PluginPackUri`), typed resource keys (`SharedResourceKey<T>`).
+- Linking view-models to views by convention through DataTemplates (`ViewTemplates`, `MapViewModelsToViews`).
 - *(spike: wpf-across-load-contexts)*:
-  - **Pre-loading** of WPF-relevant cell-private assemblies, via the Phase 3 hook.
-  - The **opt-in `Default.Resolving` forwarder** (per `PluginHost`).
-  - `EnterContextualReflection` in the activator.
-  - Host guidance for the `AppendLocalAssemblyVersionForSourceUri` switch.
-- WPF sample host with plugins that contribute windows, controls and styles, using an app-provided `WpfHost.Sdk` (host-owned) with shared UserControls.
+  - **Pre-loading** of WPF-relevant cell-private assemblies, through the cell observer.
+  - The **opt-in `Default.Resolving` forwarder** (per `PluginHost`, removed when the host is disposed).
+  - `EnterContextualReflection` around activation: already done by the core for every activator, so the add-on has no activator of its own.
+  - Host guidance for the `AppendLocalAssemblyVersionForSourceUri` switch, with a log message when it's missing.
+- WPF sample host (`samples/WpfHost`, `samples/wpf-plugins`) with plugins that contribute panels, controls and styles, using an app-provided `WpfHost.Sdk` (host-owned) with a shared UserControl and typed keys.
 
-**Done when** (verified on Windows):
-- the WPF sample hot-installs a plugin whose window opens with the app's styles and the plugin's own resources;
-- two plugins in separate cells that use the same XAML control library both render;
-- a plugin whose control library is referenced only from XAML renders.
+**Done when** (verified on Windows, by the Windows CI scenarios in `WpfScenarioTests`):
+- the WPF sample hot-installs a plugin whose window opens with the app's styles and the plugin's own resources (`AHotInstall_…`, `AnInstallOnAnotherThread_…`);
+- two plugins in separate cells that use the same XAML control library both render (`TwoPluginsInSeparateCells_…`);
+- a plugin whose control library is referenced only from XAML renders (`AControlLibraryUsedOnlyFromXaml_…`).
 
 ## Phase 8: Hardening and documentation ✅ (except publishing, which waits for the user)
 

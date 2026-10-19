@@ -112,13 +112,7 @@ var subscription = host.Catalog.Observe<IToolWindow>(ext => menu.Add(...));
 
 Creating an extension can throw `PluginException` if the plugin's factory or constructor throws; the plugin is then `Faulted`. `Value` only works for singletons and `CreateInstance()` only for transients; the other throws `InvalidOperationException`. `host.Catalog.ExtensionsAdded` is raised once per plugin whose extensions arrive.
 
-Catalog callbacks run on the thread that loaded the plugin (the caller's context of `LoadAsync` / `InstallAsync`). A dispatcher-aware catalog is planned for `Alcove.Wpf` (on hold); until then, marshal to the UI thread yourself. Also add this to your host's project file, so XAML libraries reference their own dictionaries with a version:
-
-```xml
-<ItemGroup>
-  <RuntimeHostConfigurationOption Include="Switch.System.Windows.Baml2006.AppendLocalAssemblyVersionForSourceUri" Value="true" />
-</ItemGroup>
-```
+Catalog callbacks run on the thread that loaded the plugin (the caller's context of `LoadAsync` / `InstallAsync`). In a WPF app, use `host.Catalog.OnDispatcher(dispatcher)` to get them on the UI thread ([§7](#7-wpf)).
 
 ## 4. Manage plugins
 
@@ -208,7 +202,63 @@ await container.Resolve<PluginHost>().LoadAsync(ct);
 - Installing a plugin that registers services into a cell whose services were already built gives `PendingRestart`, because a built container can't change.
 - If you create the host yourself, call `options.UseDependencyInjection(serviceProvider)` (or `options.UseAutofac(lifetimeScope)`) before `PluginHost.Create`. `AddPlugins` does this for you and also defaults `LoggerFactory` to the container's `ILoggerFactory`.
 
-## 7. Trust
+## 7. WPF
+
+Package `Alcove.Wpf`. WPF finds assemblies by simple name across the whole process and never asks a cell, so plugins' XAML needs help to work inside cells. One call sets it up:
+
+```csharp
+var options = new PluginHostOptions { Root = root, PluginPackageType = "MyAppPlugin", HostOwnedPackages = { "MyApp.Sdk" } };
+options.UseWpf(Application.Current, wpf =>
+{
+    wpf.ForwardDefaultContextLoads = true;   // opt-in; process-wide while the host lives
+    wpf.MapViewModelsToViews = true;         // opt-in: FooViewModel -> FooView
+});
+await using var host = PluginHost.Create(options);
+
+var catalog = host.Catalog.OnDispatcher(Application.Current.Dispatcher);
+catalog.Observe<IToolWindow>(ext => windows.Add(ext.GetInstance()));   // always on the UI thread
+await host.LoadAsync();
+```
+
+`UseWpf(application)` merges plugins' resources into that application's resources. `UseWpf(dispatcher)` is for a UI thread without a given `Application`: it merges into `WpfPluginOptions.Resources`, or into `Application.Current`'s resources if that isn't set. `UseWpf` makes `Alcove.Wpf` host-owned. It works with `services.AddPlugins` / `UseDependencyInjection` and `UseAutofac` in either order, because the core already creates every extension inside its cell's contextual reflection scope. Calling it twice on the same options throws.
+
+| `WpfPluginOptions` | Default | What it does |
+|---|---|---|
+| `PreloadWpfAssemblies` | on | Loads each cell's WPF-relevant private assemblies when the cell is created (or grows by a hot install), so a control library used only from XAML is found. |
+| `MergePluginResources` | on | Merges each plugin's `Themes/Plugin.xaml`, or the dictionaries it names with `[assembly: PluginResources("...")]`, into `Resources` when it loads, before it registers. Removed when the host is disposed. |
+| `ForwardDefaultContextLoads` | off | Forwards WPF's failed default-context loads to the single cell that owns a private copy with that name (see below). |
+| `MapViewModelsToViews` | off | Adds implicit `DataTemplate`s for `FooViewModel` → `FooView` (same namespace, or `ViewModels` → `Views`, same assembly). |
+| `Resources` | the app's resources | Where plugins' dictionaries and view templates are merged. |
+
+**Set the AppContext switch** in your host's project file, so XAML that refers to its own assembly's dictionaries gets a versioned URI and can't reach another cell's copy of that assembly. If it's missing, `Alcove.Wpf` logs an Information message (event 6009) when the host is created.
+
+```xml
+<ItemGroup>
+  <RuntimeHostConfigurationOption Include="Switch.System.Windows.Baml2006.AppendLocalAssemblyVersionForSourceUri" Value="true" />
+</ItemGroup>
+```
+
+**Catalog on the UI thread.** `catalog.OnDispatcher(dispatcher)` returns a `DispatcherExtensionCatalog` whose `Observe` and `ExtensionsAdded` callbacks run on the dispatcher's thread. When they're raised on the UI thread they run inline, so `Observe` called on the UI thread has delivered the existing extensions when it returns. When they're raised on another thread (e.g. after an `InstallAsync` that continued on the thread pool), they're queued with `BeginInvoke`. `GetAll` passes through unchanged.
+
+**Merge precedence.** Each plugin's dictionaries go into one container that is merged **below your app's own merged dictionaries**, so your resources win over any plugin's on a key clash. Plugins merged later win over earlier ones. Define the resources you share with plugins under `SharedResourceKey<T>` keys in your app SDK:
+
+```csharp
+public static class AppKeys
+{
+    public static readonly SharedResourceKey<Brush> Accent = new("MyApp.Accent");   // namespaced ID
+}
+Application.Current.Resources.SetResource(AppKeys.Accent, Brushes.SteelBlue);    // plugins use {DynamicResource {x:Static sdk:AppKeys.Accent}}
+```
+
+**Threading.** Merging and removing run on the dispatcher's thread: inline when the host loads there, otherwise with a blocking `Dispatcher.Invoke`. Await `LoadAsync`, `InstallAsync` and `DisposeAsync`. Don't block the UI thread on them synchronously (`.Wait()`, `.Result`), or a load on another thread can deadlock with it.
+
+**The forwarder** (`ForwardDefaultContextLoads`) covers WPF's own fallback loads, which bind in the default context: a XAML library that a cell rolled forward to a newer version than another assembly's BAML names, and external theme assemblies. It's registered on `AssemblyLoadContext.Default.Resolving` when the host is created and removed when the host is disposed. While it's registered, it affects **the whole process**, not just your plugins: any failed default-context load whose simple name one of the host's cells owns is answered from that cell. Identical shared copies count as one owner. If several cells own different copies, it doesn't choose; it logs a warning (6003). It's the one opt-in exception to Alcove's "no global state" ([ADR 0012](adr/0012-app-supplies-root-no-global-state.md)), which is why it's off by default.
+
+**List WPF control libraries as host-owned.** Reference third-party control libraries (and your own UserControls and styles, in `MyApp.Sdk`) from the host and list them in `HostOwnedPackages`. Every plugin then uses one copy, and the duplicate-name problem can't arise (architecture §4). Identical private copies in several cells are loaded once and shared ([ADR 0015](adr/0015-share-identical-wpf-assemblies.md)), but different builds with the same `AssemblyVersion` still conflict.
+
+See `samples/WpfHost` ([samples/README.md](../samples/README.md#wpf-host)) for a complete host.
+
+## 8. Trust
 
 ```csharp
 options.TrustPolicy = new TrustPolicy
@@ -233,16 +283,30 @@ Signed packages are always integrity-checked, even without `RequireSignedPackage
 
 **Feed credentials:** set `PackageFeed.Credentials` (code only), use credentials from the `nuget.config` at `NuGetConfigPath`, or supply an `ICredentialProvider` (`GetCredentialsAsync(feed, isRetry, ct)`, e.g. a login dialog). NuGet's plugin credential providers aren't supported.
 
-## 8. Things to avoid
+## 9. Things to avoid
 
 - **Trimming or single-file publishing** your host. Neither is supported in v1: a single-file host exposes no `deps.json` to build the host inventory from, and `PluginHost.Create` throws `UnsupportedHostException`. Trimming can remove types plugins need. See [open questions](open-questions.md#single-file-and-trimmed-hosts).
-- **Shipping WPF control libraries privately in plugins** when you could provide them. List them in `HostOwnedPackages` so every plugin shares one copy. WPF can't cope with duplicate assembly names (see architecture §4).
+- **Shipping WPF control libraries privately in plugins** when you could provide them. List them in `HostOwnedPackages` so every plugin shares one copy. WPF can't cope with duplicate assembly names (see [§7](#7-wpf) and architecture §4).
 - **Putting extension points in your app's main assembly.** Put them in a contracts package so plugins can reference them.
 - **Breaking contract changes without a major version bump.**
 
-## 9. Extending Alcove
+## 10. Extending Alcove
 
 For adapting a DI container other than Microsoft DI or Autofac. Set `PluginHostOptions.Activator` to create extension instances: it's called once per singleton and on every request for a transient, inside the plugin's cell, and gets either the registered factory or the type to create. Set `PluginHostOptions.CellServicesFactory` to give each cell its own service provider: it's asked once per cell, before the cell's plugins register, and only plugins whose entry point implements one of `ServicePluginInterfaces` (matched by full type name, read from metadata) are passed in. The host disposes each provider after the cell's extensions and plugins. `PluginManifest` reads and writes the manifest format, e.g. for tooling.
+
+To hook a UI framework (or anything else) into cells, as `Alcove.Wpf` does, add a factory to `PluginHostOptions.CellObservers` (code only). Each host creates one `ICellObserver` per factory, passing its logger factory, and tells it `CellCreated` (nothing loaded yet), `CellExtended` (a hot install added private assemblies to an existing cell) and `PluginLoading` (a plugin's assemblies are loaded, before it registers; runs in the cell's contextual reflection scope). Calls come on the loading thread, outside the library's locks. An exception from the first two is logged; one from `PluginLoading` faults the plugin. The host disposes observers that implement `IDisposable` / `IAsyncDisposable` when it's disposed.
+
+```csharp
+public interface ICellObserver   // every method has an empty default
+{
+    void CellCreated(CellInfo cell);
+    void CellExtended(CellInfo cell, IReadOnlyList<CellAssembly> added);
+    void PluginLoading(CellInfo cell, PluginInfo plugin, IReadOnlyList<Assembly> assemblies);
+}
+// CellInfo:     string Name, AssemblyLoadContext LoadContext, IReadOnlyList<string> Plugins, IReadOnlyList<CellAssembly> PrivateAssemblies
+// CellAssembly: string Name, string Path, string PackageId, NuGetVersion PackageVersion, bool IsWpfRelevant
+public delegate ICellObserver CellObserverFactory(ILoggerFactory loggerFactory);
+```
 
 ```csharp
 public interface IExtensionActivator
