@@ -20,5 +20,6 @@ Each record is short: context, decision, consequences. Status is one of *Accepte
 | [0014](0014-cross-cell-dependencies.md) | Cross-cell plugin dependencies via exposed dependencies | Accepted |
 | [0015](0015-share-identical-wpf-assemblies.md) | Share identical WPF-relevant private assemblies across cells | Accepted |
 | [0016](0016-resolution-with-dependency-walker.md) | Resolve with RemoteDependencyWalker and host pins | Accepted |
+| [0017](0017-development-plugins.md) | Development plugins loaded from build output | Proposed |
 
 Records with an **Amendments** section: 0003, 0004, 0005, 0009, 0010, 0011, 0012, 0016.
