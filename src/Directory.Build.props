@@ -11,5 +11,17 @@
     <!-- Pack on build so the integration tests can install the packages from a local feed. -->
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/adam8797/alcove</PackageProjectUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <!-- nuget.org readme: a project's own README.md if it has one (it sets PackageReadmeFile itself), otherwise the
+       shared package readme. -->
+  <PropertyGroup Condition="!Exists('$(MSBuildProjectDirectory)/README.md')">
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup Condition="!Exists('$(MSBuildProjectDirectory)/README.md')">
+    <None Include="$(MSBuildThisFileDirectory)PACKAGE-README.md" Pack="true" PackagePath="README.md" Visible="false" />
+  </ItemGroup>
 </Project>

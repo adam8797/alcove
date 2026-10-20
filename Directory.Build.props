@@ -11,7 +11,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <MSBuildTreatWarningsAsErrors>true</MSBuildTreatWarningsAsErrors>
     <Deterministic>true</Deterministic>
-    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true' or '$(GITEA_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
     <AlcoveRepoRoot>$(MSBuildThisFileDirectory)</AlcoveRepoRoot>
   </PropertyGroup>
 
@@ -19,6 +19,13 @@
   <PropertyGroup>
     <VersionPrefix>0.1.0</VersionPrefix>
     <VersionSuffix>dev</VersionSuffix>
+  </PropertyGroup>
+
+  <!-- Releases: CI passes -p:ReleaseVersion=<version from the v* tag>. A dedicated property rather than -p:Version,
+       because global properties flow into the test fixture projects, whose versions the tests rely on (they have
+       their own Directory.Build.props and ignore ReleaseVersion). -->
+  <PropertyGroup Condition="'$(ReleaseVersion)' != ''">
+    <Version>$(ReleaseVersion)</Version>
   </PropertyGroup>
 
   <!-- Package metadata -->

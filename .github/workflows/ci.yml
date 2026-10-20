@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
   workflow_dispatch:
 
@@ -17,7 +18,8 @@ jobs:
   build-and-test:
     name: Build and test (${{ matrix.os }})
     strategy:
-      # Windows covers what Linux can't: file locks during cleanup, sharing violations, native library names.
+      # Windows covers what Linux can't: file locks during cleanup, sharing violations, native library names, and
+      # the WPF runtime scenarios.
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
@@ -29,6 +31,21 @@ jobs:
       NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
     steps:
       - uses: actions/checkout@v4
+
+      # Tags v<semver> (e.g. v0.0.1-alpha) set the package version; other builds use the default from
+      # Directory.Build.props. ReleaseVersion (not Version) so the test fixtures keep their own versions.
+      - name: Version from tag
+        id: version
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Tag '$GITHUB_REF_NAME' isn't v<major>.<minor>.<patch>[-prerelease]."
+            exit 1
+          fi
+          echo "Package version: $version"
+          echo "args=-p:ReleaseVersion=$version" >> "$GITHUB_OUTPUT"
 
       - name: Set up .NET (version from global.json)
         uses: actions/setup-dotnet@v4
@@ -42,11 +59,12 @@ jobs:
           key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', 'global.json', '**/*.csproj') }}
           restore-keys: nuget-${{ runner.os }}-
 
+      # The version is passed to restore too: packages record their dependencies on each other at restore time.
       - name: Restore
-        run: dotnet restore Alcove.slnx
+        run: dotnet restore Alcove.slnx ${{ steps.version.outputs.args }}
 
       - name: Build
-        run: dotnet build Alcove.slnx --no-restore --configuration Release
+        run: dotnet build Alcove.slnx --no-restore --configuration Release ${{ steps.version.outputs.args }}
 
       # The integration tests pack the fixture plugins against a local feed. They take third-party packages
       # read-only from NUGET_PACKAGES, which the restore above has populated (see PackageDownload items in
@@ -61,10 +79,52 @@ jobs:
           name: test-results-${{ runner.os }}
           path: TestResults/
 
+      # Only the shipping packages (src/); the build also packs sample and test-fixture packages.
       - name: Upload packages
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
           name: packages
-          path: artifacts/packages/Release/*.nupkg
           if-no-files-found: error
+          path: |
+            artifacts/packages/Release/Alcove.*nupkg
+            !artifacts/packages/Release/*Fixture*
+            !artifacts/packages/Release/*Host*
+
+  publish:
+    name: Publish to nuget.org
+    needs: build-and-test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # NuGet trusted publishing: exchange GitHub's OIDC token for a short-lived API key
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: packages
+
+      - name: Check the package set
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          ls -l packages
+          for id in Alcove Alcove.Abstractions Alcove.Sdk Alcove.DependencyInjection Alcove.Autofac Alcove.Wpf; do
+            test -f "packages/$id.$version.nupkg" || { echo "::error::Missing $id.$version.nupkg"; exit 1; }
+          done
+          extra=$(ls packages/*.nupkg | grep -vE "/(Alcove|Alcove\.(Abstractions|Sdk|DependencyInjection|Autofac|Wpf))\.$version\.nupkg$" || true)
+          if [ -n "$extra" ]; then echo "::error::Unexpected packages: $extra"; exit 1; fi
+
+      - name: NuGet login (trusted publishing)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: adam8797
+
+      - name: Push to nuget.org
+        run: >-
+          dotnet nuget push "packages/*.nupkg"
+          --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
