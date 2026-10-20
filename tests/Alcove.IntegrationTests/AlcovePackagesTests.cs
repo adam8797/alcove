@@ -23,7 +23,8 @@ public sealed class AlcovePackagesTests
     {
         using var package = new PluginPackageReader(TestEnvironment.AlcovePackage("Alcove.Sdk"));
 
-        Assert.Equal(["build/Alcove.Sdk.props", "build/Alcove.Sdk.targets"], package.Files.Order(StringComparer.Ordinal));
+        // Build files plus the nuget.org readme; no assemblies.
+        Assert.Equal(["README.md", "build/Alcove.Sdk.props", "build/Alcove.Sdk.targets"], package.Files.Order(StringComparer.Ordinal));
         Assert.Empty(package.Dependencies);
         Assert.True(package.Nuspec.GetDevelopmentDependency());
     }
