@@ -48,6 +48,17 @@ Read [CONTEXT.md](CONTEXT.md) first: use its terms in code, comments and docs. T
 - **Performance:** `ALCOVE_PERF_TESTS=1 dotnet test tests/Alcove.IntegrationTests --filter Category=Performance --logger "console;verbosity=detailed"`.
 - **Network tests** (nuget.org signatures): `ALCOVE_NETWORK_TESTS=1`.
 
+## Releasing
+
+Packages are published to nuget.org only from tags:
+
+```
+git tag v0.0.1-alpha
+git push origin v0.0.1-alpha
+```
+
+The CI workflow (`.github/workflows/ci.yml`) takes the version from the tag (`v<major>.<minor>.<patch>[-prerelease]`, passed as `-p:ReleaseVersion=...`), builds and tests on Linux and Windows, then the `publish` job pushes the six shipping packages (`Alcove`, `Alcove.Abstractions`, `Alcove.Sdk`, `Alcove.DependencyInjection`, `Alcove.Autofac`, `Alcove.Wpf`) with their symbol packages. It uses NuGet trusted publishing (GitHub OIDC, no stored API key; the nuget.org policy names this repository and `ci.yml`). Untagged builds keep the default version from `Directory.Build.props` and publish nothing. Published versions can be unlisted on nuget.org but never deleted, so double-check the tag.
+
 ## Git
 
 - Small, focused commits with a message explaining *why*.
