@@ -25,7 +25,7 @@
 ## Waiting on you
 
 1. **Signature verification on Windows:** the signature spike's `Verifier matrix` (the last Phase 0b item).
-2. **Publishing:** no packages have been published anywhere.
+2. **Publishing:** `0.0.1-alpha` is on nuget.org (2026-10-20). Push a `v<version>` tag to publish the next one (see CONTRIBUTING.md).
 3. **Push Phase 7** so the Windows CI job runs the WPF scenarios (`tests/Alcove.Wpf.Tests/Windows`). They're skipped on Linux, so the add-on hasn't run against a real WPF yet. Optionally, also try `samples\run-wpf-sample.ps1` by hand.
 
 CI (`.github/workflows/ci.yml`) builds and tests on Linux and Windows on every push to `main` and on pull requests; both were green before Phase 7.
