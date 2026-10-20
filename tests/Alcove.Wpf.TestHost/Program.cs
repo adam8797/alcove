@@ -154,7 +154,8 @@ internal static class Program
         var view = host.Catalog.GetAll<IViewFactory>().Single(e => e.Value.Name == "Hello").Value.CreateView();
         Check("cell", AssemblyLoadContext.GetLoadContext(view.GetType().Assembly)?.Name);
         await RenderAsync(view, "view");
-        Check("background", (FindVisuals<Border>(view).FirstOrDefault()?.Background as SolidColorBrush)?.Color.ToString());
+        // By name: a UserControl's default template wraps the content in its own (background-less) Border.
+        Check("background", (view.FindName("Surface") as Border)?.Background is SolidColorBrush surface ? surface.Color.ToString() : null);
         Check("accent", (FindVisuals<TextBlock>(view).FirstOrDefault()?.Foreground as SolidColorBrush)?.Color.ToString());
 
         var viewModel = host.Catalog.GetAll<IViewModelFactory>().Single().Value.CreateViewModel();
