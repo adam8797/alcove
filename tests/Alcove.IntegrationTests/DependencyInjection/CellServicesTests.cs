@@ -1,5 +1,9 @@
 using System.Runtime.Loader;
-using Alcove.Internal.Hosting;
+using Alcove.Catalog;
+using Alcove.Cells;
+using Alcove.Feeds;
+using Alcove.Hosting;
+using Alcove.Install;
 using Alcove.IntegrationTests.Infrastructure;
 using Fixture.HostContracts;
 
@@ -238,7 +242,7 @@ public abstract class CellServicesTests(DependencyInjectionFixtures fixtures) : 
         Assert.Contains(Alpha, loaded);
         Assert.DoesNotContain(Beta, loaded);
 
-        static List<string> Snapshot(Alcove.Internal.Cells.Cell cell)
+        static List<string> Snapshot(Cell cell)
         {
             var committed = cell.GetCommittedAnswers();
             return committed.Assemblies.Concat(committed.NativeLibraries)
@@ -258,7 +262,7 @@ public abstract class CellServicesTests(DependencyInjectionFixtures fixtures) : 
     private async Task InstallAsync(string[] plugins)
     {
         var inventory = HostInventory.FromCurrentProcess([HostingFixtures.ContractsPackage, AdapterPackage]);
-        await new Alcove.Internal.Install.LocalPackageInstaller(inventory, _root.Path).InstallAsync(fixtures.Packages, plugins, Ct);
+        await new Alcove.Install.LocalPackageInstaller(inventory, _root.Path).InstallAsync(fixtures.Packages, plugins, Ct);
     }
 
     private async Task<PluginHost> LoadAsync(Action<PluginHostOptions>? configure = null, bool withFeed = false)

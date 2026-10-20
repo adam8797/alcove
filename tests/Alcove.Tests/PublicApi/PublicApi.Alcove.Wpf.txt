@@ -1,27 +1,17 @@
-sealed class Alcove.Wpf.DispatcherExtensionCatalog
-  .ctor(ExtensionCatalog catalog, Dispatcher dispatcher)
-  ExtensionCatalog Catalog { get; }
-  Dispatcher Dispatcher { get; }
-  event EventHandler<ExtensionsAddedEventArgs>? ExtensionsAdded
-  IReadOnlyList<Extension<T, TMetadata?>> GetAll<T, TMetadata>() where T : class
-  IReadOnlyList<Extension<T>> GetAll<T>() where T : class
-  IDisposable Observe<T>(Action<Extension<T>> onAdded) where T : class
-static class Alcove.Wpf.DispatcherExtensionCatalogExtensions
-  static DispatcherExtensionCatalog OnDispatcher(this ExtensionCatalog catalog, Dispatcher dispatcher)
-static class Alcove.Wpf.PluginPackUri
+static class Alcove.Wpf.Resources.PluginPackUri
   static Uri Create(Assembly assembly, string path)
   static Uri CreateAbsolute(Assembly assembly, string path)
   static string Format(Assembly assembly, string path)
   static string Format(AssemblyName assemblyName, string path)
-sealed class Alcove.Wpf.PluginResourcesAttribute : Attribute
+sealed class Alcove.Wpf.Resources.PluginResourcesAttribute : Attribute
   .ctor(string path)
   string Path { get; }
-static class Alcove.Wpf.SharedResourceKeyExtensions
+static class Alcove.Wpf.Resources.SharedResourceKeyExtensions
   static void SetResource<T>(this ResourceDictionary dictionary, SharedResourceKey<T?> key, T? value)
   static void SetResourceReference<T>(this FrameworkElement element, DependencyProperty property, SharedResourceKey<T?> key)
   static bool TryFindResource<T>(this Application application, SharedResourceKey<T?> key, out T? value)
   static bool TryFindResource<T>(this FrameworkElement element, SharedResourceKey<T?> key, out T? value)
-sealed record Alcove.Wpf.SharedResourceKey<T>
+sealed record Alcove.Wpf.Resources.SharedResourceKey<T>
   .ctor(string Id)
   void Deconstruct(out string Id)
   bool Equals(SharedResourceKey<T>? other)
@@ -32,7 +22,17 @@ sealed record Alcove.Wpf.SharedResourceKey<T>
   Type ValueType { get; }
   static bool op_Equality(SharedResourceKey<T>? left, SharedResourceKey<T>? right)
   static bool op_Inequality(SharedResourceKey<T>? left, SharedResourceKey<T>? right)
-static class Alcove.Wpf.ViewTemplates
+sealed class Alcove.Wpf.Threading.DispatcherExtensionCatalog
+  .ctor(ExtensionCatalog catalog, Dispatcher dispatcher)
+  ExtensionCatalog Catalog { get; }
+  Dispatcher Dispatcher { get; }
+  event EventHandler<ExtensionsAddedEventArgs>? ExtensionsAdded
+  IReadOnlyList<Extension<T, TMetadata?>> GetAll<T, TMetadata>() where T : class
+  IReadOnlyList<Extension<T>> GetAll<T>() where T : class
+  IDisposable Observe<T>(Action<Extension<T>> onAdded) where T : class
+static class Alcove.Wpf.Threading.DispatcherExtensionCatalogExtensions
+  static DispatcherExtensionCatalog OnDispatcher(this ExtensionCatalog catalog, Dispatcher dispatcher)
+static class Alcove.Wpf.Views.ViewTemplates
   static DataTemplate Create(Type viewModelType, Type viewType)
   static ResourceDictionary CreateForAssembly(Assembly assembly)
 static class Alcove.Wpf.WpfPluginHostOptionsExtensions

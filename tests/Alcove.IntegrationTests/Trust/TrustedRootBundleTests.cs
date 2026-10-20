@@ -1,5 +1,5 @@
-using Alcove.Internal.Trust;
 using Alcove.IntegrationTests.Infrastructure;
+using Alcove.Trust;
 using NuGet.Packaging;
 
 namespace Alcove.IntegrationTests.Trust;
@@ -67,7 +67,7 @@ public sealed class TrustedRootBundleTests
               <ItemGroup><ProjectReference Include="../Library/Library.csproj" /></ItemGroup>
             </Project>
             """);
-        File.WriteAllText(Path.Combine(app, "Program.cs"), "System.Console.WriteLine(typeof(Alcove.TrustPolicy));");
+        File.WriteAllText(Path.Combine(app, "Program.cs"), "System.Console.WriteLine(typeof(Alcove.Trust.TrustPolicy));");
 
         // The workspace maps "Alcove.*" to its feed; the core package's ID is just "Alcove".
         var nugetConfig = Path.Combine(workspace.RootDirectory, "consumer", "nuget.config");

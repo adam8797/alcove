@@ -17,6 +17,9 @@ In development. Phases 0–8 of the [implementation plan](docs/implementation-pl
 **App developer** (the host app):
 
 ```csharp
+using Alcove;
+using Alcove.Feeds;
+
 var host = PluginHost.Create(new PluginHostOptions
 {
     Root = Path.Combine(appDataDir, "plugins"),     // always supplied by the app
@@ -38,6 +41,8 @@ await host.InstallAsync("Contoso.ChartsPlugin");     // loads immediately when p
 **Plugin developer:**
 
 ```csharp
+using Alcove;   // all a plugin needs
+
 public sealed class ChartsPlugin : IPlugin
 {
     public void Register(IExtensionRegistrar registrar, IPluginContext context)

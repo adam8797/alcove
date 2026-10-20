@@ -1,4 +1,5 @@
 using System.Reflection;
+using Alcove.Wpf.Resources;
 
 namespace Alcove.Wpf.Tests;
 

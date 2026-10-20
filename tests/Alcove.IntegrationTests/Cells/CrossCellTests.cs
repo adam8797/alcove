@@ -1,9 +1,8 @@
 using System.Reflection;
 using System.Runtime.Loader;
-using Alcove.Internal.Cells;
-using Alcove.Internal.Classification;
-using Alcove.Internal.State;
+using Alcove.Cells;
 using Alcove.IntegrationTests.Infrastructure;
+using Alcove.Storage;
 using NuGet.Versioning;
 
 namespace Alcove.IntegrationTests.Cells;

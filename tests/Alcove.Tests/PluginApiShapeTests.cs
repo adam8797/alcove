@@ -1,3 +1,8 @@
+using Alcove.Catalog;
+using Alcove.Cells;
+using Alcove.Feeds;
+using Alcove.Hosting;
+using Alcove.Lifecycle;
 using Alcove.Tests.TestSupport;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -170,7 +175,7 @@ public sealed class PluginApiShapeTests
     public void PluginHostCreate_RejectsASingleFileHost()
     {
         // A single-file host exposes no deps files (APP_CONTEXT_DEPS_FILES is empty).
-        var singleFile = new Alcove.Internal.Hosting.HostEnvironment(DepsFiles: null, EntryAssembly: null, "linux-x64");
+        var singleFile = new Alcove.Hosting.HostEnvironment(DepsFiles: null, EntryAssembly: null, "linux-x64");
 
         var ex = Assert.Throws<UnsupportedHostException>(() => PluginHost.Create(new PluginHostOptions { Root = Path.GetTempPath() }, singleFile));
         Assert.IsAssignableFrom<NotSupportedException>(ex);

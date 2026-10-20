@@ -1,8 +1,12 @@
 using System.Security.Cryptography;
-using Alcove.Internal.State;
-using Alcove.Internal.Trust;
+using Alcove.Feeds;
+using Alcove.Install;
 using Alcove.IntegrationTests.Infrastructure;
 using Alcove.IntegrationTests.Trust;
+using Alcove.Packaging;
+using Alcove.Storage;
+using Alcove.Trust;
+using Alcove.Validation;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
@@ -160,7 +164,7 @@ public sealed class InstallTrustTests : IAsyncLifetime
 
         // Without a recorded source (state files and packages from before sources were recorded), it's unknown.
         File.WriteAllText(Path.Combine(_root.Path, "packages", "trust.plugin", "1.0.0", ".nupkg.metadata"),
-            $$"""{ "version": 2, "contentHash": "{{Internal.Install.PackageRecorder.ComputeContentHash(Path.Combine(UnsignedFeed, $"{Plugin}.1.0.0.nupkg"))}}" }""");
+            $$"""{ "version": 2, "contentHash": "{{PackageRecorder.ComputeContentHash(Path.Combine(UnsignedFeed, $"{Plugin}.1.0.0.nupkg"))}}" }""");
         var unknown = await (await LoadedHostAsync(mirror, new TrustPolicy { AllowedFeeds = { mirror } })).InstallAsync(Plugin, cancellationToken: Ct);
         Assert.Equal(InstallStatus.Failed, unknown.Status);
         Assert.Contains(unknown.Issues, i => i.Code == TrustIssueCodes.UnknownSource && i.PluginId == Plugin);
@@ -178,7 +182,7 @@ public sealed class InstallTrustTests : IAsyncLifetime
 
     private async Task ForgetInstalledPluginsAsync()
     {
-        using var rootLock = await Internal.IO.RootLock.AcquireAsync(_root.Path, cancellationToken: Ct);
+        using var rootLock = await RootLock.AcquireAsync(_root.Path, cancellationToken: Ct);
         new StateStore(_root.Path).Write(rootLock, StateDocument.Empty);
     }
 

@@ -1,14 +1,13 @@
 using System.Reflection;
-using Alcove.Internal.Catalog;
-using Alcove.Internal.Cells;
-using Alcove.Internal.Classification;
-using Alcove.Internal.Feeds;
-using Alcove.Internal.Hosting;
-using Alcove.Internal.Install;
-using Alcove.Internal.IO;
-using Alcove.Internal.Loading;
-using Alcove.Internal.Search;
-using Alcove.Internal.Trust;
+using Alcove.Catalog;
+using Alcove.Cells;
+using Alcove.Feeds;
+using Alcove.Hosting;
+using Alcove.Install;
+using Alcove.Loading;
+using Alcove.Storage;
+using Alcove.Trust;
+using Alcove.Validation;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NuGet.Versioning;
@@ -1001,7 +1000,7 @@ public sealed partial class PluginHost : IAsyncDisposable
     }
 
     /// <summary>The result of an install that found the plugin installed (or staged for uninstall: then cancelled that).</summary>
-    private InstallResult AlreadyInstalled(Internal.State.PluginState existing, InstallOutcome outcome)
+    private InstallResult AlreadyInstalled(PluginState existing, InstallOutcome outcome)
     {
         var current = Plugins.FirstOrDefault(p => string.Equals(p.Id, existing.Id, StringComparison.OrdinalIgnoreCase));
         if (outcome.UninstallCancelled is { } cancelled)

@@ -1,5 +1,7 @@
 using System.Windows;
 using System.Windows.Threading;
+using Alcove.Wpf.Resources;
+using Alcove.Wpf.Views;
 
 namespace Alcove.Wpf;
 

@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Runtime.Loader;
-using Alcove.Internal.Hosting;
+using Alcove.Hosting;
+using Alcove.Packaging;
 using Alcove.Tests.TestSupport;
 using NuGet.Frameworks;
 using NuGet.Versioning;

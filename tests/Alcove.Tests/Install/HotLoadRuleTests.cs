@@ -1,5 +1,5 @@
-using Alcove.Internal.Cells;
-using Alcove.Internal.Install;
+using Alcove.Cells;
+using Alcove.Install;
 using NuGet.Versioning;
 
 namespace Alcove.Tests.Install;

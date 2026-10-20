@@ -1,7 +1,7 @@
-[assembly: Alcove.Wpf.PluginResources("Themes/Colors.xaml")]
-[assembly: Alcove.Wpf.PluginResources("Themes\\Extra.xaml")]
+[assembly: Alcove.Wpf.Resources.PluginResources("Themes/Colors.xaml")]
+[assembly: Alcove.Wpf.Resources.PluginResources("Themes\\Extra.xaml")]
 
-namespace Alcove.Wpf
+namespace Alcove.Wpf.Resources
 {
     /// <summary>Stands in for Alcove.Wpf's attribute, which hosts read by name.</summary>
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]

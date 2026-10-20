@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <!-- The SDK's RID graph (there is no SDK on end-user machines). -->
-    <EmbeddedResource Include="Internal\Assets\PortableRuntimeIdentifierGraph.json" LogicalName="Alcove.PortableRuntimeIdentifierGraph.json" />
+    <EmbeddedResource Include="Packaging\PortableRuntimeIdentifierGraph.json" LogicalName="Alcove.PortableRuntimeIdentifierGraph.json" />
   </ItemGroup>
 
   <!-- NuGet's trusted root bundles (trustedroots/README.md), which NuGet looks for next to NuGet.Packaging.dll.

@@ -1,5 +1,7 @@
 using System.Diagnostics;
-using Alcove.Internal.Hosting;
+using Alcove.Feeds;
+using Alcove.Hosting;
+using Alcove.Install;
 using Alcove.IntegrationTests.Infrastructure;
 using Fixture.HostContracts;
 

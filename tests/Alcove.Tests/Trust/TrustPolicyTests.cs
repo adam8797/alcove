@@ -1,4 +1,4 @@
-using Alcove.Internal.Trust;
+using Alcove.Trust;
 using NuGet.Versioning;
 using Alcove.Tests.TestSupport;
 using Microsoft.Extensions.Logging.Abstractions;

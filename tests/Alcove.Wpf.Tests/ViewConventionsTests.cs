@@ -1,6 +1,6 @@
-using Alcove.Wpf.Internal;
 using Alcove.Wpf.Tests.Conventions;
 using Alcove.Wpf.Tests.Conventions.ViewModels;
+using Alcove.Wpf.Views;
 
 namespace Alcove.Wpf.Tests
 {

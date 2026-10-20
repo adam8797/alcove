@@ -1,3 +1,4 @@
+using Alcove.Catalog;
 using Alcove.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 

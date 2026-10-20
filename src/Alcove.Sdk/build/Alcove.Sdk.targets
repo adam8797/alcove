@@ -2,7 +2,7 @@
   <!-- Alcove.Sdk: imported after the plugin's project file. See Alcove.Sdk.props for the inputs. -->
 
   <PropertyGroup>
-    <!-- Must match Alcove.PluginManifest.CurrentSchemaVersion. -->
+    <!-- Must match Alcove.Packaging.PluginManifest.CurrentSchemaVersion. -->
     <AlcovePluginManifestSchemaVersion>1</AlcovePluginManifestSchemaVersion>
 
     <PackageType Condition="'$(PluginPackageType)' != ''">$(PluginPackageType)</PackageType>

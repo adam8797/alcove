@@ -13,8 +13,9 @@
     <ProjectReference Include="..\Alcove\Alcove.csproj" />
   </ItemGroup>
 
-  <!-- The WPF-free files (PluginPackUri.cs, SharedResourceKey.cs, PluginResourcesAttribute.cs and Internal/ except
-       WpfCellObserver.cs) are also compiled into tests/Alcove.Wpf.Tests, which runs on Linux. Keep them free of WPF types. -->
+  <!-- The WPF-free files (WpfLog.cs; Resources/PluginPackUri.cs, SharedResourceKey.cs, PluginResourcesAttribute.cs and
+       PluginResourceLocator.cs; Views/ViewConventions.cs; Loading/ except WpfCellObserver.cs) are also compiled into
+       tests/Alcove.Wpf.Tests, which runs on Linux. Keep them free of WPF types. -->
 
   <ItemGroup>
     <!-- Plugins built with Alcove.Sdk treat this package as host-owned (never copied to their output). -->

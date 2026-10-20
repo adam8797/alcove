@@ -1,5 +1,5 @@
-using Alcove.Internal.Lifecycle;
-using Alcove.Internal.State;
+using Alcove.Lifecycle;
+using Alcove.Storage;
 using NuGet.Versioning;
 
 namespace Alcove.Tests.Lifecycle;

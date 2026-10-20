@@ -1,6 +1,6 @@
 using System.Reflection;
-using Alcove.Internal.Cells;
-using Alcove.Internal.Hosting;
+using Alcove.Cells;
+using Alcove.Hosting;
 using Alcove.IntegrationTests.Infrastructure;
 
 namespace Alcove.IntegrationTests.Cells;

@@ -1,3 +1,5 @@
+using Alcove.Catalog;
+using Alcove.DependencyInjection.Composition;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

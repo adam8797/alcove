@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows;
 using Alcove;
+using Alcove.Feeds;
 using Alcove.Wpf;
 
 namespace WpfHost;

@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Runtime.Loader;
-using Alcove.Internal.Cells;
-using Alcove.Internal.Install;
+using Alcove.Cells;
+using Alcove.Install;
 using Alcove.IntegrationTests.Infrastructure;
 using NuGet.Versioning;
 

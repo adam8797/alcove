@@ -4,9 +4,11 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using Alcove;
+using Alcove.Catalog;
 using Alcove.DependencyInjection;
-using Alcove.Wpf;
+using Alcove.Feeds;
+using Alcove.Wpf.Resources;
+using Alcove.Wpf.Threading;
 using Fixture.Wpf.HostSdk;
 using Microsoft.Extensions.DependencyInjection;
 

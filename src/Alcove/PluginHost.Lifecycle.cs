@@ -1,10 +1,10 @@
 using System.Collections.Concurrent;
-using Alcove.Internal.Feeds;
-using Alcove.Internal.Install;
-using Alcove.Internal.IO;
-using Alcove.Internal.Lifecycle;
-using Alcove.Internal.Loading;
-using Alcove.Internal.State;
+using Alcove.Feeds;
+using Alcove.Install;
+using Alcove.Lifecycle;
+using Alcove.Loading;
+using Alcove.Storage;
+using Alcove.Trust;
 using NuGet.Versioning;
 
 namespace Alcove;

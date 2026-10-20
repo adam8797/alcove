@@ -24,6 +24,7 @@ Terms in **bold** are defined in [CONTEXT.md](../CONTEXT.md).
 - **`Alcove.Sdk`** is build-time only (`PrivateAssets="all"`). It contains MSBuild props/targets and nothing that ships in the plugin.
 - **Add-ons** depend on the core only, never on each other. Each one plugs into a core extension point: DI add-ons use `IExtensionActivator` and `ICellServicesFactory` (§10), and `Alcove.Wpf` (`net10.0-windows`) uses `ICellObserver` (§11). Each add-on is made host-owned automatically when it's set up, and its buildTransitive props do the same for plugin projects.
 - **Core** uses no DI library and no UI framework, and has no static or global state of its own. Several `PluginHost` instances can exist in one process. Documented process-wide exceptions are listed in [ADR 0012](adr/0012-app-supplies-root-no-global-state.md): NuGet's trust store selection and the opt-in WPF resolving forwarder. NuGet's user-wide HTTP cache is bypassed.
+- **Namespaces follow feature folders.** Only entry points are in a package's root namespace: `PluginHost`, `PluginHostOptions`, `PluginInfo` and the plugin contracts in `Alcove` (so a plugin needs only `using Alcove;`), and each add-on's setup extension methods in `Alcove.DependencyInjection`, `Alcove.Autofac` and `Alcove.Wpf`. Everything else, public and internal together, is in the namespace of its feature folder: `Alcove.Catalog`, `Alcove.Cells`, `Alcove.Feeds`, `Alcove.Resolution`, `Alcove.Install`, `Alcove.Lifecycle`, `Alcove.Trust`, `Alcove.Validation`, `Alcove.Loading`, `Alcove.Hosting`, `Alcove.Packaging`, `Alcove.Inspection` and `Alcove.Storage` in the core; `Alcove.Wpf.Resources`, `Alcove.Wpf.Views`, `Alcove.Wpf.Threading` and `Alcove.Wpf.Loading` in the WPF add-on; `*.Composition` in the DI add-ons (CONTRIBUTING.md).
 - **NuGet client dependencies:** `NuGet.Protocol` (which brings Packaging, Configuration, Frameworks, Common, Versioning) and `NuGet.DependencyResolver.Core`, about 3.4 MB in 11 DLLs. Not NuGet.Resolver, not NuGet.Commands. `System.Security.Cryptography.Pkcs` is pinned to ≥ 10.0.13 (the version NuGet.Packaging brings has known vulnerabilities) *(spikes: nuget-resolution-and-assets, nuget-signature-verification)*.
 
 ## 2. The plugin root
@@ -283,6 +284,7 @@ public interface IPluginContext
 ## 8. The extension catalog
 
 ```csharp
+// Alcove.Catalog.ExtensionCatalog
 IReadOnlyList<Extension<T>>            GetAll<T>();
 IReadOnlyList<Extension<T, TMetadata>> GetAll<T, TMetadata>();
 IDisposable Observe<T>(Action<Extension<T>> onAdded);   // existing ones, then new ones
@@ -370,6 +372,7 @@ App-provided UI building blocks (`<TheApp>.Sdk` with UserControls, styles and sh
 - Authentication: credentials on a `PackageFeed`, credentials from the `nuget.config` the app points to, default network credentials, and an app-supplied `ICredentialProvider` (`GetCredentialsAsync(feedUri, isRetry, ct)`, e.g. a WPF login dialog). NuGet's *plugin* credential providers (e.g. Azure Artifacts') aren't supported in v1.
 - **Trust policy** (optional) *(spike: nuget-signature-verification)*:
   ```csharp
+  // namespace Alcove.Trust
   public sealed class TrustPolicy
   {
       public IList<string> AllowedFeeds { get; init; } = [];    // checked before download; empty = any configured feed

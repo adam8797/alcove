@@ -1,7 +1,9 @@
 using System.Runtime.Loader;
-using Alcove.Internal.Hosting;
-using Alcove.Internal.State;
+using Alcove.Cells;
+using Alcove.Hosting;
 using Alcove.IntegrationTests.Infrastructure;
+using Alcove.Storage;
+using Alcove.Validation;
 using Fixture.HostContracts;
 
 namespace Alcove.IntegrationTests.Hosting;

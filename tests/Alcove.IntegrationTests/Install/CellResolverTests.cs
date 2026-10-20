@@ -1,8 +1,7 @@
-using Alcove.Internal.Feeds;
-using Alcove.Internal.Hosting;
-using Alcove.Internal.Resolution;
-using Alcove.Internal.Trust;
+using Alcove.Feeds;
+using Alcove.Hosting;
 using Alcove.IntegrationTests.Infrastructure;
+using Alcove.Resolution;
 using Microsoft.Extensions.Logging.Abstractions;
 using NuGet.Frameworks;
 using NuGet.Packaging;

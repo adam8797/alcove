@@ -1,8 +1,7 @@
-using Alcove.Internal.Install;
-using Alcove.Internal.IO;
-using Alcove.Internal.State;
-using Alcove.Internal.Trust;
+using Alcove.Install;
+using Alcove.Storage;
 using Alcove.Tests.TestSupport;
+using Alcove.Trust;
 using NuGet.Versioning;
 
 namespace Alcove.Tests.Trust;

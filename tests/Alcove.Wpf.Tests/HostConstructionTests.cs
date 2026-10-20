@@ -1,6 +1,7 @@
 using System.Runtime.Loader;
+using Alcove.Cells;
 using Alcove.IntegrationTests.Infrastructure;
-using Alcove.Wpf.Internal;
+using Alcove.Wpf.Loading;
 using Microsoft.Extensions.Logging;
 
 namespace Alcove.Wpf.Tests;

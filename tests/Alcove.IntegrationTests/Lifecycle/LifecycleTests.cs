@@ -1,8 +1,11 @@
-using Alcove.Internal.Hosting;
-using Alcove.Internal.IO;
-using Alcove.Internal.Lifecycle;
-using Alcove.Internal.State;
+using Alcove.Cells;
+using Alcove.Feeds;
+using Alcove.Hosting;
+using Alcove.Install;
 using Alcove.IntegrationTests.Infrastructure;
+using Alcove.Lifecycle;
+using Alcove.Storage;
+using Alcove.Validation;
 using Fixture.HostContracts;
 using Microsoft.Extensions.Logging.Abstractions;
 using NuGet.Versioning;
@@ -741,7 +744,7 @@ public sealed class LifecycleTests(LifecycleFixtures lifecycle, HostingFixtures 
     }
 
     private static StateDocument PackageRecorderMerge(StateDocument state, PluginState plugin) =>
-        Alcove.Internal.Install.PackageRecorder.Merge(state, [plugin]);
+        Alcove.Install.PackageRecorder.Merge(state, [plugin]);
 
     private async Task WriteStateAsync(StateDocument state)
     {
@@ -787,17 +790,17 @@ public sealed class LifecycleTests(LifecycleFixtures lifecycle, HostingFixtures 
         public void Report(T value) => report(value);
     }
 
-    private sealed class RecordingVerifier : Alcove.Internal.Trust.IPackageVerifier
+    private sealed class RecordingVerifier : Alcove.Trust.IPackageVerifier
     {
         public List<string> Packages { get; } = [];
 
         public bool RemembersAcceptances => true;
 
-        public Alcove.Internal.Trust.TrustDecision CheckFeed(string source) => new(true, false, []);
+        public Alcove.Trust.TrustDecision CheckFeed(string source) => new(true, false, []);
 
-        public Alcove.Internal.Trust.TrustDecision CheckKeptSource(string packageId, NuGetVersion version, string? source) => new(true, false, []);
+        public Alcove.Trust.TrustDecision CheckKeptSource(string packageId, NuGetVersion version, string? source) => new(true, false, []);
 
-        public Task<Alcove.Internal.Trust.TrustDecision> VerifyPackageAsync(string nupkgPath, string packageId, NuGetVersion version, CancellationToken cancellationToken)
+        public Task<Alcove.Trust.TrustDecision> VerifyPackageAsync(string nupkgPath, string packageId, NuGetVersion version, CancellationToken cancellationToken)
         {
             Assert.True(File.Exists(nupkgPath));
             lock (Packages)
@@ -805,23 +808,23 @@ public sealed class LifecycleTests(LifecycleFixtures lifecycle, HostingFixtures 
                 Packages.Add(packageId);
             }
 
-            return Task.FromResult(new Alcove.Internal.Trust.TrustDecision(true, false, []));
+            return Task.FromResult(new Alcove.Trust.TrustDecision(true, false, []));
         }
     }
 
-    private sealed class RejectingVerifier(string rejected) : Alcove.Internal.Trust.IPackageVerifier
+    private sealed class RejectingVerifier(string rejected) : Alcove.Trust.IPackageVerifier
     {
         public bool RemembersAcceptances => true;
 
-        public Alcove.Internal.Trust.TrustDecision CheckFeed(string source) => new(true, false, []);
+        public Alcove.Trust.TrustDecision CheckFeed(string source) => new(true, false, []);
 
-        public Alcove.Internal.Trust.TrustDecision CheckKeptSource(string packageId, NuGetVersion version, string? source) => new(true, false, []);
+        public Alcove.Trust.TrustDecision CheckKeptSource(string packageId, NuGetVersion version, string? source) => new(true, false, []);
 
-        public Task<Alcove.Internal.Trust.TrustDecision> VerifyPackageAsync(string nupkgPath, string packageId, NuGetVersion version, CancellationToken cancellationToken)
+        public Task<Alcove.Trust.TrustDecision> VerifyPackageAsync(string nupkgPath, string packageId, NuGetVersion version, CancellationToken cancellationToken)
         {
             var reject = string.Equals(packageId, rejected, StringComparison.OrdinalIgnoreCase);
-            return Task.FromResult(new Alcove.Internal.Trust.TrustDecision(!reject, false,
-                reject ? [new Alcove.Internal.Trust.TrustIssue(Alcove.Internal.Trust.TrustIssueSeverity.Error, "TEST001", "not trusted")] : []));
+            return Task.FromResult(new Alcove.Trust.TrustDecision(!reject, false,
+                reject ? [new Alcove.Trust.TrustIssue(Alcove.Trust.TrustIssueSeverity.Error, "TEST001", "not trusted")] : []));
         }
     }
 }

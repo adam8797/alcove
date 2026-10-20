@@ -1,4 +1,5 @@
 using Alcove.IntegrationTests.Infrastructure;
+using Alcove.Packaging;
 
 namespace Alcove.IntegrationTests;
 

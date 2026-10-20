@@ -12,10 +12,11 @@ Read [CONTEXT.md](CONTEXT.md) first: use its terms in code, comments and docs. T
 ## Code style
 
 - C# latest, nullable enabled, `TreatWarningsAsErrors=true`, implicit usings on, file-scoped namespaces.
-- **Namespaces:**
-  - `Alcove`: the public API in both `Alcove.Abstractions` and the core (so a plugin needs only `using Alcove;`);
-  - `Alcove.Internal.*`: internal types in the core;
-  - add-ons use their own namespaces (`Alcove.DependencyInjection`, `Alcove.Autofac`, `Alcove.Wpf`).
+- **Folders and namespaces:**
+  - **A feature folder is a namespace.** `src/Alcove/Trust/PackageVerifier.cs` is in `namespace Alcove.Trust;`. Every project follows its folders, tests included (`tests/Alcove.Tests/Trust/` is `Alcove.Tests.Trust`).
+  - **Public and internal types of a feature live together** in its folder. There's no separate `Internal/` tree: visibility (`internal`) does the hiding.
+  - **Only entry points are in a project's root namespace.** In the core and `Alcove.Abstractions` that's `Alcove`: `PluginHost`, `PluginHostOptions`, `PluginInfo`, `PluginStatus`, `PluginException`, `PluginFaultedEventArgs` and the plugin contracts (`IPlugin`, `IPluginContext`, `IExtensionRegistrar`, `ExtensionAttribute`, `ExtensionLifetime`), so a plugin needs only `using Alcove;`. In an add-on it's the extension-method class and its options (`Alcove.DependencyInjection`, `Alcove.Autofac`, `Alcove.Wpf`).
+  - Everything else goes in the folder of the feature it belongs to (core: `Catalog`, `Cells`, `Feeds`, `Resolution`, `Install`, `Lifecycle`, `Trust`, `Validation`, `Loading`, `Hosting`, `Packaging`, `Inspection`, `Storage`; add-ons: `Composition`, and in `Alcove.Wpf` `Resources`, `Views`, `Threading`, `Loading`). Add a feature folder rather than a catch-all one.
 - Public API is deliberate. Everything is `internal` unless it's in the docs or needed by an add-on. Use `InternalsVisibleTo` for tests, not `public`.
 - XML doc comments on every public type and member. Keep them short, using CONTEXT.md terms.
 - `sealed` by default. Prefer records for plain data. No static mutable state (ADR 0012), except the documented process-wide exceptions.

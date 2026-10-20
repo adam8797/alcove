@@ -2,9 +2,10 @@ using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Text.Json.Nodes;
-using Alcove.Internal.Hosting;
-using Alcove.Internal.State;
+using Alcove.Hosting;
 using Alcove.IntegrationTests.Infrastructure;
+using Alcove.Storage;
+using Alcove.Validation;
 
 namespace Alcove.IntegrationTests.Hosting;
 

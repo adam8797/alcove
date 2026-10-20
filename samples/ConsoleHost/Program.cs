@@ -7,6 +7,8 @@
 // Usage: ConsoleHost <plugin-root> [--feed <folder-or-feed-url>]
 
 using Alcove;
+using Alcove.Feeds;
+using Alcove.Install;
 using ConsoleHost;
 using ConsoleHost.Contracts;
 using Microsoft.Extensions.Logging;

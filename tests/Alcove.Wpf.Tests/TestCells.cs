@@ -1,6 +1,6 @@
+using Alcove.Cells;
+using Alcove.Hosting;
 using Alcove.IntegrationTests.Infrastructure;
-using Alcove.Internal.Cells;
-using Alcove.Internal.Hosting;
 using Microsoft.Extensions.Logging;
 using NuGet.Versioning;
 

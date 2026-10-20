@@ -17,7 +17,7 @@ interface Alcove.IPluginContext
   string PluginId { get; }
   IServiceProvider Services { get; }
   NuGetVersion Version { get; }
-sealed record Alcove.PluginManifest
+sealed record Alcove.Packaging.PluginManifest
   .ctor()
   string? Cell { get; init; }
   const int CurrentSchemaVersion = 1

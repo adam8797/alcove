@@ -3,7 +3,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Alcove;
-using Alcove.Wpf;
+using Alcove.Catalog;
+using Alcove.Feeds;
+using Alcove.Wpf.Resources;
+using Alcove.Wpf.Threading;
 using WpfHost.Sdk;
 
 namespace WpfHost;

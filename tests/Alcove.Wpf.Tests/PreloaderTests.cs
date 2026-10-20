@@ -1,6 +1,7 @@
-using Alcove.Internal.Cells;
-using Alcove.Wpf.Internal;
 using static Alcove.Wpf.Tests.TestCells;
+
+using Alcove.Cells;
+using Alcove.Wpf.Loading;
 
 namespace Alcove.Wpf.Tests;
 

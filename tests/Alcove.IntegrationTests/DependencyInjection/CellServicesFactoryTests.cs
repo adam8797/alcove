@@ -1,6 +1,8 @@
+using Alcove.Cells;
 using Alcove.DependencyInjection;
-using Alcove.Internal.Hosting;
-using Alcove.Internal.Install;
+using Alcove.DependencyInjection.Composition;
+using Alcove.Hosting;
+using Alcove.Install;
 using Alcove.IntegrationTests.Infrastructure;
 using Fixture.HostContracts;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,3 +1,5 @@
+using Alcove.Wpf.Resources;
+
 namespace Alcove.Wpf.Tests;
 
 public sealed class SharedResourceKeyTests

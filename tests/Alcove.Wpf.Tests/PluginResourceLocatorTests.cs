@@ -1,5 +1,5 @@
 using System.Runtime.Loader;
-using Alcove.Wpf.Internal;
+using Alcove.Wpf.Resources;
 
 namespace Alcove.Wpf.Tests;
 

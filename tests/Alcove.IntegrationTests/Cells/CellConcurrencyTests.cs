@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Runtime.Loader;
-using Alcove.Internal.Cells;
+using Alcove.Cells;
 using Alcove.IntegrationTests.Infrastructure;
 using NuGet.Versioning;
 

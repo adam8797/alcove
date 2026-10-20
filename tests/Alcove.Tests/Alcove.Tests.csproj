@@ -21,7 +21,7 @@
     <AssemblyMetadata Include="NuGetPackageRoot" Value="$(NuGetPackageRoot)" />
   </ItemGroup>
 
-  <!-- Metadata/ tests inspect these fixture assemblies without loading them. Build order only; each fixture
+  <!-- Inspection/ tests inspect these fixture assemblies without loading them. Build order only; each fixture
        builds into tests/fixtures/Metadata/bin/<ProjectName>/ (see that folder's Directory.Build.props). -->
   <ItemGroup>
     <MetadataFixture Include="..\fixtures\Metadata\Fixture.Leak.Surface\Fixture.Leak.Surface.csproj" />

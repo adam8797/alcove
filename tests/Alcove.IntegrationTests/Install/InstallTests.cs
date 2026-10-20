@@ -1,9 +1,11 @@
 using System.Net;
-using Alcove.Internal.Hosting;
-using Alcove.Internal.IO;
-using Alcove.Internal.State;
-using Alcove.Internal.Trust;
+using Alcove.Cells;
+using Alcove.Feeds;
+using Alcove.Hosting;
+using Alcove.Install;
 using Alcove.IntegrationTests.Infrastructure;
+using Alcove.Storage;
+using Alcove.Trust;
 using Fixture.HostContracts;
 using NuGet.Versioning;
 

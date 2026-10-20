@@ -1,4 +1,4 @@
-using Alcove.Internal.Trust;
+using Alcove.Trust;
 using NuGet.Versioning;
 
 namespace Alcove.IntegrationTests.Infrastructure;

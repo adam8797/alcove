@@ -1,4 +1,7 @@
+using Alcove.Feeds;
+using Alcove.Install;
 using Alcove.IntegrationTests.Infrastructure;
+using Alcove.Packaging;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;

@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Text.Json.Nodes;
-using Alcove.Internal.Hosting;
+using Alcove.Hosting;
 
 namespace Alcove.IntegrationTests.Infrastructure;
 

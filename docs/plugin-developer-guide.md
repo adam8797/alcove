@@ -42,6 +42,8 @@ The SDK reports its errors with codes `ALCOVE001`–`ALCOVE006`, e.g. `ALCOVE001
 **With an entry point.** If your plugin has exactly one public, non-abstract class implementing `IPlugin` (it needs a public parameterless constructor), Alcove finds it. With several, set `<PluginEntryPoint>Contoso.Charts.ChartsPlugin</PluginEntryPoint>` (validation error `EntryPointAmbiguous` otherwise). A plugin with an entry point registers its extensions itself; `[Extension]` attributes are only scanned in plugins without one.
 
 ```csharp
+using Alcove;   // everything a plugin needs is in this namespace
+
 public sealed class ChartsPlugin : IPlugin
 {
     public void Register(IExtensionRegistrar registrar, IPluginContext context)
@@ -98,11 +100,13 @@ Privacy is per **cell**, not per plugin: other plugins sharing your cell share y
 
 ### WPF in plugins
 
-WPF finds XAML resources and types by assembly **name** across the whole process, regardless of cells. Most recently loaded wins. *(spike: wpf-across-load-contexts, confirmed on Windows)* A host that uses `Alcove.Wpf` (`options.UseWpf(...)`) handles most of this for you. Reference `Alcove.Wpf` yourself only if you use its types (`PluginResources`, `PluginPackUri`, `SharedResourceKey<T>`). With `Alcove.Sdk` it's treated as host-owned automatically, so it stays a dependency but is never copied into your output.
+WPF finds XAML resources and types by assembly **name** across the whole process, regardless of cells. Most recently loaded wins. *(spike: wpf-across-load-contexts, confirmed on Windows)* A host that uses `Alcove.Wpf` (`options.UseWpf(...)`) handles most of this for you. Reference `Alcove.Wpf` yourself only if you use its types (`PluginResources`, `PluginPackUri`, `SharedResourceKey<T>`, all in `Alcove.Wpf.Resources`). With `Alcove.Sdk` it's treated as host-owned automatically, so it stays a dependency but is never copied into your output.
 
 **Your resource dictionary.** Put your styles, brushes and templates in `Themes/Plugin.xaml` (a `ResourceDictionary`, built as a `Page`). The host merges it into the app's resources when your plugin loads, before `Register` runs, so your XAML can use it as a `StaticResource`. To merge other or several dictionaries instead, name them in the order you want:
 
 ```csharp
+using Alcove.Wpf.Resources;
+
 [assembly: PluginResources("Themes/Colors.xaml")]
 [assembly: PluginResources("Themes/Templates.xaml")]
 ```
@@ -120,13 +124,15 @@ From code, use `element.SetResourceReference(Border.BackgroundProperty, AppKeys.
 **Pack URIs.** When you refer to XAML from code (`ResourceDictionary.Source`, `Application.LoadComponent`), use `PluginPackUri` instead of writing the URI yourself. It always includes the loaded assembly's version (and public key token), so it can't reach another cell's copy:
 
 ```csharp
+using Alcove.Wpf.Resources;
+
 var colors = new ResourceDictionary { Source = PluginPackUri.Create(typeof(ChartView).Assembly, "Themes/Colors.xaml") };
 // /Contoso.Charts;v1.0.0.0;component/Themes/Colors.xaml
 ```
 
 In XAML, reference other assemblies' dictionaries with a versioned URI (`/Lib;v2.0.0.0;component/...`), not `/Lib;component/...`.
 
-**Views for view-models.** If the host turns on `MapViewModelsToViews`, each public `FooViewModel` in your assembly is shown by `FooView` wherever a `ContentControl` (or an `ItemsControl` item) displays it. The view must be in the same namespace, or in the namespace with `ViewModels` replaced by `Views` (`Contoso.Charts.ViewModels.ChartViewModel` → `Contoso.Charts.Views.ChartView`). It must be **in the same assembly**, and be a `FrameworkElement` with a public parameterless constructor. You can also build the templates yourself with `ViewTemplates.Create(typeof(ChartViewModel), typeof(ChartView))`.
+**Views for view-models.** If the host turns on `MapViewModelsToViews`, each public `FooViewModel` in your assembly is shown by `FooView` wherever a `ContentControl` (or an `ItemsControl` item) displays it. The view must be in the same namespace, or in the namespace with `ViewModels` replaced by `Views` (`Contoso.Charts.ViewModels.ChartViewModel` → `Contoso.Charts.Views.ChartView`). It must be **in the same assembly**, and be a `FrameworkElement` with a public parameterless constructor. You can also build the templates yourself with `ViewTemplates.Create(typeof(ChartViewModel), typeof(ChartView))` (`Alcove.Wpf.Views`).
 
 **Cautions:**
 - `Alcove.Sdk` sets an explicit `AssemblyVersion`, so your own `InitializeComponent` URIs include the version. Keep it that way.

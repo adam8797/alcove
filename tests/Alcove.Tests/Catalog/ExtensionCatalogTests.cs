@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Runtime.Loader;
-using Alcove.Internal.Catalog;
-using Alcove.Internal.Loading;
+using Alcove.Catalog;
+using Alcove.Loading;
 using NuGet.Versioning;
 
 namespace Alcove.Tests.Catalog;

@@ -7,6 +7,10 @@ fallback loads go to the default context, never to a cell. This package makes pl
 ## Host
 
 ```csharp
+using Alcove;
+using Alcove.Wpf;
+using Alcove.Wpf.Threading;   // OnDispatcher
+
 var options = new PluginHostOptions { Root = root, PluginPackageType = "MyAppPlugin", HostOwnedPackages = { "MyApp.Sdk" } };
 options.UseWpf(Application.Current, wpf =>
 {
@@ -45,6 +49,9 @@ Merging and removing run on the dispatcher's thread: inline when the host loads 
 thread, and queues them with `BeginInvoke` otherwise (the loading thread never waits for the UI thread).
 
 ## App SDK and plugins
+
+`SharedResourceKey<T>`, `PluginPackUri` and `[assembly: PluginResources(...)]` are in `Alcove.Wpf.Resources`,
+`ViewTemplates` in `Alcove.Wpf.Views`, and `DispatcherExtensionCatalog` in `Alcove.Wpf.Threading`.
 
 - Shared resource keys as constants in the app's contracts package or app SDK (host-owned):
   `public static readonly SharedResourceKey<Brush> Accent = new("MyApp.Accent");`, used as

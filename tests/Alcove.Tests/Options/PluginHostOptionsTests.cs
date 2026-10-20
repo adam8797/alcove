@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Alcove.Cells;
+using Alcove.Feeds;
 using Alcove.Tests.TestSupport;
 using Microsoft.Extensions.Logging.Abstractions;
 

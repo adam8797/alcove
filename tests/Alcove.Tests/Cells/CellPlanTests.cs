@@ -1,5 +1,5 @@
-using Alcove.Internal.Cells;
-using Alcove.Internal.Hosting;
+using Alcove.Cells;
+using Alcove.Hosting;
 using NuGet.Versioning;
 
 namespace Alcove.Tests.Cells;

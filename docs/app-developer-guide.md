@@ -2,11 +2,29 @@
 
 This guide is for people building a **host app** that loads plugins.
 
+**Namespaces.** The entry points are in `Alcove`: `PluginHost`, `PluginHostOptions`, `PluginInfo`, `PluginStatus`, `PluginException` and `PluginFaultedEventArgs`, plus the plugin contracts (`IPlugin`, `ExtensionAttribute`, …). Everything else is in the namespace of its feature:
+
+| Namespace | Types |
+|---|---|
+| `Alcove.Catalog` | `ExtensionCatalog`, `Extension<T>`, `ExtensionsAddedEventArgs`, `IExtensionActivator` |
+| `Alcove.Cells` | `CellDefinition`, `ICellObserver`, `CellInfo`, `ICellServicesFactory` |
+| `Alcove.Feeds` | `PackageFeed`, `ICredentialProvider`, `SearchOptions`, `PluginSearchResult` |
+| `Alcove.Install` | `InstallResult`, `InstallStatus`, `InstallProgress` |
+| `Alcove.Lifecycle` | `ChangeResult`, `PendingChange`, `PluginUpdate`, `RestoreResult`, `VerificationReport` |
+| `Alcove.Trust` | `TrustPolicy`, `AllowedSigner`, `SignerKind`, `RevocationCheck`, `TrustIssueCodes` |
+| `Alcove.Validation` | `ValidationReport`, `ValidationIssue`, `ValidationCodes` |
+| `Alcove.Hosting` | `UnsupportedHostException` |
+| `Alcove.Packaging` | `PluginManifest` |
+
+The add-ons put their entry points in `Alcove.DependencyInjection`, `Alcove.Autofac` and `Alcove.Wpf`; `Alcove.Wpf` also has `Alcove.Wpf.Resources` (`SharedResourceKey<T>`, `PluginPackUri`), `Alcove.Wpf.Views` (`ViewTemplates`) and `Alcove.Wpf.Threading` (`OnDispatcher`).
+
 ## 1. Define your extension points
 
 Create a contracts package (e.g. `MyApp.Contracts`) holding the interfaces plugins implement, plus any metadata attributes:
 
 ```csharp
+using Alcove;
+
 public interface IToolWindow
 {
     object CreateContent();   // e.g. a UserControl
@@ -43,6 +61,8 @@ Optionally, ship a `build/MyApp.Contracts.props` in the contracts package, so pl
 The options object you pass in is the whole configuration; the library never reads a config file by itself. Build it in code, or load it from a file (and optionally modify it):
 
 ```csharp
+using Alcove;
+
 var options = PluginHostOptions.Load(Path.Combine(root, "config.json"));
 options.TrustPolicy.RequireSignedPackages = true;   // your rules override the file
 var host = PluginHost.Create(options);
@@ -68,6 +88,9 @@ In code, `Root` must be an absolute path; `PluginHost.Create` throws `ArgumentEx
 Or entirely in code:
 
 ```csharp
+using Alcove;
+using Alcove.Feeds;
+
 var host = PluginHost.Create(new PluginHostOptions
 {
     Root = Path.Combine(Environment.GetFolderPath(
@@ -117,6 +140,8 @@ Catalog callbacks run on the thread that loaded the plugin (the caller's context
 ## 4. Manage plugins
 
 ```csharp
+using Alcove.Install;
+
 var results = await host.SearchAsync("charts", ct);        // flags incompatible results, doesn't hide them
 var versions = await host.GetVersionsAsync("Contoso.Charts", ct);
 var updates  = await host.CheckForUpdatesAsync(ct);
@@ -169,6 +194,8 @@ Who may call these (end users, admins only, a config script) is up to you.
 By default every plugin gets its own cell. To make plugins share one:
 
 ```csharp
+using Alcove.Cells;
+
 options.Cells.Add(new CellDefinition("Reporting")
 {
     Plugins = { "Contoso.Charts", "Contoso.Tables" }
@@ -181,6 +208,10 @@ options.Cells.Add(new CellDefinition("Reporting")
 
 ```csharp
 // Microsoft.Extensions.DependencyInjection (package Alcove.DependencyInjection)
+using Alcove;
+using Alcove.Catalog;
+using Alcove.DependencyInjection;
+
 services.AddPlugins(options => { /* same options */ });
 await using var provider = services.BuildServiceProvider();
 
@@ -190,6 +221,9 @@ var catalog = provider.GetRequiredService<ExtensionCatalog>();
 
 ```csharp
 // Autofac (package Alcove.Autofac)
+using Alcove;
+using Alcove.Autofac;
+
 builder.AddPlugins(options => { /* same options */ });
 await using var container = builder.Build();
 await container.Resolve<PluginHost>().LoadAsync(ct);
@@ -207,6 +241,10 @@ await container.Resolve<PluginHost>().LoadAsync(ct);
 Package `Alcove.Wpf`. WPF finds assemblies by simple name across the whole process and never asks a cell, so plugins' XAML needs help to work inside cells. One call sets it up:
 
 ```csharp
+using Alcove;
+using Alcove.Wpf;
+using Alcove.Wpf.Threading;   // OnDispatcher
+
 var options = new PluginHostOptions { Root = root, PluginPackageType = "MyAppPlugin", HostOwnedPackages = { "MyApp.Sdk" } };
 options.UseWpf(Application.Current, wpf =>
 {
@@ -243,6 +281,8 @@ await host.LoadAsync();
 **Merge precedence.** Each plugin's dictionaries go into one container that is merged **below your app's own merged dictionaries**, so your resources win over any plugin's on a key clash. Plugins merged later win over earlier ones. Define the resources you share with plugins under `SharedResourceKey<T>` keys in your app SDK:
 
 ```csharp
+using Alcove.Wpf.Resources;
+
 public static class AppKeys
 {
     public static readonly SharedResourceKey<Brush> Accent = new("MyApp.Accent");   // namespaced ID
@@ -261,6 +301,8 @@ See `samples/WpfHost` ([samples/README.md](../samples/README.md#wpf-host)) for a
 ## 8. Trust
 
 ```csharp
+using Alcove.Trust;
+
 options.TrustPolicy = new TrustPolicy
 {
     AllowedFeeds = { "https://nuget.example.com/v3/index.json" },
@@ -297,7 +339,7 @@ For adapting a DI container other than Microsoft DI or Autofac. Set `PluginHostO
 To hook a UI framework (or anything else) into cells, as `Alcove.Wpf` does, add a factory to `PluginHostOptions.CellObservers` (code only). Each host creates one `ICellObserver` per factory, passing its logger factory, and tells it `CellCreated` (nothing loaded yet), `CellExtended` (a hot install added private assemblies to an existing cell) and `PluginLoading` (a plugin's assemblies are loaded, before it registers; runs in the cell's contextual reflection scope). Calls come on the loading thread, outside the library's locks. An exception from the first two is logged; one from `PluginLoading` faults the plugin. The host disposes observers that implement `IDisposable` / `IAsyncDisposable` when it's disposed.
 
 ```csharp
-public interface ICellObserver   // every method has an empty default
+public interface ICellObserver   // Alcove.Cells; every method has an empty default
 {
     void CellCreated(CellInfo cell);
     void CellExtended(CellInfo cell, IReadOnlyList<CellAssembly> added);
@@ -309,14 +351,14 @@ public delegate ICellObserver CellObserverFactory(ILoggerFactory loggerFactory);
 ```
 
 ```csharp
-public interface IExtensionActivator
+public interface IExtensionActivator   // Alcove.Catalog
 {
     object CreateInstance(ExtensionActivationContext context);
 }
 // ExtensionActivationContext: Type ExtensionPoint, Type? ImplementationType, Func<object>? Factory,
 //                             ExtensionLifetime Lifetime, PluginInfo Plugin, IServiceProvider Services
 
-public interface ICellServicesFactory
+public interface ICellServicesFactory   // Alcove.Cells
 {
     IReadOnlyCollection<string> ServicePluginInterfaces { get; }   // e.g. "Alcove.DependencyInjection.IServicePlugin"
     IServiceProvider CreateServices(CellServicesContext context);
@@ -324,7 +366,7 @@ public interface ICellServicesFactory
 // CellServicesContext: string Cell, IServiceProvider HostServices, IReadOnlyList<CellServicesPlugin> Plugins
 // CellServicesPlugin:  PluginInfo Plugin, IPlugin EntryPoint
 
-public sealed record PluginManifest   // <PackageId>.plugin.json
+public sealed record PluginManifest   // Alcove.Packaging; <PackageId>.plugin.json
 {
     public const int CurrentSchemaVersion = 1;
     public int SchemaVersion { get; init; }

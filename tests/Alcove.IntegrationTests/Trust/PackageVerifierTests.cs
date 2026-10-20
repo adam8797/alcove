@@ -1,5 +1,5 @@
-using Alcove.Internal.Trust;
 using Alcove.IntegrationTests.Infrastructure;
+using Alcove.Trust;
 
 namespace Alcove.IntegrationTests.Trust;
 

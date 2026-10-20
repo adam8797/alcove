@@ -1,5 +1,9 @@
 using System.Reflection;
 using System.Runtime.Loader;
+using Alcove.Catalog;
+using Alcove.Cells;
+using Alcove.Feeds;
+using Alcove.Install;
 using Alcove.IntegrationTests.Infrastructure;
 using Fixture.HostContracts;
 using Microsoft.Extensions.Logging;

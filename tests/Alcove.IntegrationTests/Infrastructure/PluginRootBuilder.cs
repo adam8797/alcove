@@ -1,7 +1,6 @@
-using Alcove.Internal.Hosting;
-using Alcove.Internal.Install;
-using Alcove.Internal.IO;
-using Alcove.Internal.State;
+using Alcove.Hosting;
+using Alcove.Install;
+using Alcove.Storage;
 using NuGet.Packaging;
 using NuGet.Versioning;
 

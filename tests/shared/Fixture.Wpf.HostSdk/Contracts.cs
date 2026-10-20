@@ -1,6 +1,6 @@
 using System.Windows;
 using System.Windows.Media;
-using Alcove.Wpf;
+using Alcove.Wpf.Resources;
 
 namespace Fixture.Wpf.HostSdk;
 

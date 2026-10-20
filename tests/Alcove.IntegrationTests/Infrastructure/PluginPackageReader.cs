@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using Alcove.Packaging;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 

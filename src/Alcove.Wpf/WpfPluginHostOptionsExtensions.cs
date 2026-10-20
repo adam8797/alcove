@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Threading;
-using Alcove.Wpf.Internal;
+using Alcove.Cells;
+using Alcove.Wpf.Loading;
+using Alcove.Wpf.Threading;
 
 namespace Alcove.Wpf;
 

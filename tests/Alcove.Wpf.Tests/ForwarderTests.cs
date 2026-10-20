@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Runtime.Loader;
-using Alcove.Wpf.Internal;
+using Alcove.Cells;
+using Alcove.Wpf.Loading;
 using NuGet.Versioning;
 using static Alcove.Wpf.Tests.TestCells;
 

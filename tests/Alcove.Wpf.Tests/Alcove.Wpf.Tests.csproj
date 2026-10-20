@@ -23,10 +23,14 @@
 
   <!-- Alcove.Wpf's WPF-free files. -->
   <ItemGroup>
-    <Compile Include="..\..\src\Alcove.Wpf\PluginPackUri.cs" Link="AddOn\PluginPackUri.cs" />
-    <Compile Include="..\..\src\Alcove.Wpf\SharedResourceKey.cs" Link="AddOn\SharedResourceKey.cs" />
-    <Compile Include="..\..\src\Alcove.Wpf\PluginResourcesAttribute.cs" Link="AddOn\PluginResourcesAttribute.cs" />
-    <Compile Include="..\..\src\Alcove.Wpf\Internal\*.cs" Exclude="..\..\src\Alcove.Wpf\Internal\WpfCellObserver.cs" Link="AddOn\Internal\%(Filename)%(Extension)" />
+    <Compile Include="..\..\src\Alcove.Wpf\WpfLog.cs" Link="AddOn\WpfLog.cs" />
+    <Compile Include="..\..\src\Alcove.Wpf\Resources\PluginPackUri.cs" Link="AddOn\Resources\PluginPackUri.cs" />
+    <Compile Include="..\..\src\Alcove.Wpf\Resources\SharedResourceKey.cs" Link="AddOn\Resources\SharedResourceKey.cs" />
+    <Compile Include="..\..\src\Alcove.Wpf\Resources\PluginResourcesAttribute.cs" Link="AddOn\Resources\PluginResourcesAttribute.cs" />
+    <Compile Include="..\..\src\Alcove.Wpf\Resources\PluginResourceLocator.cs" Link="AddOn\Resources\PluginResourceLocator.cs" />
+    <Compile Include="..\..\src\Alcove.Wpf\Views\ViewConventions.cs" Link="AddOn\Views\ViewConventions.cs" />
+    <Compile Include="..\..\src\Alcove.Wpf\Loading\DefaultContextForwarder.cs" Link="AddOn\Loading\DefaultContextForwarder.cs" />
+    <Compile Include="..\..\src\Alcove.Wpf\Loading\WpfPreloader.cs" Link="AddOn\Loading\WpfPreloader.cs" />
   </ItemGroup>
 
   <!-- Shared test infrastructure. -->

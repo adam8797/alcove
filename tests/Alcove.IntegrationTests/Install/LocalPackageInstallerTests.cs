@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
-using Alcove.Internal.Hosting;
-using Alcove.Internal.State;
+using Alcove.Hosting;
 using Alcove.IntegrationTests.Infrastructure;
+using Alcove.Storage;
 using NuGet.Versioning;
 
 namespace Alcove.IntegrationTests.Install;

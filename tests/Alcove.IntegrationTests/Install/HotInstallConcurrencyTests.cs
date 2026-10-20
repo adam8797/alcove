@@ -1,8 +1,12 @@
 using System.Threading.Channels;
-using Alcove.Internal.Hosting;
-using Alcove.Internal.IO;
-using Alcove.Internal.State;
+using Alcove.Catalog;
+using Alcove.Cells;
+using Alcove.Feeds;
+using Alcove.Hosting;
+using Alcove.Install;
 using Alcove.IntegrationTests.Infrastructure;
+using Alcove.Lifecycle;
+using Alcove.Storage;
 using Fixture.HostContracts;
 
 namespace Alcove.IntegrationTests.Install;
