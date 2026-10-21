@@ -193,4 +193,8 @@ Rider on Windows 11, the same machine and checklist, style 2:
 | `Project` with `commandLineArgs` and `executablePath: dotnet` | **Fails** the same way: Rider ignores `executablePath` for a `Project` profile |
 | `Executable` (`dotnet` with the harness command line) | **Works**: the breakpoint hits, and Hot Reload applies the edit to the plugin in its cell |
 
-No one profile works in both IDEs, so the generator writes two: "*project* in harness" (`Project`, first, so it's VS's default) and "*project* in harness (Rider)" (`Executable`). Both were then checked as generated: breakpoint and Hot Reload work in VS with the first and in Rider with the second. Rider lists both (and keeps run configurations from profiles that no longer exist). VS Code wasn't checked.
+No one profile works in both IDEs, so the generator writes two: "*project* in harness" (`Project`, first, so it's VS's default) and "*project* in harness (Rider)" (`Executable`). Both were then checked as generated: breakpoint and Hot Reload work in VS with the first and in Rider with the second. Rider lists both (and keeps run configurations from profiles that no longer exist).
+
+Style 1 in Rider (`ConsoleHost.Harness`, a normal exe, breakpoint in `GreetCommand.Run`): the breakpoint hits, Hot Reload applies in the plugin's cell, and after stop, edit, Debug, Rider rebuilds Sample.Greetings (a `PluginUnderTest`) and the new code runs.
+
+VS Code wasn't checked.
