@@ -311,3 +311,15 @@ dotnet out/bundled/Verifier.dll defaults
 ```
 
 `certs/` (private keys of the throw-away test certs), `feed/`, `downloaded/`, `out/`, `bin/` and `obj/` are git-ignored. `results/` is kept as evidence.
+
+## Windows results (2026-10-21)
+
+Windows 11 Pro 10.0.26200 (x64), .NET SDK 10.0.402 / runtime 10.0.13, NuGet.Packaging 7.3.1 (the Verifier's). Inputs re-created with `setup.sh` from Git Bash (openssl from Git for Windows; `MSYS2_ARG_CONV_EXCL="/CN"` so the `-subj` arguments aren't turned into paths). The outputs aren't added to `results/`, which stays the Linux evidence.
+
+- **Signing:** as on Linux. The self-signed certificates sign with warnings (NU3002, NU3018 UntrustedRoot); the leaf from the private test CA fails with `NU3018: PartialChain`.
+- **`Verifier matrix`, all policies P0–P7:** the same verdicts and the same error codes as the Linux bundled run (`results/matrix-bundled-sdk-online.txt`), in **all four** combinations: plain or bundled build, `--trust-store default` or `sdk`. Only warnings differ (no NU3042, which names the Linux bundle file).
+- **The bundle isn't used on Windows.** Even after `InitializeForDotNetSdk()`, NuGet logs "X.509 certificate chain validation will use the default trust store selected by .NET" for both code signing and timestamping: the fallback bundle is a Linux/macOS mechanism. **The default Windows trust store accepts nuget.org packages**, as predicted (Windows also fetches missing Microsoft-program roots on demand). Shipping the bundle is harmless on Windows and needed elsewhere.
+- **`nugetconfig`** (`<trustedSigners>` through `ClientPolicyContext`): same output as on Linux, except the new test certificate's fingerprint.
+- **Timing:** nuget.org packages as on Linux: first verification in a process ≈150 ms, then median 6.9 ms (Newtonsoft.Json) and 4.3 ms (Serilog), online or offline revocation alike; an unsigned package 0.1 ms. **But every package signed with a certificate whose root Windows doesn't trust takes ≈3.0 s** (the self-signed and tampered self-signed rows, 3023–3053 ms against 1–12 ms on Linux): NuGet's `ChainBuildPolicy` retries an `UntrustedRoot` chain 3 times, 1 s apart, on Windows only. Same verdict; see the finding in [docs/windows-plan.md](../../docs/windows-plan.md).
+- **Not run on Windows:** the offline variants (`unshare -rn` has no Windows counterpart; Windows' revocation checks also don't follow `HTTP_PROXY`), the hanging network test, single-file publish.
+- **Alcove's network tests** (`ALCOVE_NETWORK_TESTS=1 dotnet test tests/Alcove.IntegrationTests --filter Category=Network`, NuGet.Packaging 7.9.0): 7 passed.
