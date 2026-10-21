@@ -80,7 +80,7 @@ public sealed class PluginSdkTests(FixturePackages fixtures)
         using var package = fixtures["Fixture.EntryPointPlugin"].OpenPackage();
 
         Assert.Equal(
-            new PluginManifest { EntryPoint = "Fixture.EntryPointPlugin.GreeterPlugin" },
+            new PluginManifest { EntryPoint = "Fixture.EntryPointPlugin.GreeterPlugin", PackageId = "Fixture.EntryPointPlugin", Version = "1.2.3-beta.1" },
             package.ReadManifest());
     }
 
@@ -89,7 +89,7 @@ public sealed class PluginSdkTests(FixturePackages fixtures)
     {
         using var package = fixtures["Fixture.AttributePlugin"].OpenPackage();
 
-        Assert.Equal(new PluginManifest(), package.ReadManifest());
+        Assert.Equal(new PluginManifest { PackageId = "Fixture.AttributePlugin", Version = "2.1.0.5" }, package.ReadManifest());
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public sealed class PluginSdkTests(FixturePackages fixtures)
         using var package = fixtures["Fixture.CellPlugin"].OpenPackage();
 
         Assert.Equal(
-            new PluginManifest { Cell = "Fixture.Shared", PrivateDependencies = ["Fixture.Library"] },
+            new PluginManifest { Cell = "Fixture.Shared", PrivateDependencies = ["Fixture.Library"], PackageId = "Fixture.CellPlugin", Version = "1.0.0" },
             package.ReadManifest());
         Assert.NotNull(package.Dependency("Fixture.Library"));
     }
@@ -109,8 +109,28 @@ public sealed class PluginSdkTests(FixturePackages fixtures)
         using var package = fixtures["Fixture.IsolatedPlugin"].OpenPackage();
 
         Assert.Equal(
-            new PluginManifest { Isolated = true, EntryPoint = "Fixture.IsolatedPlugin.IsolatedPlugin" },
+            new PluginManifest { Isolated = true, EntryPoint = "Fixture.IsolatedPlugin.IsolatedPlugin", PackageId = "Fixture.IsolatedPlugin", Version = "3.0.0" },
             package.ReadManifest());
+    }
+
+    [Theory]
+    [MemberData(nameof(Plugins))]
+    public async Task Build_WritesTheManifestIntoTheBuildOutput_AndCopiesDependencies(string fixture)
+    {
+        using var package = fixtures[fixture].OpenPackage();
+
+        // Packing built the fixture (Release): its build output loads as a development plugin.
+        var output = Path.Combine(fixtures.Workspace.ProjectDirectory(fixture), "bin", "Release", "net10.0");
+        using (var stream = File.OpenRead(Path.Combine(output, $"{fixture}.plugin.json")))
+        {
+            Assert.Equal(package.ReadManifest(), PluginManifest.Read(stream));
+        }
+
+        Assert.True(File.Exists(Path.Combine(output, $"{fixture}.deps.json")));
+        Assert.DoesNotContain(Directory.GetFiles(output), f => HostOwnedAssemblies.Contains(Path.GetFileName(f), StringComparer.OrdinalIgnoreCase));
+        var evaluated = await fixtures.Workspace.GetEvaluatedPropertiesAsync(fixture, ["EnableDynamicLoading", "AlcoveIsPlugin"], TestContext.Current.CancellationToken);
+        Assert.Equal("true", evaluated["EnableDynamicLoading"]);
+        Assert.Equal("true", evaluated["AlcoveIsPlugin"]);
     }
 
     [Theory]

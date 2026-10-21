@@ -46,7 +46,15 @@ Shared vocabulary for this project. Use these terms in code, docs and discussion
 | **Plugin context** (`IPluginContext`) | What a plugin receives: its ID and version, a private data directory, a logger, and the host's services. |
 | **Extension lifetime** | Chosen by each registration: `Singleton` (default, one shared instance) or `Transient` (new instance per request). |
 | **Extension metadata** | Data registered with an extension that can be read without creating it (`Lazy<T, TMetadata>` style). |
-| **Plugin SDK** | `Alcove.Sdk`, an ordinary NuGet package with props/targets. Sets the `PackageType`, generates the manifest from MSBuild properties, and keeps contracts referenced but not bundled. |
+| **Plugin SDK** | `Alcove.Sdk`, an ordinary NuGet package with props/targets. Sets the `PackageType`, generates the manifest from MSBuild properties (also into the build output), and keeps contracts referenced but not bundled. Also provides the harness helpers (`PluginUnderTest`, `AlcoveHarnessExecutable`). |
+
+## Development
+
+| Term | Meaning |
+|---|---|
+| **Development plugin** (`DevelopmentPlugin`) | A plugin loaded from its build output folder instead of the plugin root, for the plugin developer's inner loop ([ADR 0017](docs/adr/0017-development-plugins.md)). Classified from its `deps.json` and validated like an installed plugin, loaded in place, in its own cell. Not installed, never recorded in the state file, not trust-verified, never cleaned up. Wins over an installed plugin with the same ID for that run. `PluginInfo.IsDevelopment`. Only loaded when the app adds it to `PluginHostOptions.DevelopmentPlugins`. |
+| **Harness** | A program, provided by the app developer, that starts the app (or a stand-in host) with development plugins enabled, usually through `AddDevelopmentPluginsFrom(args, env)`. Style 1: a harness project the plugin developer adds; style 2: F5 on the plugin's class library, through `AlcoveHarnessExecutable`. |
+| **Plugin under test** (`PluginUnderTest`) | A plugin project a harness project names: built first, never referenced or copied into the harness, and recorded in a generated `[assembly: AlcoveDevelopmentPlugin(...)]`. |
 
 ## Dependency injection (add-ons)
 

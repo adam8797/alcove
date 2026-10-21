@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Plugin.props" />
+  <!--
+    Harness style 2: `dotnet run` (or F5 in an IDE) on this class library starts the ConsoleHost harness with this
+    plugin loaded from its build output, next to the plugins installed in the console sample's plugin root. A real
+    app's harness package would set AlcoveHarnessExecutable from its build/<id>.props instead. Not packed by the
+    console sample (it isn't in SamplePlugins.slnx); see samples/run-harness-sample.sh.
+  -->
+  <PropertyGroup>
+    <AlcoveHarnessExecutable>$(MSBuildThisFileDirectory)../../ConsoleHost.Harness/bin/$(Configuration)/net10.0/ConsoleHost.Harness.dll</AlcoveHarnessExecutable>
+    <AlcoveHarnessArguments>--root "$(MSBuildThisFileDirectory)../../../artifacts/sample/plugin-root"</AlcoveHarnessArguments>
+  </PropertyGroup>
+</Project>

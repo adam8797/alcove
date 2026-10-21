@@ -380,3 +380,42 @@ public sealed record PluginManifest   // Alcove.Packaging; <PackageId>.plugin.js
     public string ToJson();
 }
 ```
+
+## 11. Providing a harness
+
+Plugin developers want to press F5 and see their plugin running in your app, without packing and installing it every time. Providing that **harness** is your job; Alcove gives you the parts ([ADR 0017](adr/0017-development-plugins.md)). A harness is a program that starts your app (or a stand-in host) with **development plugins**: plugins loaded straight from their build output, next to the installed ones, in their own cells, with the same classification and validation.
+
+**Enabling development plugins is always your explicit choice.** Nothing loads them unless you fill `PluginHostOptions.DevelopmentPlugins` (code only, never read from the configuration file). The convention:
+
+```csharp
+using Alcove.Development;
+
+// In the harness's entry point only, never on the app's normal startup path:
+var options = MyApp.CreatePluginHostOptions(harnessRoot);       // your usual root, feeds, host-owned packages
+options.AddDevelopmentPluginsFrom(args, Environment.GetEnvironmentVariables());
+```
+
+`AddDevelopmentPluginsFrom` reads every `--alcove-dev-plugin <folder>` (repeatable; also `--alcove-dev-plugin=<folder>`), the `ALCOVE_DEV_PLUGINS` environment variable (folders separated by `Path.PathSeparator`) and the entry assembly's `[assembly: AlcoveDevelopmentPlugin(...)]` attributes (generated for `PluginUnderTest` items). It leaves the options in `args`. Call it from a harness build, or behind an explicit flag of your own.
+
+What the host does with them:
+- **Identity** comes from the `<PackageId>.plugin.json` that `Alcove.Sdk` writes into the build output (`packageId`, `version`); **dependencies** from the plugin's `deps.json`, classified against your host inventory. Cell-private assemblies load from the build output, in place.
+- **Validation** as usual, plus: a host-owned package the host can't satisfy is an error (`HostOwnedConflict`, `HostOwnedMissing`); a dependency resolved differently from how an install would resolve it is a warning (`DevelopmentDependencyDiffers`); an unusable folder is an error for that plugin only (`DevelopmentPluginInvalid`).
+- An installed plugin with the same ID stays installed but the development plugin loads instead, for this run (`DevelopmentPluginOverridesInstalled`). Plugin dependencies between development and installed plugins work as between installed ones.
+- **Nothing is recorded:** no state file entry, no trust policy check, no hash pinning, no cleanup, no staged changes, not in `GetPendingChangesAsync`. `PluginInfo.IsDevelopment` lets your UI show it. Lifecycle calls (`UpdateAsync`, `DisableAsync`, ...) with its ID act on the installed plugin, if any. An install of a plugin with a development plugin's ID while it runs is `PendingRestart`.
+- Use a plugin root of your choosing for the harness, typically a separate "harness" root, so authors don't touch their real installation.
+
+**Style 1, a harness project.** Ship a `MyApp.Harness` library package with a `RunAsync(args)` that builds your normal `PluginHostOptions`, calls `AddDevelopmentPluginsFrom` and starts your UI. Make it depend on `Alcove.Sdk` (or tell authors to reference it), so the plugin author's harness project can use `<PluginUnderTest Include="..\MyPlugin\MyPlugin.csproj" />`: the plugin is built first but neither referenced nor copied, and its build output is recorded in a generated attribute.
+
+**Style 2, F5 on the class library (the main one).** Ship your app (or a stand-in host) in the harness package, e.g. under `tools/`, with a `build/MyApp.Harness.props` (and `buildTransitive/`) that sets one property:
+
+```xml
+<Project>
+  <PropertyGroup>
+    <AlcoveHarnessExecutable>$(MSBuildThisFileDirectory)../tools/MyApp.exe</AlcoveHarnessExecutable>
+  </PropertyGroup>
+</Project>
+```
+
+`Alcove.Sdk` then sets `RunCommand`/`RunArguments` (`--alcove-dev-plugin "<build output>"`, plus `AlcoveHarnessArguments`), so `dotnet run` works on the class library, and generates a `Properties/launchSettings.json` "Executable" profile if the plugin project has none, which Visual Studio needs to start a class library. The IDE starts your executable itself, so its debugger is attached from the first line. A framework-dependent `.dll` works too (it's started with `dotnet`).
+
+`samples/ConsoleHost.Harness` is a working example of both styles (see [samples/README.md](../samples/README.md)).

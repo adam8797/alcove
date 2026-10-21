@@ -201,6 +201,7 @@ read state
 - **Resolution** is a separate, optional call that the app can make before loading (`RestoreAsync()`, `CheckForUpdatesAsync()`, `UpdateAsync()`). Without it, startup is entirely offline.
 - Disabled plugins are skipped. A plugin whose plugin dependency is faulted, disabled or missing is marked as not loaded, with that reason.
 - If `FailFast` is set (for development), the first fault throws.
+- **Development plugins** ([ADR 0017](adr/0017-development-plugins.md)), when the app listed some in `PluginHostOptions.DevelopmentPlugins`, join the plan right after the state file is read: each build output's manifest gives the ID and version, its `deps.json` the dependency set, classified as an install would against the host inventory (§4); its cell-private assets are planned from the build output, in place. One with an installed plugin's ID replaces it for this run (warning). Extra checks: host-owned references the host can't satisfy (error), dependencies the build resolved differently from an install (warning), unusable folders (error for that plugin). From there on (cells, order, activation) they're ordinary plugins, but they never reach the state file, the in-use record, cleanup, trust checks or the pending changes.
 
 ### Install: `InstallAsync(id, versionRange?)`
 

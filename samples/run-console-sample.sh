@@ -18,7 +18,7 @@ version="$(dotnet msbuild "$repo/src/Alcove/Alcove.csproj" -getProperty:Version 
 
 rm -rf "$work"
 mkdir -p "$feed"
-for id in Alcove.Abstractions Alcove.Sdk ConsoleHost.Contracts; do
+for id in Alcove Alcove.Abstractions Alcove.Sdk ConsoleHost.Contracts; do
   cp "$repo/artifacts/packages/$configuration/$id.$version.nupkg" "$feed/"
 done
 
@@ -34,6 +34,7 @@ cat > "$work/nuget.config" <<CONFIG
   <packageSourceMapping>
     <clear />
     <packageSource key="sample-feed">
+      <package pattern="Alcove" />
       <package pattern="Alcove.*" />
       <package pattern="ConsoleHost.*" />
     </packageSource>

@@ -1,6 +1,6 @@
 # Design: development plugins and test harnesses
 
-> Status: **accepted** (2026-10-20, after review). Decision record: [ADR 0017](../adr/0017-development-plugins.md).
+> Status: **accepted** (2026-10-20, after review), **implemented** (2026-10-20; the IDE parts of the spike are still to be run, see the [checklist](#ide-checklist)). Decision record: [ADR 0017](../adr/0017-development-plugins.md).
 
 ## Problem
 
@@ -115,7 +115,7 @@ Alcove supplies the reusable parts: an `Alcove.Sdk` property (`AlcoveHarnessExec
 
 ## Implementation outline
 
-1. Core: `DevelopmentPlugin`, `PluginHostOptions.DevelopmentPlugins`, deps.json-based classification, validation checks, shadow copy, `PluginInfo.IsDevelopment`, mixing with installed plugins.
+1. Core: `DevelopmentPlugin`, `PluginHostOptions.DevelopmentPlugins`, deps.json-based classification, validation checks, ~~shadow copy~~ (dropped in review), `PluginInfo.IsDevelopment`, mixing with installed plugins.
 2. SDK: manifest and dynamic-loading output on build; `PluginUnderTest`; generated attribute; `AlcoveHarnessExecutable`.
 3. `AddDevelopmentPluginsFrom(args, env)` helper and the assembly-attribute reader.
 4. Sample: `samples/ConsoleHost.Harness` (option 1) plus a sample plugin wired to it; integration tests building a plugin and loading it from `bin/` together with installed plugins.
@@ -127,3 +127,41 @@ Alcove supplies the reusable parts: an `Alcove.Sdk` property (`AlcoveHarnessExec
 - **Hot Reload:** not required; the spike checks it because it would be very nice.
 - **No shadow copy:** development plugins load in place; the stop-rebuild-F5 loop is the intended one.
 - **Dependency differences** from a real install: warnings.
+
+## Implementation notes (2026-10-20)
+
+Where the implementation had to decide something the design left open:
+
+- **API.** `Alcove.Development`: `DevelopmentPlugin(outputDirectory, projectPath?)`, `AlcoveDevelopmentPluginAttribute`, and the extension method `options.AddDevelopmentPluginsFrom(args, environment)` (returns what it added; `CommandLineOption` and `EnvironmentVariable` constants). In the root: `PluginHostOptions.DevelopmentPlugins` (code only, `[JsonIgnore]`) and `PluginInfo.IsDevelopment`. Manifest: optional `packageId` and `version` (`PluginManifest.PackageId`, `.Version`). Validation codes: `DevelopmentPluginInvalid`, `DevelopmentPluginOverridesInstalled`, `DevelopmentDependencyDiffers`. Log events 2400–2401 (`DevelopmentLog`).
+- **Where it plugs in.** The validator reads the development plugins (`DevelopmentPluginReader`) into would-be state entries that are never written, puts them next to the state file's plugins (replacing one with the same ID), and gives the classifier their asset locations in the build output. Everything after (cells, order, activation) is unchanged. Installs, updates and staging never see them; an install of a plugin with a running development plugin's ID is `PendingRestart`.
+- **Classification from `deps.json`.** The closure from the plugin's project, not walking into plugin dependencies (a library whose ID is an installed or development plugin) or host-owned packages. Host-shared when the host has the package at the built version or higher (a higher one warns: `DevelopmentDependencyDiffers`); cell-private otherwise, or when the manifest says so. Assets: runtime and native files flat in the output folder, satellites in their culture folder, `runtimeTargets` under `runtimes/<rid>/`, the best RID for the host as the .NET host picks them. A listed file missing from the output is an error for that plugin.
+- **Host-owned conflicts.** `Alcove.Sdk` keeps host-owned packages out of the build output, so the plugin's `deps.json` doesn't list them (e.g. the contracts). The gate is therefore the plugin's own assembly references: a reference to a host-owned assembly with a higher version than the host's is `HostOwnedConflict`, one the host doesn't have is `HostOwnedMissing`. Host-owned packages that are in the `deps.json` go through the classifier's usual check.
+- **SDK.** An `Exe`/`WinExe` project referencing `Alcove.Sdk` is a harness, not a plugin (`AlcoveIsPlugin=false`): no plugin targets, no host-owned exclusion. Plugins get `EnableDynamicLoading=true` and the manifest copied into `$(OutDir)` (a `Copy`, so it doesn't flow into referencing projects). `PluginUnderTest` becomes a `ProjectReference` with `ReferenceOutputAssembly=false`, `Private=false` and `ExcludeAssets=all` (so the plugin's packages don't flow into the harness either); because the first restore runs before package targets are imported, a plugin under test that was never restored is restored by the harness build. The launch profile is written by a small inline task: MSBuild turns the backslashes of JSON escapes into slashes in item specs on Unix. The build output path is passed without its trailing separator (`"C:\out\"` would escape its closing quote on Windows).
+- **`dotnet run` with the generated profile.** `dotnet run` (and `dotnet watch`) say "Using launch settings from ..." but still run `RunCommand`/`RunArguments`; `dotnet watch` takes the profile's `commandLineArgs`, so after changing `AlcoveHarnessArguments`, delete the generated `launchSettings.json` (it's only generated when missing).
+
+## Spike results
+
+Run on Linux, .NET SDK 10.0.203, with `samples/ConsoleHost.Harness` and `samples/plugins/Sample.Time` (see samples/README.md).
+
+| Question | Result |
+|---|---|
+| CLI: `dotnet run` on a class library with `RunCommand` | **Works** (also covered by `HarnessTests`). Starts the harness with the plugin's build output; installed plugins load next to it. |
+| CLI: Hot Reload, style 2 (`dotnet watch --project samples/plugins/Sample.Time`, harness running with `--repeat`) | **Works.** Editing a method body of `TimeCommand.Run` while the harness ran: `dotnet watch 🔥 [Sample.Time (net10.0)] Hot reload succeeded.`, and the next run of the command printed the new string, in the same process (the harness's repeat counter kept counting: 2/12 old text, 3/12 new). Reverting applied the same way. The plugin is in its own cell (a non-default `AssemblyLoadContext`, loaded from its path). |
+| CLI: Hot Reload, style 1 (`dotnet watch --project samples/ConsoleHost.Harness`, editing `Sample.Greetings`, its `PluginUnderTest`) | **Works** the same way: `dotnet watch` watches the plugin project through the reference (`Hot reload succeeded` for `ConsoleHost.Harness`), and the plugin loaded in its cell from `bin/` ran the new code. |
+| Rude edits (e.g. new members) | Not tried; `dotnet watch` offers a restart then, which is the normal loop. |
+| Breakpoints in a development plugin | Not testable here (no IDE debugger on this machine); expected to work (same process, PDBs next to the DLLs, loaded from the path). |
+| F5 in Visual Studio 2026, Rider, VS Code | Not testable here: see the checklist. |
+
+### IDE checklist
+
+For someone with Visual Studio 2026, Rider and VS Code (C# Dev Kit), on Windows. Prepare once: run `samples/run-harness-sample.sh` from Git Bash (or the steps in it by hand), so the sample plugins are packed and installed into `artifacts/sample/plugin-root`. Open `samples/plugins/Sample.Time/Sample.Time.csproj` (and, for style 1, `samples/ConsoleHost.Harness/ConsoleHost.Harness.csproj`); restore needs `AlcoveVersion` and `RestoreConfigFile` (set them as environment variables, as in samples/README.md, before starting the IDE). Record for each IDE: works / doesn't / what you saw.
+
+1. **Launch profile.** After the first build of `Sample.Time`, `Properties/launchSettings.json` exists with the profile "Sample.Time in harness" (`commandName: Executable`). The IDE lists it as a start profile.
+2. **F5 on the class library (style 2).** Pressing F5 (Debug) on `Sample.Time` starts `ConsoleHost.Harness` under the debugger, with no "a class library can't be started" error and no manual attach. Its console shows `Sample.Time ... development ... Loaded`.
+   - Rider: if it ignores the profile, try its "Run/Debug configuration: .NET Launch Settings Profile", and note whether it picks up `RunCommand` on its own (its ".NET Project" configuration).
+   - VS Code: C# Dev Kit, "Run and Debug" → C#: does it offer the launch profile for a class library? If not, note it; a `launch.json` `coreclr` configuration with `program: dotnet`, `args: [<harness dll>, "--alcove-dev-plugin", "<bin>"]` is the fallback to try.
+3. **Breakpoint.** A breakpoint in `TimeCommand.Run` hits (it runs during startup; with `--repeat 30` in `AlcoveHarnessArguments`, it hits every 2 seconds). Locals and call stack show; the module window lists `Sample.Time.dll` from `samples/plugins/Sample.Time/bin/Debug/net10.0/`.
+4. **Stop and rebuild.** Stop debugging (the harness exits), change the string in `TimeCommand.Run`, F5 again: the new text shows. While debugging, a rebuild fails because `Sample.Time.dll` is locked (expected on Windows).
+5. **Hot Reload.** With `--repeat 30`, while debugging, change the string in `TimeCommand.Run` and apply Hot Reload (VS: the flame button / Alt+F10; Rider: "Apply changes"; VS Code: Hot Reload in C# Dev Kit). Does the next run print the new text without a restart? Edit-and-continue at a breakpoint: change the line, continue.
+6. **Style 1.** Same as 2–5 with F5 on `ConsoleHost.Harness` (a normal exe) and a breakpoint in `samples/plugins/Sample.Greetings/GreetCommand.cs`.
+7. **`dotnet watch` on Windows.** `dotnet watch --project samples/plugins/Sample.Time` with `--repeat 30` (delete the generated `launchSettings.json` after adding it to `AlcoveHarnessArguments`): Hot Reload as on Linux?

@@ -139,7 +139,14 @@ public sealed partial class PluginHost
         try
         {
             var disk = new StateStore(_layout.Root).Read();
-            return Task.FromResult(PendingChanges.Compute(disk, Volatile.Read(ref _loadedPlan), Plugins, _pendingRestart));
+            // Development plugins aren't installed: neither they nor the installed plugins they replace for this run are changes.
+            var development = Plugins.Where(p => p.IsDevelopment).Select(p => p.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            if (development.Count > 0)
+            {
+                disk = disk with { Plugins = disk.Plugins.Where(p => !development.Contains(p.Id)).ToList() };
+            }
+
+            return Task.FromResult(PendingChanges.Compute(disk, Volatile.Read(ref _loadedPlan), Plugins.Where(p => !p.IsDevelopment).ToList(), _pendingRestart));
         }
         catch (Exception ex)
         {
@@ -227,6 +234,10 @@ public sealed partial class PluginHost
     /// Startup, after loading (even if plugins faulted), and tests: deletes packages nothing refers to any more, never
     /// one a plan of this process (startup or hot install) loaded from.
     /// </summary>
+    /// <summary>Whether this host loaded (or planned) a development plugin with this ID.</summary>
+    private bool IsDevelopmentPlugin(string pluginId) =>
+        Volatile.Read(ref _loadedPlan)?.Plugins.Any(p => p.IsDevelopment && string.Equals(p.Id, pluginId, StringComparison.OrdinalIgnoreCase)) ?? false;
+
     internal void DeleteUnusedPackages()
     {
         List<(string, NuGetVersion)> inUse;
@@ -249,7 +260,8 @@ public sealed partial class PluginHost
             Volatile.Write(ref _loadedPlan, plan);
         }
 
-        RememberInUse(plan.Plugins.SelectMany(p => StagedChanges.Packages(p.State)));
+        // Development plugins load from their build output, not from the plugin root's packages.
+        RememberInUse(plan.Plugins.Where(p => !p.IsDevelopment).SelectMany(p => StagedChanges.Packages(p.State)));
     }
 
     /// <summary>Adds packages to what this host uses and rewrites its in-use record (read by other processes' cleanups).</summary>

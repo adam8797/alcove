@@ -1,6 +1,7 @@
 using System.Reflection;
 using Alcove.Catalog;
 using Alcove.Cells;
+using Alcove.Development;
 using Alcove.Feeds;
 using Alcove.Hosting;
 using Alcove.Install;
@@ -42,6 +43,7 @@ public sealed partial class PluginHost : IAsyncDisposable
     private readonly SemaphoreSlim _installGate = new(1, 1);   // an install's resolve, write and merge; not its activation
     private readonly Lazy<FeedConfiguration> _feeds;
     private readonly TrustVerdicts _trustVerdicts = new();
+    private readonly IReadOnlyList<DevelopmentPlugin> _development;   // a snapshot of the options' list
 
     // In-flight LoadAsync and InstallAsync calls (guarded by _gate): DisposeAsync cancels them and waits for them,
     // except the ones it was called from (_notAwaited), which sweep what they created when they end.
@@ -99,6 +101,7 @@ public sealed partial class PluginHost : IAsyncDisposable
         }
 
         _feeds = new Lazy<FeedConfiguration>(() => FeedConfiguration.Create(options));
+        _development = options.DevelopmentPlugins.ToList();
         Catalog = new ExtensionCatalog(_loggerFactory);
     }
 
@@ -265,7 +268,7 @@ public sealed partial class PluginHost : IAsyncDisposable
         RememberLoaded(plan, startup: true);
         var infos = plan.Plugins.ToDictionary(
             p => p.Id,
-            p => new PluginInfo(p.Id, p.State.Version, p.Cell, p.Status, p.Reason ?? "Not loaded yet."),
+            p => new PluginInfo(p.Id, p.State.Version, p.Cell, p.Status, p.Reason ?? "Not loaded yet.", p.IsDevelopment),
             StringComparer.OrdinalIgnoreCase);
         Volatile.Write(ref _plugins, plan.Plugins.Select(p => infos[p.Id]).ToList());
         foreach (var blocked in plan.Plugins.Where(p => p.Status == PluginStatus.NotLoaded && p.Reason is not null))
@@ -778,7 +781,7 @@ public sealed partial class PluginHost : IAsyncDisposable
     }
 
     private PluginValidator CreateValidator() =>
-        new(_inventory, _layout, _options.Cells, _loggerFactory);
+        new(_inventory, _layout, _options.Cells, _loggerFactory, development: _development);
 
     private PluginSearch CreateSearch() => new(_inventory, _options, _feeds.Value, Verifier, _logger);
 
@@ -880,6 +883,11 @@ public sealed partial class PluginHost : IAsyncDisposable
                     reasons.Add($"{plugin.Id} was resolved with the plugin {dependency} {next.State.Version}, staged for the next startup; this process runs {running.Version}.");
                 }
             }
+        }
+
+        foreach (var plugin in newPlugins.Where(p => IsDevelopmentPlugin(p.Id)))
+        {
+            reasons.Add($"The development plugin {plugin.Id} is loaded in this process instead.");
         }
 
         reasons.AddRange(HotLoadRule.BreakingIssues(outcome.Issues));

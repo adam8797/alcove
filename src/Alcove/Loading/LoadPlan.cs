@@ -5,7 +5,7 @@ using Alcove.Validation;
 
 namespace Alcove.Loading;
 
-/// <summary>One installed plugin as validation left it.</summary>
+/// <summary>One installed (or development) plugin as validation left it.</summary>
 /// <param name="State">Its state file entry.</param>
 /// <param name="Manifest">Its manifest, if it could be read.</param>
 /// <param name="Cell">Its cell, if it's enabled.</param>
@@ -23,6 +23,9 @@ internal sealed record PlannedPlugin(PluginState State, PluginManifest? Manifest
 
     /// <summary>The entry point's full type name: the manifest's, else the discovered one; <see langword="null"/> for none.</summary>
     public string? EntryPoint => Manifest?.EntryPoint ?? DiscoveredEntryPoint;
+
+    /// <summary>Whether it's a development plugin, loaded from its build output and never recorded in the state file.</summary>
+    public bool IsDevelopment { get; init; }
 
     /// <summary>Whether validation lets it load.</summary>
     public bool IsLoadable => Status == PluginStatus.NotLoaded && Reason is null;

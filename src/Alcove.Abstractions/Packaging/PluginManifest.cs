@@ -43,6 +43,18 @@ public sealed record PluginManifest
 
     private readonly IReadOnlyList<string> _privateDependencies = [];
 
+    /// <summary>
+    /// The plugin's package ID, as the SDK recorded it in the build output. Optional: it identifies a development
+    /// plugin; for an installed plugin the package's own ID is used and this field is ignored.
+    /// </summary>
+    public string? PackageId { get; init; }
+
+    /// <summary>
+    /// The plugin's package version, as the SDK recorded it in the build output. Optional: it identifies a development
+    /// plugin; for an installed plugin the package's own version is used and this field is ignored.
+    /// </summary>
+    public string? Version { get; init; }
+
     /// <summary>Gets the manifest file name for a plugin package.</summary>
     /// <param name="packageId">The plugin's package ID.</param>
     /// <returns><c>&lt;packageId&gt;.plugin.json</c>.</returns>
@@ -83,7 +95,9 @@ public sealed record PluginManifest
         && string.Equals(EntryPoint, other.EntryPoint, StringComparison.Ordinal)
         && string.Equals(Cell, other.Cell, StringComparison.Ordinal)
         && Isolated == other.Isolated
-        && PrivateDependencies.SequenceEqual(other.PrivateDependencies, StringComparer.Ordinal);
+        && PrivateDependencies.SequenceEqual(other.PrivateDependencies, StringComparer.Ordinal)
+        && string.Equals(PackageId, other.PackageId, StringComparison.Ordinal)
+        && string.Equals(Version, other.Version, StringComparison.Ordinal);
 
     /// <inheritdoc />
     public override int GetHashCode() => HashCode.Combine(SchemaVersion, EntryPoint, Cell, Isolated, PrivateDependencies.Count);

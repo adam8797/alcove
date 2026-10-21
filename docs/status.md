@@ -14,9 +14,10 @@
 | 5 | Lifecycle | Staged update/uninstall/enable/disable/rollback, startup apply and cleanup, in-use records, pending changes, update checks, restore, verify. |
 | 6 | DI add-ons | `Alcove.DependencyInjection` and `Alcove.Autofac`, one service provider per cell, shared test suite. |
 | 7 | WPF add-on | `Alcove.Wpf`: `UseWpf` (pre-loading, resource merging, opt-in default-context forwarder and view-model → view mapping), `DispatcherExtensionCatalog`, `PluginPackUri`, `SharedResourceKey<T>`, `ViewTemplates`. Core hook `ICellObserver`. WPF sample (`samples/WpfHost`). The WPF runtime scenarios run in the Windows CI job and haven't run yet (not pushed). |
+| — | Development plugins | [ADR 0017](adr/0017-development-plugins.md): load a plugin from its build output next to installed plugins (`PluginHostOptions.DevelopmentPlugins`, `AddDevelopmentPluginsFrom`), `Alcove.Sdk` manifest in `bin/`, `PluginUnderTest`, `AlcoveHarnessExecutable`; sample `samples/run-harness-sample.sh`. Hot Reload works with `dotnet watch` on Linux; the IDE checks are [waiting on you](#waiting-on-you). |
 | 8 | Hardening | Public API snapshots, XML docs enforced, logging registry ([logging.md](logging.md)), performance check, three rounds of independent code review ([reviews/](reviews/)), all findings fixed. |
 
-**Tests:** 311 unit + 263 integration + 42 WPF (Linux-runnable), zero warnings. Gated: 7 need the network (`ALCOVE_NETWORK_TESTS=1`), 1 is the performance test (`ALCOVE_PERF_TESTS=1`), and 6 WPF runtime scenarios run only on Windows.
+**Tests:** 321 unit + 281 integration + 42 WPF (Linux-runnable), zero warnings. Gated: 7 need the network (`ALCOVE_NETWORK_TESTS=1`), 1 is the performance test (`ALCOVE_PERF_TESTS=1`), and 6 WPF runtime scenarios run only on Windows.
 
 **Performance** (this Linux machine, Debug): `LoadAsync` with 50 plugins ≈ 35 ms warm / 95 ms cold; one hot `InstallAsync` from a folder feed ≈ 220 ms; `VerifyAsync` (52 packages) ≈ 15 ms.
 
@@ -26,7 +27,8 @@
 
 1. **Signature verification on Windows:** the signature spike's `Verifier matrix` (the last Phase 0b item).
 2. **Publishing:** `0.0.1-alpha` is on nuget.org (2026-10-20). Push a `v<version>` tag to publish the next one (see CONTRIBUTING.md).
-3. **Push Phase 7** so the Windows CI job runs the WPF scenarios (`tests/Alcove.Wpf.Tests/Windows`). They're skipped on Linux, so the add-on hasn't run against a real WPF yet. Optionally, also try `samples\run-wpf-sample.ps1` by hand.
+3. **Development plugins in the IDEs:** the [IDE checklist](design/development-plugins.md#ide-checklist) (F5 on a class library, breakpoints, Hot Reload) in Visual Studio 2026, Rider and VS Code.
+4. **Push Phase 7** so the Windows CI job runs the WPF scenarios (`tests/Alcove.Wpf.Tests/Windows`). They're skipped on Linux, so the add-on hasn't run against a real WPF yet. Optionally, also try `samples\run-wpf-sample.ps1` by hand.
 
 CI (`.github/workflows/ci.yml`) builds and tests on Linux and Windows on every push to `main` and on pull requests; both were green before Phase 7.
 

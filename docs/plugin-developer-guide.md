@@ -29,7 +29,8 @@ A plugin is a class library targeting a framework the host supports (for a WPF h
 - sets the NuGet `PackageType` from `<PluginPackageType>`, which the host's contracts package usually sets for you;
 - generates the plugin manifest;
 - keeps host-owned packages (`Alcove.Abstractions`, `NuGet.Versioning`, `Microsoft.Extensions.Logging.Abstractions` and whatever the host's contracts package lists as `PluginHostOwnedPackage`) as NuGet dependencies, but never copies their assemblies into your build output;
-- sets an explicit `AssemblyVersion` (major.minor.patch.0 from `Version`) unless you set one.
+- sets an explicit `AssemblyVersion` (major.minor.patch.0 from `Version`) unless you set one;
+- on every build, writes the manifest (with your `PackageId` and version) into the build output and sets `EnableDynamicLoading=true` (unless you set it), so dependencies are copied next to your plugin: the build output loads as a development plugin ([§7](#7-testing-your-plugin)).
 
 Title, description, icon, authors and so on come from ordinary NuGet properties.
 
@@ -183,7 +184,51 @@ public sealed class ChartsPlugin : IPlugin, IServicePlugin
 - When the host is disposed, your singleton extensions and then your entry point are disposed (`IAsyncDisposable` or `IDisposable`), in reverse load order. An `InitializeAsync` still running gets a cancelled token. During the host's call the token follows the app's token; after `InitializeAsync` returns it's cancelled only when the host shuts down, so you can tie background work to it. The host waits for `InitializeAsync` to finish, so honour the token.
 - `DataDirectory` (`<root>/data/<id>`) is created on first access and survives updates and uninstalls. `Logger` uses your plugin ID as its category.
 
-## 7. Publish
+## 7. Testing your plugin
+
+You don't need to pack, publish and install to try your plugin: if the host provides a **harness**, the plugin runs straight from its build output (`bin/Debug/net10.0/`) as a **development plugin**, in its own cell with the same isolation and validation as when installed, next to the host's installed plugins. Press F5 and the app starts with your plugin loaded and the debugger attached; breakpoints in your plugin just hit. To change code, stop debugging (which closes the app), rebuild and press F5 again, as for any app. On Windows the running app locks your DLLs, as it would for any app being debugged.
+
+There are two ways, depending on what the host provides.
+
+**F5 on the plugin project (the usual one).** The host ships a harness package, say `MyApp.Harness`. Reference it from the plugin project:
+
+```xml
+<PackageReference Include="MyApp.Harness" Version="2.*" PrivateAssets="all" />
+```
+
+It sets `AlcoveHarnessExecutable`, so:
+- `dotnet run` on your class library starts the harness with `--alcove-dev-plugin "<your build output>"`;
+- a `Properties/launchSettings.json` with an **Executable** profile is generated on the first build, if your project has none, so Visual Studio and Rider can start (and debug) the class library. It holds machine-specific paths: delete it to regenerate it (e.g. after changing the harness), or keep your own launch profile instead (`AlcoveGenerateLaunchSettings=false` turns generation off).
+
+Without a harness package, set the property yourself: `<AlcoveHarnessExecutable>path/to/MyApp.Harness.exe</AlcoveHarnessExecutable>` (a framework-dependent `.dll` works too: it's started with `dotnet`). `AlcoveHarnessArguments` adds arguments after the development plugin.
+
+**A harness project.** Add a small exe project that starts the harness and names your plugin as a `PluginUnderTest`:
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MyApp.Harness" Version="2.*" />
+    <PackageReference Include="Alcove.Sdk" Version="1.*" PrivateAssets="all" />
+    <PluginUnderTest Include="..\Contoso.Charts\Contoso.Charts.csproj" />
+  </ItemGroup>
+</Project>
+```
+
+```csharp
+await MyApp.Harness.HarnessApp.RunAsync(args);   // whatever the host's harness package offers
+```
+
+`PluginUnderTest` builds your plugin first but never references it or copies it into the harness output (it must not load into the app's default context), and records its build output folder in the harness assembly, so no command-line arguments are needed. Start the harness project with F5.
+
+**What's different from an installed plugin.** Your plugin's dependencies come from its `deps.json`, classified as an install would classify them against the host. Where the build differs from what an install would load, validation warns (`DevelopmentDependencyDiffers`, e.g. the host has a newer version of a host-shared package, so that's the one you run with); a host-owned package the host can't satisfy is an error, just as after a real install (`HostOwnedConflict`, `HostOwnedMissing`). An installed plugin with the same ID is left installed but isn't loaded while yours runs (`DevelopmentPluginOverridesInstalled`). Your plugin may depend on installed plugins or other development plugins. A development plugin is never recorded in the host's state file, trust-verified or cleaned up; `PluginInfo.IsDevelopment` tells the host it's one.
+
+**Hot Reload.** Not guaranteed, but `dotnet watch` on the plugin project (or on the harness project) applies method-body edits to the running plugin; see the [design notes](design/development-plugins.md#spike-results).
+
+## 8. Publish
 
 Push the `.nupkg` to whatever feed the host uses. Signing is optional unless the host's trust policy requires it.
 

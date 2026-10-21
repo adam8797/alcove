@@ -78,6 +78,72 @@ internal static class DepsJsonReader
         return new AppDeps(framework, rid, packages, runtimePacks, runtimePackAssemblies);
     }
 
+    /// <summary>An asset of a library in a <c>deps.json</c>: its path as listed, and its RID, culture or assembly version.</summary>
+    /// <param name="Path">The path as listed (forward slashes), e.g. <c>lib/net8.0/Foo.dll</c>.</param>
+    /// <param name="AssetType"><c>runtime</c>, <c>native</c> or <c>resources</c>.</param>
+    /// <param name="RuntimeIdentifier">For a RID-specific asset (<c>runtimeTargets</c>), its RID.</param>
+    /// <param name="Culture">For a satellite assembly, its culture.</param>
+    /// <param name="AssemblyVersion">For a runtime assembly, its assembly version, if listed.</param>
+    public sealed record LibraryAsset(string Path, string AssetType, string? RuntimeIdentifier, string? Culture, string? AssemblyVersion);
+
+    /// <summary>A library of a <c>deps.json</c> with its dependencies (ID → version) and every asset.</summary>
+    public sealed record Library(string Id, string VersionText, string Type, IReadOnlyDictionary<string, string> Dependencies, IReadOnlyList<LibraryAsset> Assets);
+
+    /// <summary>
+    /// Reads every library of a component's <c>deps.json</c> (e.g. a plugin's build output) with all its assets:
+    /// <c>runtime</c>, <c>native</c>, <c>resources</c> and the RID-specific <c>runtimeTargets</c>.
+    /// </summary>
+    /// <exception cref="InvalidDataException">The file is malformed or has no runtime target.</exception>
+    public static IReadOnlyList<Library> ReadLibraries(string path)
+    {
+        using var document = Parse(path);
+        var root = document.RootElement;
+        var (_, target) = GetTarget(root, path);
+        var libraries = root.TryGetProperty("libraries", out var l) && l.ValueKind == JsonValueKind.Object ? l : default;
+        var result = new List<Library>();
+        foreach (var library in target.EnumerateObject())
+        {
+            if (library.Value.ValueKind != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            var (id, versionText) = SplitKey(library.Name);
+            var info = libraries.ValueKind == JsonValueKind.Object && libraries.TryGetProperty(library.Name, out var i) && i.ValueKind == JsonValueKind.Object ? i : default;
+            var dependencies = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            if (library.Value.TryGetProperty("dependencies", out var deps) && deps.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var dependency in deps.EnumerateObject())
+                {
+                    dependencies[dependency.Name] = dependency.Value.ValueKind == JsonValueKind.String ? dependency.Value.GetString() ?? "" : "";
+                }
+            }
+
+            var assets = new List<LibraryAsset>();
+            foreach (var (section, assetType) in new[] { ("runtime", "runtime"), ("native", "native"), ("resources", "resources"), ("runtimeTargets", "") })
+            {
+                if (!library.Value.TryGetProperty(section, out var entries) || entries.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
+                foreach (var entry in entries.EnumerateObject())
+                {
+                    assets.Add(new LibraryAsset(
+                        entry.Name.Replace('\\', '/'),
+                        assetType.Length > 0 ? assetType : GetString(entry.Value, "assetType") ?? "runtime",
+                        GetString(entry.Value, "rid"),
+                        GetString(entry.Value, "locale"),
+                        GetString(entry.Value, "assemblyVersion")));
+                }
+            }
+
+            result.Add(new Library(id, versionText, GetString(info, "type") ?? "unknown", dependencies, assets));
+        }
+
+        return result;
+    }
+
     /// <summary>Reads a shared framework's <c>deps.json</c>; the name and resolved version come from its path.</summary>
     public static (SharedFramework Framework, IReadOnlyList<HostAssembly> Assemblies) ReadFrameworkDeps(string path)
     {

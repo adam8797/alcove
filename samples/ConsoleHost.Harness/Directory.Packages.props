@@ -1,0 +1,6 @@
+<Project>
+  <!-- Built like an external project: no central package management. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>

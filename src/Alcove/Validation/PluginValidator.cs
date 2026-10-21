@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Alcove.Cells;
+using Alcove.Development;
 using Alcove.Hosting;
 using Alcove.Inspection;
 using Alcove.Loading;
@@ -26,6 +27,7 @@ internal sealed class PluginValidator
     private readonly AssetSelector _assets;
     private readonly Func<string, string?> _hostAssemblyPath;
     private readonly Lazy<HostAssemblyFiles> _hostFiles;
+    private readonly IReadOnlyList<DevelopmentPlugin> _development;
     private readonly ILogger _logger;
 
     /// <summary>Creates a validator.</summary>
@@ -35,13 +37,15 @@ internal sealed class PluginValidator
     /// <param name="loggerFactory">Logging.</param>
     /// <param name="assets">Asset selection; <see cref="AssetSelector.Default"/> if omitted.</param>
     /// <param name="hostAssemblyPath">Finds the file of a host assembly by simple name, for WPF duplicate checks against the default context.</param>
+    /// <param name="development">Development plugins to read from their build output and validate with the installed ones.</param>
     public PluginValidator(
         HostInventory host,
         PackageLayout layout,
         IEnumerable<CellDefinition> appCells,
         ILoggerFactory? loggerFactory = null,
         AssetSelector? assets = null,
-        Func<string, string?>? hostAssemblyPath = null)
+        Func<string, string?>? hostAssemblyPath = null,
+        IEnumerable<DevelopmentPlugin>? development = null)
     {
         ArgumentNullException.ThrowIfNull(host);
         ArgumentNullException.ThrowIfNull(layout);
@@ -52,6 +56,7 @@ internal sealed class PluginValidator
         _assets = assets ?? AssetSelector.Default;
         _hostAssemblyPath = hostAssemblyPath ?? TrustedPlatformAssemblies.Find;
         _hostFiles = new Lazy<HostAssemblyFiles>(() => HostAssemblyFiles.FromCurrentProcess(host));
+        _development = development?.ToList() ?? [];
         _logger = (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger("Alcove.Validation");
     }
 
@@ -88,11 +93,20 @@ internal sealed class PluginValidator
             }
         }
 
+        // Development plugins (ADR 0017) join the installed ones; one with an installed plugin's ID replaces it for this run.
+        var development = ReadDevelopmentPlugins(all, issues);
+
         var enabled = all.Values.Where(p => p.Enabled).ToList();
         var manifests = new Dictionary<string, PluginManifest?>(StringComparer.OrdinalIgnoreCase);
         foreach (var plugin in enabled)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (development.TryGetValue(plugin.Id, out var build))
+            {
+                manifests[plugin.Id] = build.Manifest;
+                continue;
+            }
+
             manifests[plugin.Id] = CheckPackages(plugin, issues);
             CheckHostRanges(plugin, issues);
         }
@@ -108,7 +122,7 @@ internal sealed class PluginValidator
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        var classifications = Classify(enabled, assignment, manifests);
+        var classifications = Classify(enabled, assignment, manifests, development);
         // Host-owned dependencies with recorded ranges were checked against their ranges (CheckHostRanges); the
         // classifier's "host version lower than resolved" check only stands in for state files without ranges.
         var rangeChecked = enabled
@@ -152,7 +166,7 @@ internal sealed class PluginValidator
         if (loadable.Count != enabled.Count)
         {
             // The cells hold only what will load; blocked plugins' assemblies are left out of every plan.
-            classifications = Classify(loadable, assignment, manifests);
+            classifications = Classify(loadable, assignment, manifests, development);
         }
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -164,6 +178,7 @@ internal sealed class PluginValidator
             : new PlannedPlugin(p, manifests[p.Id], assignment.Cells[p.Id], PluginStatus.NotLoaded, blocked.GetValueOrDefault(p.Id))
             {
                 DiscoveredEntryPoint = discovered.GetValueOrDefault(p.Id),
+                IsDevelopment = development.ContainsKey(p.Id),
             })
             .ToList();
         return Finish(issues, planned, classifications, TopologicalOrder(planned.Where(p => p.IsLoadable).ToList()));
@@ -491,10 +506,47 @@ internal sealed class PluginValidator
         return found;
     }
 
-    private List<CellClassification> Classify(IEnumerable<PluginState> plugins, CellAssignment assignment, Dictionary<string, PluginManifest?> manifests)
+    private List<CellClassification> Classify(
+        IEnumerable<PluginState> plugins, CellAssignment assignment, Dictionary<string, PluginManifest?> manifests, Dictionary<string, DevelopmentBuild> development)
     {
         var state = new StateDocument { Plugins = plugins.Select(p => p with { Cell = assignment.Cells[p.Id] }).ToList() };
-        return new AssemblyClassifier(_host, _layout, _assets, p => manifests.GetValueOrDefault(p.Id)).Classify(state).ToList();
+        return new AssemblyClassifier(
+            _host,
+            _layout,
+            _assets,
+            p => manifests.GetValueOrDefault(p.Id),
+            (owner, packageId) => development.TryGetValue(owner.Id, out var build) ? build.Locate(packageId) : null)
+            .Classify(state).ToList();
+    }
+
+    /// <summary>
+    /// Reads the development plugins and puts them in <paramref name="all"/> (enabled, replacing an installed plugin with
+    /// the same ID, with a warning). Returns them by ID.
+    /// </summary>
+    private Dictionary<string, DevelopmentBuild> ReadDevelopmentPlugins(Dictionary<string, PluginState> all, IssueList issues)
+    {
+        var builds = new Dictionary<string, DevelopmentBuild>(StringComparer.OrdinalIgnoreCase);
+        if (_development.Count == 0)
+        {
+            return builds;
+        }
+
+        var reader = new DevelopmentPluginReader(_host, _assets, _logger);
+        foreach (var build in reader.Read(_development, all.Keys.ToList(), (severity, code, message, pluginId) => issues.Add(severity, code, message, pluginId)))
+        {
+            if (all.TryGetValue(build.Id, out var installed))
+            {
+                issues.Add(ValidationSeverity.Warning, ValidationCodes.DevelopmentPluginOverridesInstalled,
+                    $"The development plugin {build.Id} {build.State.Version} from '{build.Directory}' is loaded instead of the installed {installed.Id} {installed.Version}, which stays installed.",
+                    build.Id);
+            }
+
+            all[build.Id] = build.State;
+            builds[build.Id] = build;
+            DevelopmentLog.Planned(_logger, build.Id, build.State.Version, build.Directory);
+        }
+
+        return builds;
     }
 
     private static void AddClassificationIssue(ClassificationIssue issue, IssueList issues)

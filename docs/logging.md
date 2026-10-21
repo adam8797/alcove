@@ -11,6 +11,7 @@ Levels: **Error** only for things that went wrong unexpectedly (plugin faults, h
 | 2100–2199 | Extension catalog (`CatalogLog`) |
 | 2200–2299 | Validation (`ValidationLog`) |
 | 2300–2399 | Cell service providers (`CellServicesLog`) |
+| 2400–2499 | Development plugins (`DevelopmentLog`) |
 | 3000–3099 | Feeds, resolution and install (`FeedLog`) |
 | 4000–4099 | Trust and signatures (`TrustLog`) |
 | 5000–5099 | Lifecycle: staged changes, cleanup, restore, verify (`LifecycleLog`) |
@@ -48,6 +49,8 @@ Levels: **Error** only for things that went wrong unexpectedly (plugin faults, h
 | 2300 | Debug | Cell service provider created |
 | 2301 | Error | Cell service provider creation failed |
 | 2302 | Warning | Cell provider dispose threw |
+| 2400 | Information | Development plugin loads from its build output |
+| 2401 | Debug | Development plugin dependency classified |
 | 3000 | Debug | NuGet debug/info |
 | 3001 | Information | NuGet minimal |
 | 3002 | Warning | NuGet warning |

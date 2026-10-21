@@ -67,6 +67,19 @@ interface Alcove.Cells.ICellObserver
 interface Alcove.Cells.ICellServicesFactory
   IServiceProvider CreateServices(CellServicesContext context)
   IReadOnlyCollection<string> ServicePluginInterfaces { get; }
+sealed class Alcove.Development.AlcoveDevelopmentPluginAttribute : Attribute
+  .ctor(string outputDirectory)
+  string OutputDirectory { get; }
+  string? ProjectPath { get; set; }
+sealed class Alcove.Development.DevelopmentPlugin
+  .ctor(string outputDirectory, string? projectPath = null)
+  string OutputDirectory { get; }
+  string? ProjectPath { get; }
+  override string ToString()
+static class Alcove.Development.DevelopmentPluginExtensions
+  static IReadOnlyList<DevelopmentPlugin> AddDevelopmentPluginsFrom(this PluginHostOptions options, IReadOnlyList<string> args, IDictionary? environment)
+  const string CommandLineOption = "--alcove-dev-plugin"
+  const string EnvironmentVariable = "ALCOVE_DEV_PLUGINS"
 interface Alcove.Feeds.ICredentialProvider
   Task<NetworkCredential?> GetCredentialsAsync(Uri feed, bool isRetry, CancellationToken cancellationToken = default)
 sealed record Alcove.Feeds.PackageFeed
@@ -276,6 +289,7 @@ sealed class Alcove.PluginHostOptions
   ICellServicesFactory? CellServicesFactory { get; set; }
   IList<CellDefinition> Cells { get; init; }
   ICredentialProvider? CredentialProvider { get; set; }
+  IList<DevelopmentPlugin> DevelopmentPlugins { get; init; }
   bool FailFast { get; set; }
   IList<PackageFeed> Feeds { get; init; }
   IList<string> HostOwnedPackages { get; init; }
@@ -292,6 +306,7 @@ sealed class Alcove.PluginInfo
   string? Cell { get; }
   Exception? Fault { get; }
   string Id { get; }
+  bool IsDevelopment { get; }
   string? Reason { get; }
   PluginStatus Status { get; }
   override string ToString()
@@ -348,6 +363,9 @@ static class Alcove.Validation.ValidationCodes
   const string CellDefinitionConflict = "CellDefinitionConflict"
   const string CellVersionConflict = "CellVersionConflict"
   const string ContentHashMismatch = "ContentHashMismatch"
+  const string DevelopmentDependencyDiffers = "DevelopmentDependencyDiffers"
+  const string DevelopmentPluginInvalid = "DevelopmentPluginInvalid"
+  const string DevelopmentPluginOverridesInstalled = "DevelopmentPluginOverridesInstalled"
   const string EntryPointAmbiguous = "EntryPointAmbiguous"
   const string ExposedDependencyConflict = "ExposedDependencyConflict"
   const string FileChanged = "FileChanged"

@@ -3,7 +3,7 @@ using NuGet.Versioning;
 namespace Alcove;
 
 /// <summary>
-/// An installed plugin as this host sees it: identity, cell and load status. The same instance is updated
+/// An installed (or development) plugin as this host sees it: identity, cell and load status. The same instance is updated
 /// when the status changes (e.g. to <see cref="PluginStatus.Faulted"/> when an extension can't be created).
 /// </summary>
 public sealed class PluginInfo
@@ -13,8 +13,9 @@ public sealed class PluginInfo
     private Exception? _fault;
     private string? _reason;
 
-    internal PluginInfo(string id, NuGetVersion version, string? cell, PluginStatus status, string? reason)
+    internal PluginInfo(string id, NuGetVersion version, string? cell, PluginStatus status, string? reason, bool isDevelopment = false)
     {
+        IsDevelopment = isDevelopment;
         Id = id;
         Version = version;
         Cell = cell;
@@ -25,8 +26,14 @@ public sealed class PluginInfo
     /// <summary>The plugin's ID (its NuGet package ID).</summary>
     public string Id { get; }
 
-    /// <summary>The installed version.</summary>
+    /// <summary>The installed version (for a development plugin, the version its build output records).</summary>
     public NuGetVersion Version { get; }
+
+    /// <summary>
+    /// Whether it's a development plugin (<see cref="PluginHostOptions.DevelopmentPlugins"/>): loaded from its build output,
+    /// not installed, never recorded in the state file and not trust-verified.
+    /// </summary>
+    public bool IsDevelopment { get; }
 
     /// <summary>The cell the plugin is assigned to, or <see langword="null"/> if it wasn't assigned one (e.g. disabled).</summary>
     public string? Cell { get; }
@@ -72,7 +79,8 @@ public sealed class PluginInfo
     {
         lock (_gate)
         {
-            return _reason is null ? $"{Id} {Version}: {_status}" : $"{Id} {Version}: {_status} ({_reason})";
+            var development = IsDevelopment ? " (development)" : "";
+            return _reason is null ? $"{Id} {Version}{development}: {_status}" : $"{Id} {Version}{development}: {_status} ({_reason})";
         }
     }
 
