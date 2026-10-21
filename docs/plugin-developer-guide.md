@@ -198,7 +198,7 @@ There are two ways, depending on what the host provides.
 
 It sets `AlcoveHarnessExecutable`, so:
 - `dotnet run` on your class library starts the harness with `--alcove-dev-plugin "<your build output>"`;
-- a `Properties/launchSettings.json` with a **Project** profile (the harness command line) is generated on the first build, if your project has none, so Visual Studio and Rider can start (and debug, with Hot Reload) the class library. It holds machine-specific paths: delete it to regenerate it (e.g. after changing the harness), or keep your own launch profile instead (`AlcoveGenerateLaunchSettings=false` turns generation off).
+- a `Properties/launchSettings.json` is generated on the first build, if your project has none, so Visual Studio and Rider can start (and debug, with Hot Reload) the class library. It has two profiles with the harness command line, because the two IDEs need different ones: "<project> in harness" for Visual Studio (its default) and "<project> in harness (Rider)" for Rider. Rider lists both: pick the Rider one (the other fails with "Entry point not found"). It holds machine-specific paths: delete it to regenerate it (e.g. after changing the harness), or keep your own launch profile instead (`AlcoveGenerateLaunchSettings=false` turns generation off).
 
 Without a harness package, set the property yourself: `<AlcoveHarnessExecutable>path/to/MyApp.Harness.exe</AlcoveHarnessExecutable>` (a framework-dependent `.dll` works too: it's started with `dotnet`). `AlcoveHarnessArguments` adds arguments after the development plugin.
 

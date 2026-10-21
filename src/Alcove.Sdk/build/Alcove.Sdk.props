@@ -19,7 +19,7 @@
                                A harness package usually sets it from its build/<id>.props.
       AlcoveHarnessArguments   Optional. More arguments for the harness, after the development plugin.
       AlcoveGenerateLaunchSettings  Optional. Defaults to true with AlcoveHarnessExecutable: generates
-                               Properties/launchSettings.json (a "Project" profile) if the project has none.
+                               Properties/launchSettings.json (profiles for Visual Studio and Rider) if the project has none.
     Items:
       PluginPrivateDependency  Package IDs that are always cell-private.
       PluginHostOwnedPackage   Package IDs the host provides. They stay nuspec dependencies (their version

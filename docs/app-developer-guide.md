@@ -416,6 +416,6 @@ What the host does with them:
 </Project>
 ```
 
-`Alcove.Sdk` then sets `RunCommand`/`RunArguments` (`--alcove-dev-plugin "<build output>"`, plus `AlcoveHarnessArguments`), so `dotnet run` works on the class library, and generates a `Properties/launchSettings.json` "Project" profile with the harness command line if the plugin project has none, which Visual Studio needs to start a class library. The IDE starts your executable itself, so its debugger is attached from the first line. A framework-dependent `.dll` works too (it's started with `dotnet`).
+`Alcove.Sdk` then sets `RunCommand`/`RunArguments` (`--alcove-dev-plugin "<build output>"`, plus `AlcoveHarnessArguments`), so `dotnet run` works on the class library, and generates a `Properties/launchSettings.json` with the harness command line if the plugin project has none, which Visual Studio and Rider need to start a class library (a "Project" profile for Visual Studio, an "Executable" one for Rider). The IDE starts your executable itself, so its debugger is attached from the first line. A framework-dependent `.dll` works too (it's started with `dotnet`).
 
 `samples/ConsoleHost.Harness` is a working example of both styles (see [samples/README.md](../samples/README.md)).

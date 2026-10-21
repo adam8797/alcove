@@ -95,7 +95,7 @@ await Foo.Harness.FooHarness.RunAsync(args);
 An app developer can make `Foo.Harness` a package that ships Foo (or a stand-in host) under `tools/` plus `buildTransitive` targets. A plugin project that references `Foo.Harness` then gets:
 
 - `RunCommand` = the harness executable, and `RunArguments` = `--alcove-dev-plugin "$(TargetDir)"`. Verified: `dotnet run` honours these for a class library (2026-10-20).
-- For Visual Studio, which won't start a class library without a launch profile: a generated `Properties/launchSettings.json` "Project" profile with the harness command line (only if the project has none). Not "Executable": VS has no Hot Reload for those (Windows results below).
+- For Visual Studio and Rider, which won't start a class library without a launch profile: a generated `Properties/launchSettings.json` (only if the project has none) with two profiles holding the harness command line, a "Project" one for VS (it has no Hot Reload for "Executable" profiles) and an "Executable" one for Rider (it runs the class library itself for a "Project" profile). Windows results below.
 
 In both IDE paths the IDE starts the harness executable itself, so its debugger is attached from the first line and breakpoints in the plugin just hit; no manual "attach to process".
 
@@ -156,7 +156,7 @@ Run on Linux, .NET SDK 10.0.203, with `samples/ConsoleHost.Harness` and `samples
 
 For someone with Visual Studio 2026, Rider and VS Code (C# Dev Kit), on Windows. Prepare once: run `samples/run-harness-sample.sh` from Git Bash (or the steps in it by hand), so the sample plugins are packed and installed into `artifacts/sample/plugin-root`. Open `samples/plugins/Sample.Time/Sample.Time.csproj` (and, for style 1, `samples/ConsoleHost.Harness/ConsoleHost.Harness.csproj`); restore needs `AlcoveVersion` and `RestoreConfigFile` (set them as environment variables, as in samples/README.md, before starting the IDE). Record for each IDE: works / doesn't / what you saw.
 
-1. **Launch profile.** After the first build of `Sample.Time`, `Properties/launchSettings.json` exists with the profile "Sample.Time in harness" (`commandName: Project`; `Executable` before 2026-10-21). The IDE lists it as a start profile.
+1. **Launch profile.** After the first build of `Sample.Time`, `Properties/launchSettings.json` exists with the profiles "Sample.Time in harness" (`commandName: Project`) and "Sample.Time in harness (Rider)" (`Executable`); before 2026-10-21, only an `Executable` one. The IDE lists it as a start profile.
 2. **F5 on the class library (style 2).** Pressing F5 (Debug) on `Sample.Time` starts `ConsoleHost.Harness` under the debugger, with no "a class library can't be started" error and no manual attach. Its console shows `Sample.Time ... development ... Loaded`.
    - Rider: if it ignores the profile, try its "Run/Debug configuration: .NET Launch Settings Profile", and note whether it picks up `RunCommand` on its own (its ".NET Project" configuration).
    - VS Code: C# Dev Kit, "Run and Debug" → C#: does it offer the launch profile for a class library? If not, note it; a `launch.json` `coreclr` configuration with `program: dotnet`, `args: [<harness dll>, "--alcove-dev-plugin", "<bin>"]` is the fallback to try.
@@ -182,3 +182,15 @@ Visual Studio 2026 Community 18.11, .NET SDK 10.0.402, Windows 11; the checklist
 | Rude edit (`sealed` removed) | – | ENC0004 "Updating the modifiers of class requires restarting the application"; rebuild-and-restart brings the harness back with the change | – | Same ENC0004; restart works (VS also logs "An unexpected error has occurred, any pending updates have been discarded") |
 
 So VS gives Hot Reload to the plugin in its cell when the session belongs to a project: a `Project` profile, or the harness project itself. A `Project` profile on the class library needs the harness command line in `commandLineArgs`, which the generator writes. An automated run (DTE) the night before hung with the `Project` profile, the injected Hot Reload agent waiting for VS; it didn't happen by hand, so it's put down to the automation.
+
+### Windows results: Rider (2026-10-21)
+
+Rider on Windows 11, the same machine and checklist, style 2:
+
+| Profile | Result |
+|---|---|
+| `Project` with `commandLineArgs` (VS's) | **Fails**: Rider runs the class library itself, `System.MissingMethodException: Entry point not found in assembly 'Sample.Time'` |
+| `Project` with `commandLineArgs` and `executablePath: dotnet` | **Fails** the same way: Rider ignores `executablePath` for a `Project` profile |
+| `Executable` (`dotnet` with the harness command line) | **Works**: the breakpoint hits, and Hot Reload applies the edit to the plugin in its cell |
+
+No one profile works in both IDEs, so the generator writes two: "*project* in harness" (`Project`, first, so it's VS's default) and "*project* in harness (Rider)" (`Executable`). Both were then checked as generated: breakpoint and Hot Reload work in VS with the first and in Rider with the second. Rider lists both (and keeps run configurations from profiles that no longer exist). VS Code wasn't checked.

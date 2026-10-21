@@ -60,14 +60,20 @@ public sealed class HarnessTests(HostingFixtures fixtures)
         Assert.Equal([$"{UserA} 1.0.0 Loaded development=True", $"{UserB} 1.0.0 Loaded development=True"], Lines(result.Output, "PLUGIN "));
         Assert.Contains($"DESCRIBE {UserA}: UserA uses Dep 1.0 in '{UserA}'", result.Output, StringComparison.Ordinal);
 
-        // For IDEs: a "Project" profile (the program is RunCommand) with the same arguments.
+        // For IDEs, the same arguments: a "Project" profile for Visual Studio (the program is RunCommand), an
+        // "Executable" one for Rider.
         using var settings = JsonDocument.Parse(File.ReadAllText(Path.Combine(pluginDirectory, "Properties", "launchSettings.json")));
-        var profile = Assert.Single(settings.RootElement.GetProperty("profiles").EnumerateObject());
-        Assert.Equal($"{UserA} in harness", profile.Name);
-        Assert.Equal("Project", profile.Value.GetProperty("commandName").GetString());
-        Assert.False(profile.Value.TryGetProperty("executablePath", out _));
-        Assert.Equal($"\"{harness}\" --alcove-dev-plugin \"{pluginOutput}\"", profile.Value.GetProperty("commandLineArgs").GetString());
-        Assert.Equal(Path.GetDirectoryName(harness), profile.Value.GetProperty("workingDirectory").GetString());
+        var profiles = settings.RootElement.GetProperty("profiles").EnumerateObject().ToList();
+        Assert.Equal([$"{UserA} in harness", $"{UserA} in harness (Rider)"], profiles.Select(p => p.Name));
+        Assert.Equal("Project", profiles[0].Value.GetProperty("commandName").GetString());
+        Assert.False(profiles[0].Value.TryGetProperty("executablePath", out _));
+        Assert.Equal("Executable", profiles[1].Value.GetProperty("commandName").GetString());
+        Assert.Equal("dotnet", profiles[1].Value.GetProperty("executablePath").GetString());
+        foreach (var profile in profiles)
+        {
+            Assert.Equal($"\"{harness}\" --alcove-dev-plugin \"{pluginOutput}\"", profile.Value.GetProperty("commandLineArgs").GetString());
+            Assert.Equal(Path.GetDirectoryName(harness), profile.Value.GetProperty("workingDirectory").GetString());
+        }
 
         // dotnet run still works with that profile in place (it takes the profile's arguments, the same ones).
         var again = (await Workspace.RunAsync(
