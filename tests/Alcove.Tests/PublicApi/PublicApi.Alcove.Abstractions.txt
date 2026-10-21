@@ -30,6 +30,7 @@ sealed record Alcove.Packaging.PluginManifest
   bool Isolated { get; init; }
   string? PackageId { get; init; }
   static PluginManifest Parse(string json)
+  IReadOnlyList<string>? PluginDependencies { get; init; }
   IReadOnlyList<string> PrivateDependencies { get; init; }
   static PluginManifest Read(Stream utf8Json)
   int SchemaVersion { get; init; }

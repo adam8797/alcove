@@ -29,6 +29,14 @@
     <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">$(_AlcoveAssemblyVersion)</AssemblyVersion>
   </PropertyGroup>
 
+  <!-- A plugin's target path, which referencing projects get back from the reference, names it as a plugin: their
+       manifests record their plugin dependencies (below). -->
+  <ItemDefinitionGroup Condition="'$(AlcoveIsPlugin)' == 'true'">
+    <TargetPathWithTargetPlatformMoniker>
+      <AlcovePluginId>$(PackageId)</AlcovePluginId>
+    </TargetPathWithTargetPlatformMoniker>
+  </ItemDefinitionGroup>
+
   <Target Name="AlcoveValidatePluginProperties" BeforeTargets="BeforeBuild;GenerateNuspec" Condition="'$(AlcoveIsPlugin)' == 'true'">
     <ItemGroup>
       <_AlcovePrivateNotHostOwned Include="@(PluginPrivateDependency)" Exclude="@(PluginHostOwnedPackage)" />
@@ -57,8 +65,28 @@
           BeforeTargets="_GetPackageFiles;CopyFilesToOutputDirectory"
           DependsOnTargets="AlcoveValidatePluginProperties"
           Condition="'$(AlcoveIsPlugin)' == 'true'">
+    <!-- Plugin dependencies, for the build output's manifest: a development plugin's deps.json doesn't say which of its
+         dependencies are plugins. Project references to plugins carry AlcovePluginId (above); package references are
+         plugins when their nuspec has the host's plugin package type. -->
+    <PropertyGroup>
+      <_AlcovePluginPackageTypePattern>(?i)&lt;packageType\s+name=&quot;$([System.Text.RegularExpressions.Regex]::Escape('$(PluginPackageType)'))&quot;</_AlcovePluginPackageTypePattern>
+      <_AlcoveNuGetPackageRoot Condition="'$(NuGetPackageRoot)' != ''">$([MSBuild]::EnsureTrailingSlash('$(NuGetPackageRoot)'))</_AlcoveNuGetPackageRoot>
+    </PropertyGroup>
+
     <ItemGroup>
       <_AlcovePrivateDependencyDistinct Include="@(PluginPrivateDependency->Distinct())" />
+      <_AlcovePluginDependency Include="%(_ResolvedProjectReferencePaths.AlcovePluginId)" Condition="'%(_ResolvedProjectReferencePaths.AlcovePluginId)' != ''" />
+      <_AlcoveDependencyPackage Include="%(RuntimeCopyLocalItems.NuGetPackageId)" Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' != '' and '$(_AlcoveNuGetPackageRoot)' != ''">
+        <Version>%(RuntimeCopyLocalItems.NuGetPackageVersion)</Version>
+      </_AlcoveDependencyPackage>
+      <_AlcoveDependencyPackage>
+        <Nuspec>$(_AlcoveNuGetPackageRoot)$([System.String]::Copy('%(Identity)').ToLowerInvariant())/$([System.String]::Copy('%(Version)').ToLowerInvariant())/$([System.String]::Copy('%(Identity)').ToLowerInvariant()).nuspec</Nuspec>
+      </_AlcoveDependencyPackage>
+      <_AlcoveDependencyNuspec Include="@(_AlcoveDependencyPackage)" Condition="Exists('%(_AlcoveDependencyPackage.Nuspec)')" />
+      <!-- The first test also skips the read when there's no package: the condition is evaluated once regardless. -->
+      <_AlcovePluginDependency Include="@(_AlcoveDependencyNuspec)"
+          Condition="'%(_AlcoveDependencyNuspec.Nuspec)' != '' and $([System.Text.RegularExpressions.Regex]::IsMatch($([System.IO.File]::ReadAllText('%(_AlcoveDependencyNuspec.Nuspec)')), '$(_AlcovePluginPackageTypePattern)'))" />
+      <_AlcovePluginDependencyDistinct Include="@(_AlcovePluginDependency->Distinct())" />
     </ItemGroup>
 
     <PropertyGroup>
@@ -72,7 +100,10 @@
       <_AlcoveManifestJson>{$(_AlcoveNL)  &quot;schemaVersion&quot;: $(AlcovePluginManifestSchemaVersion),$(_AlcoveNL)  &quot;packageId&quot;: &quot;$(PackageId)&quot;,$(_AlcoveNL)  &quot;version&quot;: &quot;$(PackageVersion)&quot;,</_AlcoveManifestJson>
       <_AlcoveManifestJson Condition="'$(PluginEntryPoint)' != ''">$(_AlcoveManifestJson)$(_AlcoveNL)  &quot;entryPoint&quot;: &quot;$(PluginEntryPoint)&quot;,</_AlcoveManifestJson>
       <_AlcoveManifestJson Condition="'$(PluginCell)' != ''">$(_AlcoveManifestJson)$(_AlcoveNL)  &quot;cell&quot;: &quot;$(PluginCell)&quot;,</_AlcoveManifestJson>
-      <_AlcoveManifestJson>$(_AlcoveManifestJson)$(_AlcoveNL)  &quot;isolated&quot;: $(_AlcoveIsolated),$(_AlcoveNL)  &quot;privateDependencies&quot;: [$(_AlcovePrivateDependencies)]$(_AlcoveNL)}</_AlcoveManifestJson>
+      <_AlcovePluginDependencies>@(_AlcovePluginDependencyDistinct->'&quot;%(Identity)&quot;', ', ')</_AlcovePluginDependencies>
+      <_AlcoveManifestJson>$(_AlcoveManifestJson)$(_AlcoveNL)  &quot;isolated&quot;: $(_AlcoveIsolated),$(_AlcoveNL)  &quot;privateDependencies&quot;: [$(_AlcovePrivateDependencies)]</_AlcoveManifestJson>
+      <_AlcoveManifestJson Condition="'$(_AlcovePluginDependencies)' != ''">$(_AlcoveManifestJson),$(_AlcoveNL)  &quot;pluginDependencies&quot;: [ $(_AlcovePluginDependencies) ]</_AlcoveManifestJson>
+      <_AlcoveManifestJson>$(_AlcoveManifestJson)$(_AlcoveNL)}</_AlcoveManifestJson>
       <PluginManifestPath>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', '$(PluginManifestFileName)'))</PluginManifestPath>
     </PropertyGroup>
 

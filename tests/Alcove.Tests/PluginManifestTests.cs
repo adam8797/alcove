@@ -80,6 +80,8 @@ public sealed class PluginManifestTests
         new PluginManifest { EntryPoint = "A.Plugin" },
         new PluginManifest { Cell = "Shared", PrivateDependencies = ["Newtonsoft.Json", "Serilog"] },
         new PluginManifest { Isolated = true, EntryPoint = "Outer+Nested`1" },
+        new PluginManifest { PackageId = "A", Version = "1.0.0", PluginDependencies = ["B.Plugin"] },
+        new PluginManifest { PluginDependencies = [] },
     ];
 
     [Fact]
@@ -116,6 +118,7 @@ public sealed class PluginManifestTests
     [InlineData("""{ "schemaVersion": 1, "privateDependencies": null }""")]
     [InlineData("""{ "schemaVersion": 1, "privateDependencies": [ "" ] }""")]
     [InlineData("""{ "schemaVersion": 1, "privateDependencies": [ null ] }""")]
+    [InlineData("""{ "schemaVersion": 1, "pluginDependencies": [ "" ] }""")]
     [InlineData("""{ "schemaVersion": "1" }""")]
     [InlineData("""{ "schemaVersion": 1, "isolated": "yes" }""")]
     [InlineData("""null""")]
@@ -132,6 +135,15 @@ public sealed class PluginManifestTests
         Assert.Equal(a, b);
         Assert.Equal(a.GetHashCode(), b.GetHashCode());
         Assert.NotEqual(a, new PluginManifest { PrivateDependencies = ["B", "A"] });
+    }
+
+    [Fact]
+    public void PluginDependencies_NotRecorded_IsNullAndDiffersFromNone()
+    {
+        Assert.Null(PluginManifest.Parse("""{ "schemaVersion": 1 }""").PluginDependencies);
+        Assert.Equal(["B"], PluginManifest.Parse("""{ "schemaVersion": 1, "pluginDependencies": [ "B" ] }""").PluginDependencies);
+        Assert.NotEqual(new PluginManifest(), new PluginManifest { PluginDependencies = [] });
+        Assert.Equal(new PluginManifest { PluginDependencies = ["B"] }, new PluginManifest { PluginDependencies = new List<string> { "B" } });
     }
 
     [Fact]

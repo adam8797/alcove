@@ -55,6 +55,14 @@ public sealed record PluginManifest
     /// </summary>
     public string? Version { get; init; }
 
+    /// <summary>
+    /// The package IDs of the plugins this plugin depends on, as the SDK recorded them in the build output (its project
+    /// and package references to plugins). Optional: it tells a development plugin's plugin dependencies apart from its
+    /// other dependencies, since its <c>deps.json</c> can't; <see langword="null"/> if the SDK didn't record them. For an
+    /// installed plugin the dependencies' package types are used and this field is ignored.
+    /// </summary>
+    public IReadOnlyList<string>? PluginDependencies { get; init; }
+
     /// <summary>Gets the manifest file name for a plugin package.</summary>
     /// <param name="packageId">The plugin's package ID.</param>
     /// <returns><c>&lt;packageId&gt;.plugin.json</c>.</returns>
@@ -97,7 +105,10 @@ public sealed record PluginManifest
         && Isolated == other.Isolated
         && PrivateDependencies.SequenceEqual(other.PrivateDependencies, StringComparer.Ordinal)
         && string.Equals(PackageId, other.PackageId, StringComparison.Ordinal)
-        && string.Equals(Version, other.Version, StringComparison.Ordinal);
+        && string.Equals(Version, other.Version, StringComparison.Ordinal)
+        && (PluginDependencies is null
+            ? other.PluginDependencies is null
+            : other.PluginDependencies is not null && PluginDependencies.SequenceEqual(other.PluginDependencies, StringComparer.Ordinal));
 
     /// <inheritdoc />
     public override int GetHashCode() => HashCode.Combine(SchemaVersion, EntryPoint, Cell, Isolated, PrivateDependencies.Count);
@@ -114,6 +125,14 @@ public sealed record PluginManifest
             if (string.IsNullOrWhiteSpace(dependency))
             {
                 throw new JsonException("The plugin manifest's 'privateDependencies' contains an empty entry.");
+            }
+        }
+
+        foreach (var dependency in manifest.PluginDependencies ?? [])
+        {
+            if (string.IsNullOrWhiteSpace(dependency))
+            {
+                throw new JsonException("The plugin manifest's 'pluginDependencies' contains an empty entry.");
             }
         }
 

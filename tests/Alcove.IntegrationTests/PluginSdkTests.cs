@@ -7,7 +7,7 @@ namespace Alcove.IntegrationTests;
 /// Alcove.Sdk end to end: fixture plugins packed with <c>dotnet pack</c> against a local feed
 /// (implementation plan, Phase 2).
 /// </summary>
-public sealed class PluginSdkTests(FixturePackages fixtures)
+public sealed class PluginSdkTests(FixturePackages fixtures, LifecycleFixtures lifecycle)
 {
     private const string PackageType = "FixturePlugin";
 
@@ -101,6 +101,16 @@ public sealed class PluginSdkTests(FixturePackages fixtures)
             new PluginManifest { Cell = "Fixture.Shared", PrivateDependencies = ["Fixture.Library"], PackageId = "Fixture.CellPlugin", Version = "1.0.0" },
             package.ReadManifest());
         Assert.NotNull(package.Dependency("Fixture.Library"));
+    }
+
+    [Fact]
+    public void Manifest_RecordsPluginDependencies_FromPackageReferences()
+    {
+        // Fixture.Lifecycle.User references the plugin package Fixture.Lifecycle.Versioned (its nuspec has the plugin
+        // package type) and the contracts package, which isn't a plugin. Project references: DevelopmentPluginTests.
+        using var package = new PluginPackageReader(Directory.GetFiles(lifecycle.PackagesDirectory, $"{LifecycleFixtures.User}.*.nupkg").Single());
+
+        Assert.Equal([LifecycleFixtures.Versioned], package.ReadManifest()!.PluginDependencies);
     }
 
     [Fact]

@@ -4,6 +4,7 @@ using Alcove.Feeds;
 using Alcove.Hosting;
 using Alcove.Install;
 using Alcove.IntegrationTests.Infrastructure;
+using Alcove.Packaging;
 using Alcove.Validation;
 using Fixture.HostContracts;
 
@@ -124,6 +125,25 @@ public sealed class DevelopmentPluginTests(HostingFixtures fixtures) : IDisposab
     }
 
     [Fact]
+    public async Task APluginDependencyThatIsNeitherInstalledNorADevelopmentPlugin_IsMissing()
+    {
+        // Consumer's bin/ holds a copy of the Provider plugin, which its deps.json lists like any library. The manifest
+        // the SDK wrote there says it's a plugin, so as an install without Provider would, Consumer doesn't load.
+        var manifest = PluginManifest.Parse(File.ReadAllText(Path.Combine(BuildOutput(Consumer), PluginManifest.GetFileName(Consumer))));
+        Assert.Equal([Provider], manifest.PluginDependencies);
+        var host = Create(BuildOutput(Consumer));
+
+        var report = await host.ValidateAsync(Ct);
+        await host.LoadAsync(Ct);
+
+        var error = Assert.Single(report.Errors);
+        Assert.Equal((ValidationCodes.PluginDependencyMissing, Consumer), (error.Code, error.PluginId));
+        Assert.Contains(Provider, error.Message, StringComparison.Ordinal);
+        Assert.Equal(PluginStatus.NotLoaded, Plugin(host, Consumer).Status);
+        Assert.Null(host.CellEnvironment.FindCell(Consumer));
+    }
+
+    [Fact]
     public async Task AHostOwnedConflict_IsAnError()
     {
         // A host whose host-owned Fixture.Dep is 1.0: UserB was built against 2.0, so an install would be incompatible too.
@@ -159,18 +179,20 @@ public sealed class DevelopmentPluginTests(HostingFixtures fixtures) : IDisposab
     {
         // Consumer's deps.json lists Fixture.Dep twice: the project (2.0.0) and a "reference" library
         // (Fixture.Dep.Reference/2.0.0.0, from DisableTransitiveProjectReferences). The host ships Dep 3.0, so like an
-        // install the cell takes the host's copy; the file reference must not bring the bin/ copy back.
+        // install the plugin takes the host's copy; the file reference must not bring the bin/ copy back. (Consumer uses
+        // Dep through its plugin dependency Provider's API, so in the cells Dep resolves through Provider's.)
         var environment = FabricatedHost.With(_host, ("Fixture.Dep", "3.0.0", "3.0.0.0"));
         var inventory = HostInventory.Create(environment, [HostingFixtures.ContractsPackage]);
-        var validator = new PluginValidator(inventory, _root.Layout, [], development: [new DevelopmentPlugin(BuildOutput(Consumer))]);
+        var validator = new PluginValidator(
+            inventory, _root.Layout, [], development: [new DevelopmentPlugin(BuildOutput(Consumer)), new DevelopmentPlugin(BuildOutput(Provider))]);
 
         var plan = validator.Validate(Ct);
 
         Assert.Contains("Fixture.Dep.Reference", File.ReadAllText(Path.Combine(BuildOutput(Consumer), $"{Consumer}.deps.json")), StringComparison.Ordinal);
-        var cell = plan.Cells.Single(c => c.Cell == Consumer).Plan;
-        Assert.Contains("Fixture.Dep", cell.HostShared);
-        Assert.False(cell.Private.ContainsKey("Fixture.Dep"));
-        Assert.Contains(plan.Report.Warnings, w => w.Code == ValidationCodes.DevelopmentDependencyDiffers);
+        Assert.Contains(plan.Report.Warnings, w => w.Code == ValidationCodes.DevelopmentDependencyDiffers && w.PluginId == Consumer);
+        Assert.False(plan.Cells.Single(c => c.Cell == Consumer).Plan.Private.ContainsKey("Fixture.Dep"));
+        Assert.Contains("Fixture.Dep", plan.Cells.Single(c => c.Cell == Provider).Plan.HostShared);
+        Assert.Empty(plan.Report.Errors);
     }
 
     [Fact]

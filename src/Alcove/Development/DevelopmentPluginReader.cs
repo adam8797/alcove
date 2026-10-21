@@ -211,6 +211,7 @@ internal sealed class DevelopmentPluginReader
         // The dependency closure, as an install resolves it: plugin dependencies and host-owned packages bring their
         // own dependencies, which aren't this plugin's.
         var privateDependencies = manifest.PrivateDependencies.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var pluginDependencies = (manifest.PluginDependencies ?? []).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var dependencies = new List<ResolvedDependency>();
         var assets = new Dictionary<string, PackageAssets>(StringComparer.OrdinalIgnoreCase);
         var missing = new List<string>();
@@ -242,7 +243,7 @@ internal sealed class DevelopmentPluginReader
                 dependencyVersion = new NuGetVersion(0, 0, 0);
             }
 
-            var classification = Classify(plugin.Id, library, dependencyVersion, pluginIds, privateDependencies, report);
+            var classification = Classify(plugin.Id, library, dependencyVersion, pluginIds, pluginDependencies, privateDependencies, report);
             DevelopmentLog.Classified(_logger, plugin.Id, library.Id, dependencyVersion, classification.ToString());
             var dependency = new ResolvedDependency
             {
@@ -353,11 +354,21 @@ internal sealed class DevelopmentPluginReader
         }
     }
 
-    /// <summary>Classifies a dependency as an install would against this host; warns where the build output differs.</summary>
+    /// <summary>
+    /// Classifies a dependency as an install would against this host; warns where the build output differs. A plugin the
+    /// SDK recorded as a plugin dependency is one even if it's neither installed nor a development plugin: validation then
+    /// reports it missing, as for an installed plugin, rather than the plugin loading its build output's copy.
+    /// </summary>
     private DependencyClass Classify(
-        string pluginId, DepsJsonReader.Library library, NuGetVersion version, IReadOnlySet<string> pluginIds, HashSet<string> privateDependencies, IssueSink report)
+        string pluginId,
+        DepsJsonReader.Library library,
+        NuGetVersion version,
+        IReadOnlySet<string> pluginIds,
+        HashSet<string> pluginDependencies,
+        HashSet<string> privateDependencies,
+        IssueSink report)
     {
-        if (pluginIds.Contains(library.Id))
+        if (pluginIds.Contains(library.Id) || pluginDependencies.Contains(library.Id))
         {
             return DependencyClass.Plugin;
         }
