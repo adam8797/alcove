@@ -1,6 +1,6 @@
 # 0017. Development plugins loaded from build output
 
-**Status:** Proposed (2026-10-20). Design: [docs/design/development-plugins.md](../design/development-plugins.md).
+**Status:** Accepted (2026-10-20). Design: [docs/design/development-plugins.md](../design/development-plugins.md).
 
 ## Context
 Plugin developers need to run their plugin inside the target app from their IDE without packing and installing. Providing that harness is the app developer's job; Alcove should make it easy and safe.

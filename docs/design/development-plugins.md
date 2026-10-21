@@ -1,6 +1,6 @@
 # Design: development plugins and test harnesses
 
-> Status: **draft for review** (2026-10-20). Decision record: [ADR 0017](../adr/0017-development-plugins.md) (proposed).
+> Status: **accepted** (2026-10-20, after review). Decision record: [ADR 0017](../adr/0017-development-plugins.md).
 
 ## Problem
 
@@ -12,12 +12,13 @@ A plugin developer wants to press F5 and see their plugin running inside the tar
 - Load **standard (installed) plugins** alongside development plugins in the same host, so authors can test against real plugins.
 - Keep it **opt-in by the app**: Alcove never enables development plugins by itself.
 - Support two harness styles: a small **harness project** (option 1) and **F5 on the class library** (option 2).
+- **The plugin developer forgets the plugin is hosted in another app.** They press F5 on the plugin project and the app launches, attached to the debugger, exactly as if they were developing a standalone app. To change code they stop debugging (which closes the app), rebuild and press F5 again: the normal app-development loop.
 - Debugging works out of the box: same process, PDBs next to the DLLs.
 
 ## Non-goals
 
 - Alcove doesn't ship a Foo-specific harness. App developers build their own `Foo.Harness` package with Alcove's help.
-- Edit-and-continue or Hot Reload guarantees (see the spike).
+- Edit-and-continue or Hot Reload guarantees. Not required, but very nice to have: the spike checks what works.
 - Development plugins in production. Nothing in the app's normal startup path should load them.
 
 ## Terms
@@ -41,11 +42,11 @@ options.DevelopmentPlugins.Add(new DevelopmentPlugin(@"..\MyPlugin\bin\Debug\net
 - **Cells:** same rules as installed plugins (app options → manifest request → own cell).
 - **Validation:** runs as usual, plus development-specific checks:
   - a host-owned dependency the host doesn't satisfy → error, just as it would be after a real install;
-  - a dependency resolved differently from how an install would resolve it (e.g. the host has a newer host-shared version) → warning, because production would behave differently.
+  - a dependency resolved differently from how an install would resolve it (e.g. the host has a newer host-shared version) → **warning** (decided), because production would behave differently.
 - **Not done for development plugins:** no state file entries, no trust policy, no hash pinning, no cleanup, no staged changes. `PluginInfo` gets an `IsDevelopment` flag so the app can show it.
 - **Mixing with installed plugins:** both load in one `LoadAsync`. If an installed plugin has the same ID, the development plugin wins for this run, with a warning; the installed one is left untouched on disk.
 - **Plugin-to-plugin dependencies:** a development plugin may depend on another development plugin or on an installed plugin; normal cross-cell rules apply.
-- **File locks:** on Windows a running host locks the DLLs it loaded, so rebuilding during a session fails. Option `ShadowCopy` (default on) copies the build output to a per-run temp folder under the plugin root's `.dev/` folder before loading, so the author can rebuild while the harness runs (the new build is picked up at the next start).
+- **Loaded in place, no copying.** Development plugins load straight from the build output. On Windows the running app locks those DLLs, just as any app being debugged locks its own; that's the intended loop (stop debugging, rebuild, F5).
 
 ### 2. SDK: make a build output loadable
 
@@ -66,7 +67,7 @@ options.AddDevelopmentPluginsFrom(args, Environment.GetEnvironmentVariables());
 - Reads `--alcove-dev-plugin <path>` (repeatable) and the `ALCOVE_DEV_PLUGINS` environment variable (paths separated by `Path.PathSeparator`).
 - Does nothing unless the app calls it, so production code paths stay clean. The docs recommend calling it only from a harness build or behind an explicit flag.
 
-### 4. Harness style 1: a harness project
+### 4. Harness style 1: a harness project (supported; style 2 is the primary experience)
 
 The plugin author adds a small exe project:
 
@@ -89,12 +90,14 @@ await Foo.Harness.FooHarness.RunAsync(args);
 - adds a `ProjectReference` with `ReferenceOutputAssembly="false"` and `Private="false"`, so the plugin is **built first but never copied into the harness or loaded into the default context**;
 - generates an assembly attribute (`[assembly: AlcoveDevelopmentPlugin(@"<plugin output path>")]`) that `AddDevelopmentPluginsFrom` also reads, so no command-line arguments are needed.
 
-### 5. Harness style 2: F5 on the class library
+### 5. Harness style 2: F5 on the class library (the primary experience)
 
 An app developer can make `Foo.Harness` a package that ships Foo (or a stand-in host) under `tools/` plus `buildTransitive` targets. A plugin project that references `Foo.Harness` then gets:
 
 - `RunCommand` = the harness executable, and `RunArguments` = `--alcove-dev-plugin "$(TargetDir)"`. Verified: `dotnet run` honours these for a class library (2026-10-20).
 - For Visual Studio, which won't start a class library without a launch profile: a generated `Properties/launchSettings.json` "Executable" profile (only if the project has none), or documented manual steps.
+
+In both IDE paths the IDE starts the harness executable itself, so its debugger is attached from the first line and breakpoints in the plugin just hit; no manual "attach to process".
 
 Alcove supplies the reusable parts: an `Alcove.Sdk` property (`AlcoveHarnessExecutable`) that sets `RunCommand`/`RunArguments` and generates the launch profile, so each app's harness package needs only a few lines.
 
@@ -119,8 +122,8 @@ Alcove supplies the reusable parts: an `Alcove.Sdk` property (`AlcoveHarnessExec
 5. The spike, then option 2 support.
 6. Docs: plugin developer guide ("Testing your plugin"), app developer guide ("Providing a harness").
 
-## Open questions
+## Decided in review (2026-10-20)
 
-- Hot Reload: required, or is rebuild-and-restart enough? (The spike will show what's possible.)
-- Should `ShadowCopy` default to on for every OS, or only Windows (Linux and macOS don't lock loaded files)?
-- Should the dev plugin's dependency warnings (resolved differently from a real install) be errors under a strict option?
+- **Hot Reload:** not required; the spike checks it because it would be very nice.
+- **No shadow copy:** development plugins load in place; the stop-rebuild-F5 loop is the intended one.
+- **Dependency differences** from a real install: warnings.
