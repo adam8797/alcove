@@ -77,3 +77,12 @@ The host calls `options.UseWpf(app, ...)` (with the opt-in forwarder and view-mo
 | `Sample.Clock` | Hot-installed with the button. Uses the same `Sample.Wpf.Controls` package as `Sample.Charts`, from its own cell: the identical copy is loaded once and shared (ADR 0015) |
 
 "Open the selected panel in a window" creates a new panel instance (panels are transient extensions) in a window.
+
+**Verified on Windows** (2026-10-21, Windows 11, .NET SDK 10.0.402), by hand: the window shows the three panels with
+the app's styles; Notes shows its view through the view-model mapping; Charts renders; "Switch accent colour" changes
+every plugin; Install (hot) loads Clock without a restart, rendering with Charts' `Sample.Wpf.Controls`; with
+`-KeepRoot`, all three load at startup. Closing the window crashed the host (`Close()` inside its own `Closing` event
+when the host's disposal completed synchronously), now fixed. A development plugin works in a WPF host too: with
+`AddDevelopmentPluginsFrom` added to `App.OnStartup` for the check (the sample doesn't keep it), `--alcove-dev-plugin`
+on `Sample.Clock`'s `bin/` loaded its XAML from there in place of the installed Clock, with the override warning, and
+it still followed the accent colour.

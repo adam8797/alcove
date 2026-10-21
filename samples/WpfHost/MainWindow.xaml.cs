@@ -129,11 +129,12 @@ public partial class MainWindow : Window
         }
 
         // Dispose the host (plugins, then the merged dictionaries and the forwarder) before the app ends; await it on the
-        // UI thread rather than blocking on it.
+        // UI thread rather than blocking on it. Close again from the dispatcher: if the disposal completed synchronously,
+        // we're still in this Closing event, where Close() throws.
         e.Cancel = true;
         _subscription?.Dispose();
         await _host.DisposeAsync();
         _disposed = true;
-        Close();
+        _ = Dispatcher.InvokeAsync(Close);
     }
 }
