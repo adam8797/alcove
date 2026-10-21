@@ -25,6 +25,9 @@
 
 ## Waiting on you
 
+The Windows work is planned in [windows-plan.md](windows-plan.md).
+
+
 1. **Signature verification on Windows:** the signature spike's `Verifier matrix` (the last Phase 0b item).
 2. **Publishing:** `0.0.1-alpha` is on nuget.org (2026-10-20). Push a `v<version>` tag to publish the next one (see CONTRIBUTING.md).
 3. **Development plugins in the IDEs:** the [IDE checklist](design/development-plugins.md#ide-checklist) (F5 on a class library, breakpoints, Hot Reload) in Visual Studio 2026, Rider and VS Code.
