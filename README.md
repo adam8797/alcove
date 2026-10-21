@@ -80,8 +80,9 @@ public sealed class ChartsPlugin : IPlugin
 - [CONTEXT.md](CONTEXT.md): glossary. Start here.
 - [docs/overview.md](docs/overview.md): goals, non-goals, scope.
 - [docs/architecture.md](docs/architecture.md): how it works.
-- [docs/app-developer-guide.md](docs/app-developer-guide.md): using it in a host app.
-- [docs/plugin-developer-guide.md](docs/plugin-developer-guide.md): writing a plugin.
+- Quick starts, each about half an hour or less: [for app developers](docs/quickstart-app-developer.md) (contracts, host, harness) and [for plugin developers](docs/quickstart-plugin-developer.md) (a plugin you can press F5 on).
+- [docs/app-developer-guide.md](docs/app-developer-guide.md): using it in a host app, including providing a harness for plugin developers.
+- [docs/plugin-developer-guide.md](docs/plugin-developer-guide.md): writing, running, debugging and publishing a plugin.
 - [docs/adr/](docs/adr/): architecture decision records.
 - [docs/open-questions.md](docs/open-questions.md): unresolved items and planned spikes.
 - [docs/logging.md](docs/logging.md): logging event IDs.

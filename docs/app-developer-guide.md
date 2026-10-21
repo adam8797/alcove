@@ -1,6 +1,8 @@
 # App developer guide
 
-This guide is for people building a **host app** that loads plugins.
+This guide is for people building a **host app** that loads plugins. New to Alcove? Start with the [quick start](quickstart-app-developer.md), which builds a host, its contracts and a harness.
+
+**Contents:** [1. Extension points](#1-define-your-extension-points) · [2. Create and load the host](#2-create-and-load-the-host) · [3. Use extensions](#3-use-extensions) · [4. Manage plugins](#4-manage-plugins) · [5. Cells](#5-cells) · [6. Dependency injection](#6-dependency-injection-optional) · [7. WPF](#7-wpf) · [8. Trust](#8-trust) · [9. Things to avoid](#9-things-to-avoid) · [10. Extending Alcove](#10-extending-alcove) · [11. Providing a harness](#11-providing-a-harness)
 
 **Namespaces.** The entry points are in `Alcove`: `PluginHost`, `PluginHostOptions`, `PluginInfo`, `PluginStatus`, `PluginException` and `PluginFaultedEventArgs`, plus the plugin contracts (`IPlugin`, `ExtensionAttribute`, …). Everything else is in the namespace of its feature:
 
@@ -374,6 +376,9 @@ public sealed record PluginManifest   // Alcove.Packaging; <PackageId>.plugin.js
     public string? Cell { get; init; }
     public bool Isolated { get; init; }
     public IReadOnlyList<string> PrivateDependencies { get; init; }
+    public string? PackageId { get; init; }                         // these three: read for development plugins, ignored when installed
+    public string? Version { get; init; }
+    public IReadOnlyList<string>? PluginDependencies { get; init; }
     public static PluginManifest Parse(string json);
     public static PluginManifest Read(Stream utf8Json);
     public static string GetFileName(string packageId);
@@ -385,37 +390,105 @@ public sealed record PluginManifest   // Alcove.Packaging; <PackageId>.plugin.js
 
 Plugin developers want to press F5 and see their plugin running in your app, without packing and installing it every time. Providing that **harness** is your job; Alcove gives you the parts ([ADR 0017](adr/0017-development-plugins.md)). A harness is a program that starts your app (or a stand-in host) with **development plugins**: plugins loaded straight from their build output, next to the installed ones, in their own cells, with the same classification and validation.
 
-**Enabling development plugins is always your explicit choice.** Nothing loads them unless you fill `PluginHostOptions.DevelopmentPlugins` (code only, never read from the configuration file). The convention:
+The [quick start](quickstart-app-developer.md#4-provide-a-harness) builds one in a few minutes. This section is the detail.
+
+### 11.1 The harness program
+
+**Enabling development plugins is always your explicit choice.** Nothing loads them unless you fill `PluginHostOptions.DevelopmentPlugins` (code only, never read from the configuration file). Do it in the harness's entry point, never on your app's normal startup path:
 
 ```csharp
 using Alcove.Development;
 
-// In the harness's entry point only, never on the app's normal startup path:
-var options = MyApp.CreatePluginHostOptions(harnessRoot);       // your usual root, feeds, host-owned packages
+var options = MyAppHost.CreateOptions(harnessRoot);   // your usual root, feeds, host-owned packages, cells, add-ons
 options.AddDevelopmentPluginsFrom(args, Environment.GetEnvironmentVariables());
+await MyAppHost.RunAsync(options);                    // your app, as it always starts
 ```
 
-`AddDevelopmentPluginsFrom` reads every `--alcove-dev-plugin <folder>` (repeatable; also `--alcove-dev-plugin=<folder>`), the `ALCOVE_DEV_PLUGINS` environment variable (folders separated by `Path.PathSeparator`) and the entry assembly's `[assembly: AlcoveDevelopmentPlugin(...)]` attributes (generated for `PluginUnderTest` items). It leaves the options in `args`. Call it from a harness build, or behind an explicit flag of your own.
+`AddDevelopmentPluginsFrom` reads every `--alcove-dev-plugin <folder>` (repeatable; also `--alcove-dev-plugin=<folder>`), the `ALCOVE_DEV_PLUGINS` environment variable (folders separated by `Path.PathSeparator`) and the entry assembly's `[assembly: AlcoveDevelopmentPlugin(...)]` attributes (generated for `PluginUnderTest` items). It returns what it added and leaves the options in `args`, so your own argument parsing must ignore them.
 
-What the host does with them:
-- **Identity** comes from the `<PackageId>.plugin.json` that `Alcove.Sdk` writes into the build output (`packageId`, `version`); **dependencies** from the plugin's `deps.json`, classified against your host inventory. Cell-private assemblies load from the build output, in place.
-- **Validation** as usual, plus: a host-owned package the host can't satisfy is an error (`HostOwnedConflict`, `HostOwnedMissing`); a dependency resolved differently from how an install would resolve it is a warning (`DevelopmentDependencyDiffers`); an unusable folder is an error for that plugin only (`DevelopmentPluginInvalid`).
-- An installed plugin with the same ID stays installed but the development plugin loads instead, for this run (`DevelopmentPluginOverridesInstalled`). Plugin dependencies between development and installed plugins work as between installed ones.
-- **Nothing is recorded:** no state file entry, no trust policy check, no hash pinning, no cleanup, no staged changes, not in `GetPendingChangesAsync`. `PluginInfo.IsDevelopment` lets your UI show it. Lifecycle calls (`UpdateAsync`, `DisableAsync`, ...) with its ID act on the installed plugin, if any. An install of a plugin with a development plugin's ID while it runs is `PendingRestart`.
-- Use a plugin root of your choosing for the harness, typically a separate "harness" root, so authors don't touch their real installation.
+Things to decide:
+- **Share the startup code.** The harness should start your app the way it always starts: the same options, cells, DI add-on, `UseWpf`, main window. Put that in a method both entry points call (`MyAppHost.CreateOptions` and `RunAsync` above), in your app's project or a library both reference.
+- **The plugin root.** Use a root of the harness's own (e.g. `%LOCALAPPDATA%\MyApp\harness-plugins`), so plugin developers don't touch their real installation. Plugins installed there load next to the development plugins, which is how a plugin developer tests against the plugins theirs depends on. Consider accepting a `--root` argument; plugin developers can pass it with `AlcoveHarnessArguments`.
+- **Feeds.** Keep your normal feeds, so plugin developers can install other plugins into the harness root from the running harness.
+- **Show what's happening.** Print or show `ValidateAsync`'s issues and mark development plugins in your plugin list (`PluginInfo.IsDevelopment`). Plugin developers rely on the validation codes ([plugin guide](plugin-developer-guide.md#troubleshooting-a-development-plugin)). `FailFast = true` makes the first plugin fault throw, which some prefer while debugging.
+- **Version it with your app.** The harness is your app, so release `MyApp.Harness 2.3.0` with `MyApp 2.3.0` and `MyApp.Contracts 2.3.0`. Plugin developers reference a harness version in the range of contracts they build against.
 
-**Style 1, a harness project.** Ship a `MyApp.Harness` library package with a `RunAsync(args)` that builds your normal `PluginHostOptions`, calls `AddDevelopmentPluginsFrom` and starts your UI. Make it depend on `Alcove.Sdk` (or tell authors to reference it), so the plugin author's harness project can use `<PluginUnderTest Include="..\MyPlugin\MyPlugin.csproj" />`: the plugin is built first but neither referenced nor copied, and its build output is recorded in a generated attribute.
+### 11.2 Packaging the harness (F5 on the plugin project)
 
-**Style 2, F5 on the class library (the main one).** Ship your app (or a stand-in host) in the harness package, e.g. under `tools/`, with a `build/MyApp.Harness.props` (and `buildTransitive/`) that sets one property:
+The main style: plugin developers reference your harness package and press F5 on their class library. The package holds the harness executable and everything it needs under `tools/`, and a `build/` props file that sets one `Alcove.Sdk` property:
 
 ```xml
+<!-- MyApp.Harness/MyApp.Harness.csproj -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>                 <!-- or WinExe, with net10.0-windows, for a WPF app -->
+    <TargetFramework>net10.0</TargetFramework>
+    <PackageId>MyApp.Harness</PackageId>
+    <Description>Runs MyApp with your plugin loaded from its build output.</Description>
+    <IncludeBuildOutput>false</IncludeBuildOutput>                 <!-- nothing under lib/ -->
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>   <!-- the harness brings its own -->
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddHarnessToPackage</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../MyApp/MyApp.csproj" />
+    <None Include="build/MyApp.Harness.props" Pack="true" PackagePath="build/;buildTransitive/" />
+  </ItemGroup>
+  <!-- The whole build output under tools/, including trustedroots/ (signature verification needs it). -->
+  <Target Name="AddHarnessToPackage">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(OutDir)**/*" PackagePath="tools/%(RecursiveDir)%(Filename)%(Extension)" />
+    </ItemGroup>
+  </Target>
+</Project>
+```
+
+```xml
+<!-- MyApp.Harness/build/MyApp.Harness.props -->
 <Project>
   <PropertyGroup>
-    <AlcoveHarnessExecutable>$(MSBuildThisFileDirectory)../tools/MyApp.exe</AlcoveHarnessExecutable>
+    <AlcoveHarnessExecutable>$(MSBuildThisFileDirectory)../tools/MyApp.Harness.dll</AlcoveHarnessExecutable>
   </PropertyGroup>
 </Project>
 ```
 
-`Alcove.Sdk` then sets `RunCommand`/`RunArguments` (`--alcove-dev-plugin "<build output>"`, plus `AlcoveHarnessArguments`), so `dotnet run` works on the class library, and generates a `Properties/launchSettings.json` with the harness command line if the plugin project has none, which Visual Studio and Rider need to start a class library (a "Project" profile for Visual Studio, an "Executable" one for Rider). The IDE starts your executable itself, so its debugger is attached from the first line. A framework-dependent `.dll` works too (it's started with `dotnet`).
+`AlcoveHarnessExecutable` may name the `.exe` or the framework-dependent `.dll` (started with `dotnet`, so it also works on Linux and macOS). With it, `Alcove.Sdk` in the plugin project:
+- sets `RunCommand`/`RunArguments` (`--alcove-dev-plugin "<build output>"`, plus the plugin's `AlcoveHarnessArguments`), so `dotnet run` and `dotnet watch` work on the class library;
+- generates `Properties/launchSettings.json` if the plugin project has none, which Visual Studio and Rider need to start a class library. It has two profiles with the harness command line, because the IDEs need different ones: "*project* in harness" (`Project`, Visual Studio's default; it takes the program from `RunCommand`) and "*project* in harness (Rider)" (`Executable`; Rider runs the class library itself for a `Project` profile). Both were checked on Windows with breakpoints and Hot Reload ([results](design/development-plugins.md#windows-results-visual-studio-2026-2026-10-21)).
 
-`samples/ConsoleHost.Harness` is a working example of both styles (see [samples/README.md](../samples/README.md)).
+The IDE starts your executable itself, so its debugger is attached from the first line.
+
+**Tell plugin developers to reference it with `PrivateAssets="all"`:**
+
+```xml
+<PackageReference Include="MyApp.Harness" Version="2.3.*" PrivateAssets="all" />
+```
+
+`DevelopmentDependency` only makes NuGet add `PrivateAssets="all"` when an IDE or `dotnet add package` adds the reference. Without it, the harness becomes a dependency of the plugin's package, and every install of the plugin downloads your harness.
+
+The harness package doesn't need `Alcove.Sdk`; your app's dependencies come with it in `tools/`. If your contracts package's `build/` props are where plugin developers get `PluginPackageType` from, they still reference the contracts package too.
+
+### 11.3 A harness library (a harness project per plugin)
+
+The alternative: ship a library package, e.g. `MyApp.Harness` with a `HarnessApp.RunAsync(args)` that builds your options, calls `AddDevelopmentPluginsFrom` and starts your app. A plugin developer adds a small exe project that references it and names their plugin with `<PluginUnderTest Include="..\Contoso.Charts\Contoso.Charts.csproj" />` ([plugin guide §7](plugin-developer-guide.md#a-harness-project)). The plugin is built first but neither referenced nor copied, and its build output is recorded in a generated attribute. Make the library depend on `Alcove.Sdk`, or tell plugin developers to reference it, so `PluginUnderTest` is available.
+
+It costs plugin developers a project, but it's an ordinary exe, so every IDE runs it without launch profiles. It's also the way to test several plugins together. You can offer both: the same harness code as a library and, packed as in 11.2, as a tool.
+
+### 11.4 What development plugins get
+
+- **Identity** comes from the `<PackageId>.plugin.json` that `Alcove.Sdk` writes into the build output (`packageId`, `version`), **dependencies** from the plugin's `deps.json`, classified against your host inventory as an install would classify them. Cell-private assemblies load from the build output, in place. Plugin dependencies are the ones the manifest's `pluginDependencies` names (project and package references to plugins), or whose ID is an installed or development plugin.
+- **Validation** as usual, plus: a host-owned package the host can't satisfy is an error (`HostOwnedConflict`, `HostOwnedMissing`); a dependency resolved differently from how an install would resolve it is a warning (`DevelopmentDependencyDiffers`); a plugin dependency that's neither installed nor a development plugin is an error (`PluginDependencyMissing`); an unusable folder is an error for that plugin only (`DevelopmentPluginInvalid`, whose `PluginId` is the project's name, or the folder, when the plugin can't be identified).
+- An installed plugin with the same ID stays installed, but the development plugin loads instead, for this run (`DevelopmentPluginOverridesInstalled`). Plugin dependencies between development and installed plugins work as between installed ones.
+- **Nothing is recorded:** no state file entry, no trust policy check, no hash pinning, no cleanup, no staged changes, nothing in `GetPendingChangesAsync`. `PluginInfo.IsDevelopment` lets your UI show it. Lifecycle calls (`UpdateAsync`, `DisableAsync`, ...) with its ID act on the installed plugin, if any. An install of a plugin with a development plugin's ID while it runs is `PendingRestart`. Installs don't resolve against development plugins: installing a plugin that depends on one installs that dependency from your feeds too.
+- **No shadow copies.** The plugin loads in place, so on Windows its DLLs are locked while the harness runs, as for any app being debugged. Hot Reload works (11.2); otherwise plugin developers stop, rebuild and start again.
+
+### 11.5 Testing your harness
+
+Before you publish it, try it as a plugin developer would:
+
+1. Pack your contracts and the harness into a local folder feed.
+2. Create a plugin project that references `Alcove.Sdk`, your contracts and your harness (`PrivateAssets="all"`), as in the [plugin quick start](quickstart-plugin-developer.md).
+3. `dotnet run` on it: your app starts with `Development plugin: ...` and the plugin's extensions. Then F5 in Visual Studio and in Rider, with a breakpoint.
+4. `dotnet pack` the plugin and check its `.nuspec`: your contracts are a dependency, your harness isn't.
+
+`samples/ConsoleHost.Harness` is a working harness (both styles, unpackaged; see [samples/README.md](../samples/README.md)). The harness package layout above was checked end to end with it.
