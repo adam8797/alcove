@@ -216,7 +216,7 @@ public sealed class CellScenarioTests(CellFixtures fixtures)
         // to the assembly); an install bringing libalcovenat.so into the cell must not look harmless, because the
         // frozen answer for "alcovenat" would keep the other copy.
         SkipUnlessNative();
-        using var directory = new TempDirectory("alcove-native");
+        var directory = new TempDirectory("alcove-native");   // not disposed strictly: the cell keeps its copies loaded
         var assembly = Path.Combine(directory.Path, "Fixture.NativeUser1.dll");
         File.Copy(fixtures.Assembly("Fixture.NativeUser1"), assembly);
         File.Copy(fixtures.NativeLibrary(1), Path.Combine(directory.Path, Path.GetFileName(fixtures.NativeLibrary(1))));

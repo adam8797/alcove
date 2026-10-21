@@ -11,7 +11,8 @@ public sealed class CellFixturesCollection : ICollectionFixture<CellFixtures>
 
 /// <summary>
 /// Builds the cell scenario fixtures (<c>tests/fixtures/Cells</c>) once per test run, and
-/// the native test library with gcc when it's available. Each project's output is in its own folder.
+/// the native test library when a C compiler is available: gcc, or MSVC on Windows (found with vswhere). Each project's
+/// output is in its own folder.
 /// </summary>
 public sealed class CellFixtures : IAsyncLifetime
 {
@@ -29,7 +30,8 @@ public sealed class CellFixtures : IAsyncLifetime
 
     /// <summary>The native test library <c>alcovenat</c> built with <c>ALCOVENAT_VERSION=<paramref name="version"/></c>.</summary>
     public string NativeLibrary(int version) =>
-        Path.Combine(OutputDirectory, "native", $"v{version}", OperatingSystem.IsMacOS() ? "libalcovenat.dylib" : "libalcovenat.so");
+        Path.Combine(OutputDirectory, "native", $"v{version}",
+            OperatingSystem.IsWindows() ? "alcovenat.dll" : OperatingSystem.IsMacOS() ? "libalcovenat.dylib" : "libalcovenat.so");
 
     public async ValueTask InitializeAsync()
     {
@@ -52,38 +54,77 @@ public sealed class CellFixtures : IAsyncLifetime
 
     private async Task<string?> BuildNativeAsync(CancellationToken cancellationToken)
     {
-        if (OperatingSystem.IsWindows())
+        var source = Path.Combine(_workspace!.FixturesDirectory, "Cells", "native", "alcovenat.c");
+        var vcvars = OperatingSystem.IsWindows() ? FindVcVars() : null;
+        if (OperatingSystem.IsWindows() && vcvars is null)
         {
-            return "the native scenarios build a shared library with gcc, which these tests only do on Linux and macOS";
+            return "the native scenarios need MSVC (the C++ build tools) on Windows, and vswhere found none";
         }
 
-        var source = Path.Combine(_workspace!.FixturesDirectory, "Cells", "native", "alcovenat.c");
         foreach (var version in new[] { 1, 2 })
         {
             var output = NativeLibrary(version);
-            Directory.CreateDirectory(Path.GetDirectoryName(output)!);
-            var startInfo = new ProcessStartInfo("gcc") { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false };
-            foreach (var argument in new[] { "-shared", "-fPIC", $"-DALCOVENAT_VERSION={version}", "-o", output, source })
+            var directory = Path.GetDirectoryName(output)!;
+            Directory.CreateDirectory(directory);
+            ProcessStartInfo startInfo;
+            if (vcvars is not null)
             {
-                startInfo.ArgumentList.Add(argument);
+                // cl needs vcvars64's environment, so both run in one cmd script. "\\" before a closing quote is one
+                // backslash to cl.
+                var script = Path.Combine(directory, "build.cmd");
+                File.WriteAllText(script, $"""
+                    @call "{vcvars}" >nul || exit /b 1
+                    cl /nologo /LD /DALCOVENAT_VERSION={version} "{source}" /Fo"{directory}\\" /Fe"{output}" /link /EXPORT:alcovenat_version
+                    """);
+                startInfo = new ProcessStartInfo("cmd.exe") { ArgumentList = { "/c", script } };
+            }
+            else
+            {
+                startInfo = new ProcessStartInfo("gcc") { ArgumentList = { "-shared", "-fPIC", $"-DALCOVENAT_VERSION={version}", "-o", output, source } };
             }
 
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
+            startInfo.UseShellExecute = false;
+            var compiler = vcvars is null ? "gcc" : "cl";
             try
             {
-                using var gcc = Process.Start(startInfo)!;
-                var errors = await gcc.StandardError.ReadToEndAsync(cancellationToken);
-                await gcc.WaitForExitAsync(cancellationToken);
-                if (gcc.ExitCode != 0)
+                using var process = Process.Start(startInfo)!;
+                var outputText = process.StandardOutput.ReadToEndAsync(cancellationToken);
+                var errors = await process.StandardError.ReadToEndAsync(cancellationToken);
+                await process.WaitForExitAsync(cancellationToken);
+                if (process.ExitCode != 0)
                 {
-                    return $"gcc failed: {errors}";
+                    return $"{compiler} failed: {errors}{await outputText}";
                 }
             }
             catch (System.ComponentModel.Win32Exception ex)
             {
-                return $"gcc isn't available ({ex.Message})";
+                return $"{compiler} isn't available ({ex.Message})";
             }
         }
 
         return null;
+    }
+
+    /// <summary>The newest Visual Studio's <c>vcvars64.bat</c> with the C++ x64 tools, or <see langword="null"/>.</summary>
+    private static string? FindVcVars()
+    {
+        var vswhere = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Microsoft Visual Studio", "Installer", "vswhere.exe");
+        if (!File.Exists(vswhere))
+        {
+            return null;
+        }
+
+        var startInfo = new ProcessStartInfo(vswhere)
+        {
+            ArgumentList = { "-latest", "-products", "*", "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64", "-find", @"VC\Auxiliary\Build\vcvars64.bat" },
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+        };
+        using var process = Process.Start(startInfo)!;
+        var path = process.StandardOutput.ReadToEnd().Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault();
+        process.WaitForExit();
+        return path is not null && File.Exists(path) ? path : null;
     }
 }

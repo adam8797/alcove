@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace FixtureNativeUser1;
 
-/// <summary>Calls the native test library 'alcovenat' (built by the test with gcc).</summary>
+/// <summary>Calls the native test library 'alcovenat' (built by the test with gcc, or MSVC on Windows).</summary>
 public static class NativeUser
 {
     [DllImport("alcovenat")]

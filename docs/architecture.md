@@ -172,7 +172,7 @@ The runtime pins each reference once it's bound, but it does **not** remember a 
 
 `LoadUnmanagedDll` resolves native libraries from `runtimes/<rid>/native/`, using the runtime identifier fallback graph. Satellite (localised resource) assemblies resolve from `lib/<tfm>/<culture>/`.
 
-**Native library caveat** *(spike: hot-load-into-loaded-compartment)*: a native library's *own* dependencies are matched by file name (soname on Linux) against everything already loaded anywhere in the process. Two cells with different versions of the same native dependency can therefore end up sharing one, even after a restart. The library warns about soname collisions across cells. Windows behaviour hasn't been verified.
+**Native library caveat** *(spike: hot-load-into-loaded-compartment)*: a native library's *own* dependencies are matched by file name (soname on Linux) against everything already loaded anywhere in the process. Two cells with different versions of the same native dependency can therefore end up sharing one, even after a restart. The library warns about soname collisions across cells. Windows does the same by module name (confirmed 2026-10-21: a DLL's import resolved to the same-named DLL another cell had loaded, not the one next to it).
 
 Assets are selected with NuGet's `ManagedCodeConventions` + `ContentItemCollection.FindBestItemGroup`, and an embedded copy of the SDK's `PortableRuntimeIdentifierGraph.json`. This matched `dotnet build`'s `deps.json` in every case tested, including RID-specific and native assets *(spike: nuget-resolution-and-assets)*. The host framework comes from the entry assembly's attributes (§4). Only `lib/` and `runtimes/` are used; `content`, `contentFiles`, `build` and `tools` are ignored.
 
