@@ -5,7 +5,7 @@
 ## Context
 Plugin developers need to run their plugin inside the target app from their IDE without packing and installing. Providing that harness is the app developer's job; Alcove should make it easy and safe.
 
-## Decision (proposed)
+## Decision
 - Alcove can load **development plugins** directly from a build output folder, into cells, with the same classification and validation as installed plugins, alongside installed plugins.
 - Development plugins are never recorded in the state file, trust-verified or cleaned up, and are flagged `PluginInfo.IsDevelopment`.
 - Enabling them is always the **app's** explicit choice (`options.DevelopmentPlugins` / `AddDevelopmentPluginsFrom(args, env)`).

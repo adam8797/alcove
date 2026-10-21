@@ -111,7 +111,7 @@ Alcove supplies the reusable parts: an `Alcove.Sdk` property (`AlcoveHarnessExec
 
 1. F5 behaviour per IDE for a class library with `RunCommand` / a generated launch profile: Visual Studio 2026, Rider, VS Code (C# Dev Kit), CLI.
 2. Breakpoints in a development plugin loaded into a cell (expected to work).
-3. Hot Reload and edit-and-continue for assemblies in a non-default `AssemblyLoadContext`, with and without shadow copying.
+3. Hot Reload and edit-and-continue for assemblies in a non-default `AssemblyLoadContext`, launched from each IDE.
 
 ## Implementation outline
 
