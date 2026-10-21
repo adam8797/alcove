@@ -37,13 +37,18 @@ internal sealed class TempDirectory : IDisposable
 
     /// <summary>
     /// Deletes the directory, ignoring files that can't be deleted. Assemblies loaded into a (non-collectible)
-    /// cell stay mapped until the process exits, and Windows doesn't let mapped files be deleted.
+    /// cell stay mapped until the process exits, and Windows doesn't let mapped files be deleted. Tried once:
+    /// retrying can't free those files, and <see cref="Dispose"/>'s retries made each such test 3 s slower on
+    /// Windows. A failed recursive delete still removes everything else.
     /// </summary>
     public void DisposeBestEffort()
     {
         try
         {
-            Dispose();
+            if (Directory.Exists(Path))
+            {
+                Directory.Delete(Path, recursive: true);
+            }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {

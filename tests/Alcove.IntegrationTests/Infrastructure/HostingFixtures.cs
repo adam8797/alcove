@@ -39,7 +39,7 @@ public sealed class HostingFixtures : IAsyncLifetime
 
     public ValueTask DisposeAsync()
     {
-        _workspace?.Dispose();
+        _workspace?.DisposeBestEffort();   // development plugin tests load fixture assemblies from the workspace in place
         return ValueTask.CompletedTask;
     }
 }

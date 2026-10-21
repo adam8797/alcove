@@ -66,4 +66,8 @@ When done, update [docs/status.md](status.md) and add a short summary under "Fin
 
 ## Findings
 
-*(to be filled in on Windows)*
+### Task 1: test baseline (2026-10-20)
+
+Green, zero warnings; the whole suite went from 2 min 27 s to 1 min 16 s on this machine. Details in [status.md](status.md) ("Windows test baseline").
+
+**Needs your decision: NuGet's chain build retries cost apps 3 s per package on Windows.** NuGet.Packaging (7.9.0) retries a chain that ends in `UntrustedRoot` 3 times, 1 s apart, on Windows only (its `ChainBuildPolicy`; override: `NUGET_EXPERIMENTAL_CHAIN_BUILD_RETRY_POLICY=<retries>,<sleep ms>`). Reproduced outside Alcove with NuGet alone: `SignatureTrustAndValidityVerificationProvider` takes 3.0 s per verification of a package signed with a self-signed certificate, with online or offline revocation alike, against 20 ms with `0,0`; the verdict codes are the same. A plain `X509Chain.Build` of the same certificate takes under 20 ms. So in an app, each install or verification of a package whose signature chains to a root Windows doesn't trust (self-signed authors, `AllowUntrustedRoot` signers, also accepted with warnings by the default policy) takes 3 s longer. Packages chaining to a trusted root (nuget.org's) aren't affected. Alcove can't change it without setting a process-wide environment variable, which ADR 0012 rules out. Options: document it in the app developer guide (an app may set the variable itself), or leave it.

@@ -11,7 +11,8 @@ namespace Alcove.IntegrationTests.Cells;
 /// The cross-cell spike's scenarios (spike/cross-compartment-deps), end to end: a plugin root on disk, a
 /// state file, the classifier and real cells. Provider (cell X) exposes Dep 2.0's <c>Widget</c> in its API.
 /// </summary>
-public sealed class CrossCellTests(CellFixtures fixtures) : IClassFixture<CellFixtures>
+[Collection(CellFixturesCollection.Name)]
+public sealed class CrossCellTests(CellFixtures fixtures)
 {
     private const string Dep = "Fixture.Dep";
 

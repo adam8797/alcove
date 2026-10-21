@@ -2,8 +2,15 @@ using System.Diagnostics;
 
 namespace Alcove.IntegrationTests.Infrastructure;
 
+/// <summary>The cell scenario fixtures, built once for every test class that uses them.</summary>
+[CollectionDefinition(Name)]
+public sealed class CellFixturesCollection : ICollectionFixture<CellFixtures>
+{
+    public const string Name = "Cell scenarios";
+}
+
 /// <summary>
-/// Builds the cell scenario fixtures (<c>tests/fixtures/Cells</c>) once per test class that uses them, and
+/// Builds the cell scenario fixtures (<c>tests/fixtures/Cells</c>) once per test run, and
 /// the native test library with gcc when it's available. Each project's output is in its own folder.
 /// </summary>
 public sealed class CellFixtures : IAsyncLifetime

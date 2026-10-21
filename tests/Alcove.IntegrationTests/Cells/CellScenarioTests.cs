@@ -12,7 +12,8 @@ namespace Alcove.IntegrationTests.Cells;
 /// <see cref="Cell"/> with real assemblies. Where the spike showed the runtime's unsafe behaviour, these tests
 /// show that answer freezing and the version check turn it into a loud, early failure.
 /// </summary>
-public sealed class CellScenarioTests(CellFixtures fixtures) : IClassFixture<CellFixtures>
+[Collection(CellFixturesCollection.Name)]
+public sealed class CellScenarioTests(CellFixtures fixtures)
 {
     private const string Dep = "Fixture.Dep";
 
