@@ -12,7 +12,8 @@
 set -euo pipefail
 
 configuration="${1:-Debug}"
-repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# pwd -W: on Git Bash (Windows), the C:/... form, since the paths also go into files (nuget.config) that NuGet reads.
+repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && { pwd -W 2>/dev/null || pwd; })"
 work="$repo/artifacts/sample"
 log="$repo/artifacts/sample-console.log"
 
