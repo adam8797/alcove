@@ -37,7 +37,7 @@ goes to `artifacts/sample-console.log`), which installs the sample plugins into 
 | Step | What it shows |
 |---|---|
 | **Style 1, a harness project**: builds and runs `ConsoleHost.Harness` | The harness is a stand-in for `ConsoleHost` that calls `options.AddDevelopmentPluginsFrom(args, Environment.GetEnvironmentVariables())`. Its project names `Sample.Greetings` as a `PluginUnderTest`: building the harness builds the plugin first without copying it, and the harness loads it from `plugins/Sample.Greetings/bin/` in its own cell, instead of the installed copy (warning `DevelopmentPluginOverridesInstalled`). The other installed plugins load as usual |
-| **Style 2, F5 on the plugin**: `dotnet run` on `plugins/Sample.Time` | A class library whose project sets `AlcoveHarnessExecutable` to the harness: `dotnet run` starts the harness with `--alcove-dev-plugin <its bin/>`. In an IDE, the generated `Properties/launchSettings.json` "Executable" profile does the same, under the debugger. A real app would set the property from its harness package's build props |
+| **Style 2, F5 on the plugin**: `dotnet run` on `plugins/Sample.Time` | A class library whose project sets `AlcoveHarnessExecutable` to the harness: `dotnet run` starts the harness with `--alcove-dev-plugin <its bin/>`. In an IDE, the generated `Properties/launchSettings.json` "Project" profile does the same, under the debugger. A real app would set the property from its harness package's build props |
 
 `ConsoleHost.Harness` is built like an app developer's harness package, against the packed `Alcove`, `Alcove.Sdk` and
 `ConsoleHost.Contracts`. `ConsoleHost` itself never enables development plugins. `Sample.Time` isn't packed by the

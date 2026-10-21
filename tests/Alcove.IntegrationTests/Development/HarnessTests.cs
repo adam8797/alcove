@@ -60,16 +60,16 @@ public sealed class HarnessTests(HostingFixtures fixtures)
         Assert.Equal([$"{UserA} 1.0.0 Loaded development=True", $"{UserB} 1.0.0 Loaded development=True"], Lines(result.Output, "PLUGIN "));
         Assert.Contains($"DESCRIBE {UserA}: UserA uses Dep 1.0 in '{UserA}'", result.Output, StringComparison.Ordinal);
 
-        // For IDEs: an "Executable" profile starting the same command.
+        // For IDEs: a "Project" profile (the program is RunCommand) with the same arguments.
         using var settings = JsonDocument.Parse(File.ReadAllText(Path.Combine(pluginDirectory, "Properties", "launchSettings.json")));
         var profile = Assert.Single(settings.RootElement.GetProperty("profiles").EnumerateObject());
         Assert.Equal($"{UserA} in harness", profile.Name);
-        Assert.Equal("Executable", profile.Value.GetProperty("commandName").GetString());
-        Assert.Equal("dotnet", profile.Value.GetProperty("executablePath").GetString());
+        Assert.Equal("Project", profile.Value.GetProperty("commandName").GetString());
+        Assert.False(profile.Value.TryGetProperty("executablePath", out _));
         Assert.Equal($"\"{harness}\" --alcove-dev-plugin \"{pluginOutput}\"", profile.Value.GetProperty("commandLineArgs").GetString());
         Assert.Equal(Path.GetDirectoryName(harness), profile.Value.GetProperty("workingDirectory").GetString());
 
-        // dotnet run uses RunCommand even with that profile in place.
+        // dotnet run still works with that profile in place (it takes the profile's arguments, the same ones).
         var again = (await Workspace.RunAsync(
             ["run", "--project", pluginDirectory, "--disable-build-servers", .. Properties($"AlcoveHarnessExecutable={harness}")], Ct)).EnsureSuccess();
         Assert.Contains($"{UserA} 1.0.0 Loaded development=True", again.Output, StringComparison.Ordinal);

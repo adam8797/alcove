@@ -201,13 +201,12 @@
     </PropertyGroup>
   </Target>
 
-  <!-- Writes a launchSettings.json with one "Executable" profile. A task, not WriteLinesToFile: MSBuild turns the
+  <!-- Writes a launchSettings.json with one "Project" profile. A task, not WriteLinesToFile: MSBuild turns the
        backslashes of JSON escapes into slashes in item specs on Unix. -->
   <UsingTask TaskName="AlcoveWriteLaunchSettings" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)/Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <File ParameterType="System.String" Required="true" />
       <ProfileName ParameterType="System.String" Required="true" />
-      <ExecutablePath ParameterType="System.String" Required="true" />
       <CommandLineArgs ParameterType="System.String" Required="true" />
       <WorkingDirectory ParameterType="System.String" />
     </ParameterGroup>
@@ -235,8 +234,7 @@
         var content = "{" + nl
             + "  \"profiles\": {" + nl
             + "    " + json(ProfileName) + ": {" + nl
-            + "      \"commandName\": \"Executable\"," + nl
-            + "      \"executablePath\": " + json(ExecutablePath) + "," + nl
+            + "      \"commandName\": \"Project\"," + nl
             + "      \"commandLineArgs\": " + json(CommandLineArgs)
             + (string.IsNullOrEmpty(WorkingDirectory) ? "" : "," + nl + "      \"workingDirectory\": " + json(WorkingDirectory))
             + nl + "    }" + nl + "  }" + nl + "}" + nl;
@@ -246,19 +244,15 @@
     </Task>
   </UsingTask>
 
-  <!-- Visual Studio starts a class library only through a launch profile: an "Executable" one, if there's none. -->
+  <!-- Visual Studio starts a class library only through a launch profile. A "Project" one, if there's none: VS takes
+       the program from RunCommand, but not RunArguments (set by a target it doesn't run), so the profile carries the
+       arguments. VS has no Hot Reload for an "Executable" profile ("lack of a managed language service"). -->
   <Target Name="AlcoveGenerateLaunchSettings"
           BeforeTargets="BeforeBuild"
           DependsOnTargets="AlcoveComputeHarnessArguments"
           Condition="'$(AlcoveHarnessExecutable)' != '' and '$(AlcoveGenerateLaunchSettings)' == 'true' and !Exists('$(MSBuildProjectDirectory)/Properties/launchSettings.json')">
-    <PropertyGroup>
-      <_AlcoveLaunchExecutable>$(AlcoveHarnessExecutable)</_AlcoveLaunchExecutable>
-      <_AlcoveLaunchExecutable Condition="'$(_AlcoveHarnessIsDll)' == 'true'">dotnet</_AlcoveLaunchExecutable>
-    </PropertyGroup>
-
     <AlcoveWriteLaunchSettings File="$(MSBuildProjectDirectory)/Properties/launchSettings.json"
                                ProfileName="$(MSBuildProjectName) in harness"
-                               ExecutablePath="$(_AlcoveLaunchExecutable)"
                                CommandLineArgs="$(_AlcoveHarnessCommandLine)"
                                WorkingDirectory="$(_AlcoveHarnessDirectory)" />
     <Message Importance="high" Text="Alcove.Sdk: generated Properties/launchSettings.json to start $(AlcoveHarnessExecutable) with this plugin (delete it to regenerate)." />

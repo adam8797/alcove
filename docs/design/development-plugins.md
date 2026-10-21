@@ -95,7 +95,7 @@ await Foo.Harness.FooHarness.RunAsync(args);
 An app developer can make `Foo.Harness` a package that ships Foo (or a stand-in host) under `tools/` plus `buildTransitive` targets. A plugin project that references `Foo.Harness` then gets:
 
 - `RunCommand` = the harness executable, and `RunArguments` = `--alcove-dev-plugin "$(TargetDir)"`. Verified: `dotnet run` honours these for a class library (2026-10-20).
-- For Visual Studio, which won't start a class library without a launch profile: a generated `Properties/launchSettings.json` "Executable" profile (only if the project has none), or documented manual steps.
+- For Visual Studio, which won't start a class library without a launch profile: a generated `Properties/launchSettings.json` "Project" profile with the harness command line (only if the project has none). Not "Executable": VS has no Hot Reload for those (Windows results below).
 
 In both IDE paths the IDE starts the harness executable itself, so its debugger is attached from the first line and breakpoints in the plugin just hit; no manual "attach to process".
 
@@ -156,7 +156,7 @@ Run on Linux, .NET SDK 10.0.203, with `samples/ConsoleHost.Harness` and `samples
 
 For someone with Visual Studio 2026, Rider and VS Code (C# Dev Kit), on Windows. Prepare once: run `samples/run-harness-sample.sh` from Git Bash (or the steps in it by hand), so the sample plugins are packed and installed into `artifacts/sample/plugin-root`. Open `samples/plugins/Sample.Time/Sample.Time.csproj` (and, for style 1, `samples/ConsoleHost.Harness/ConsoleHost.Harness.csproj`); restore needs `AlcoveVersion` and `RestoreConfigFile` (set them as environment variables, as in samples/README.md, before starting the IDE). Record for each IDE: works / doesn't / what you saw.
 
-1. **Launch profile.** After the first build of `Sample.Time`, `Properties/launchSettings.json` exists with the profile "Sample.Time in harness" (`commandName: Executable`). The IDE lists it as a start profile.
+1. **Launch profile.** After the first build of `Sample.Time`, `Properties/launchSettings.json` exists with the profile "Sample.Time in harness" (`commandName: Project`; `Executable` before 2026-10-21). The IDE lists it as a start profile.
 2. **F5 on the class library (style 2).** Pressing F5 (Debug) on `Sample.Time` starts `ConsoleHost.Harness` under the debugger, with no "a class library can't be started" error and no manual attach. Its console shows `Sample.Time ... development ... Loaded`.
    - Rider: if it ignores the profile, try its "Run/Debug configuration: .NET Launch Settings Profile", and note whether it picks up `RunCommand` on its own (its ".NET Project" configuration).
    - VS Code: C# Dev Kit, "Run and Debug" → C#: does it offer the launch profile for a class library? If not, note it; a `launch.json` `coreclr` configuration with `program: dotnet`, `args: [<harness dll>, "--alcove-dev-plugin", "<bin>"]` is the fallback to try.
@@ -165,3 +165,20 @@ For someone with Visual Studio 2026, Rider and VS Code (C# Dev Kit), on Windows.
 5. **Hot Reload.** With `--repeat 30`, while debugging, change the string in `TimeCommand.Run` and apply Hot Reload (VS: the flame button / Alt+F10; Rider: "Apply changes"; VS Code: Hot Reload in C# Dev Kit). Does the next run print the new text without a restart? Edit-and-continue at a breakpoint: change the line, continue.
 6. **Style 1.** Same as 2–5 with F5 on `ConsoleHost.Harness` (a normal exe) and a breakpoint in `samples/plugins/Sample.Greetings/GreetCommand.cs`.
 7. **`dotnet watch` on Windows.** `dotnet watch --project samples/plugins/Sample.Time` with `--repeat 30` (delete the generated `launchSettings.json` after adding it to `AlcoveHarnessArguments`): Hot Reload as on Linux?
+
+### Windows results: Visual Studio 2026 (2026-10-21)
+
+Visual Studio 2026 Community 18.11, .NET SDK 10.0.402, Windows 11; the checklist above, run by hand (`--repeat 30`, repeat delay raised to 10 s for the Hot Reload edits). Style 2 was tried with three launch profiles; the generator now writes the second.
+
+| Check | Style 2, `Executable` profile | Style 2, `Project` profile with `commandLineArgs` | Style 2, bare `Project` profile | Style 1 (`ConsoleHost.Harness`) |
+|---|---|---|---|---|
+| Profile picked up | Yes | Yes | Yes | Yes |
+| F5 | Works: `dotnet` from `PATH` starts the harness | Works: VS starts `RunCommand` (`dotnet`) with the profile's arguments | **Fails**: `dotnet.exe` without the harness, exit code `0x80008081` (VS doesn't run the target that sets `RunArguments`) | Works |
+| Breakpoint | Hits; locals, call stack, eval; module from `bin/`, `IsDevelopment` true | Hits | – | Hits in `GreetCommand.Run`; Modules: `samples\plugins\Sample.Greetings\bin\Debug\net10.0\Sample.Greetings.dll` |
+| Stop, edit, F5 | New code runs | – | – | VS rebuilds Sample.Greetings (a `PluginUnderTest`), new code runs |
+| Rebuild while debugging | Fails, `Sample.Time.dll` locked (MSB3026), as expected | – | – | – |
+| Hot Reload | **Fails**: "Hot Reload is not supported in this session due to the lack of a managed language service." then "An unexpected error has occurred" (a modal dialog) | **Works**: "Code changes were successfully applied", the next run prints the new text | – | **Works** in the plugin's cell: "Code changes were successfully applied" |
+| Edit and Continue at a breakpoint | **Fails**: not applied; the next hit warns that the source differs | – | – | – |
+| Rude edit (`sealed` removed) | – | ENC0004 "Updating the modifiers of class requires restarting the application"; rebuild-and-restart brings the harness back with the change | – | Same ENC0004; restart works (VS also logs "An unexpected error has occurred, any pending updates have been discarded") |
+
+So VS gives Hot Reload to the plugin in its cell when the session belongs to a project: a `Project` profile, or the harness project itself. A `Project` profile on the class library needs the harness command line in `commandLineArgs`, which the generator writes. An automated run (DTE) the night before hung with the `Project` profile, the injected Hot Reload agent waiting for VS; it didn't happen by hand, so it's put down to the automation.
