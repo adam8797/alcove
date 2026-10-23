@@ -1,0 +1,13 @@
+<Project>
+  <!-- The harness is built like an app developer's harness package: against the packed Alcove, Alcove.Sdk and
+       ConsoleHost.Contracts from the sample feed, not the repository's settings (see run-harness-sample.sh).
+       Required global property: AlcoveVersion. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+</Project>

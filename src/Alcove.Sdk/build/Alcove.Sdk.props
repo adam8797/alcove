@@ -10,12 +10,25 @@
                                error), or, with none, scans for [Extension] types.
       PluginCell               Optional. Named cell to share with other plugins.
       PluginIsolated           Optional. true to require a cell of the plugin's own.
+      AlcoveIsPlugin           Optional. Defaults to true, except for an Exe/WinExe project (a harness), which
+                               only uses the harness items below.
+      AlcoveHarnessExecutable  Optional. A harness (an exe, or a framework-dependent .dll run with dotnet) that
+                               starts the app with this plugin loaded from its build output: `dotnet run` and
+                               F5 on the plugin project start it, passing the build output
+                               (the alcove-dev-plugin option; see the plugin developer guide).
+                               A harness package usually sets it from its build/<id>.props.
+      AlcoveHarnessArguments   Optional. More arguments for the harness, after the development plugin.
+      AlcoveGenerateLaunchSettings  Optional. Defaults to true with AlcoveHarnessExecutable: generates
+                               Properties/launchSettings.json (profiles for Visual Studio and Rider) if the project has none.
     Items:
       PluginPrivateDependency  Package IDs that are always cell-private.
       PluginHostOwnedPackage   Package IDs the host provides. They stay nuspec dependencies (their version
                                ranges are the compatibility gate) but their runtime assets are never copied
                                to the build output. A host contracts package adds itself (and e.g. its app
                                SDK) from its build/<id>.props.
+      PluginUnderTest          In a harness project: plugin projects to build first and load from their build
+                               output (a ProjectReference that's neither referenced nor copied, plus a generated
+                               [assembly: AlcoveDevelopmentPlugin("<build output>")]).
   -->
 
   <PropertyGroup>

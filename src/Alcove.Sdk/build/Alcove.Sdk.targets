@@ -2,6 +2,18 @@
   <!-- Alcove.Sdk: imported after the plugin's project file. See Alcove.Sdk.props for the inputs. -->
 
   <PropertyGroup>
+    <!-- An exe referencing Alcove.Sdk is a harness, not a plugin: none of the plugin targets apply to it. -->
+    <AlcoveIsPlugin Condition="'$(AlcoveIsPlugin)' == '' and ('$(OutputType)' == 'Exe' or '$(OutputType)' == 'WinExe')">false</AlcoveIsPlugin>
+    <AlcoveIsPlugin Condition="'$(AlcoveIsPlugin)' == ''">true</AlcoveIsPlugin>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(AlcoveIsPlugin)' == 'true'">
+    <!-- The build output is loadable as a development plugin: dependencies (RID-specific and native assets
+         included) are copied next to the plugin; host-owned packages stay excluded (below). -->
+    <EnableDynamicLoading Condition="'$(EnableDynamicLoading)' == ''">true</EnableDynamicLoading>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(AlcoveIsPlugin)' == 'true'">
     <!-- Must match Alcove.Packaging.PluginManifest.CurrentSchemaVersion. -->
     <AlcovePluginManifestSchemaVersion>1</AlcovePluginManifestSchemaVersion>
 
@@ -17,7 +29,15 @@
     <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">$(_AlcoveAssemblyVersion)</AssemblyVersion>
   </PropertyGroup>
 
-  <Target Name="AlcoveValidatePluginProperties" BeforeTargets="BeforeBuild;GenerateNuspec">
+  <!-- A plugin's target path, which referencing projects get back from the reference, names it as a plugin: their
+       manifests record their plugin dependencies (below). -->
+  <ItemDefinitionGroup Condition="'$(AlcoveIsPlugin)' == 'true'">
+    <TargetPathWithTargetPlatformMoniker>
+      <AlcovePluginId>$(PackageId)</AlcovePluginId>
+    </TargetPathWithTargetPlatformMoniker>
+  </ItemDefinitionGroup>
+
+  <Target Name="AlcoveValidatePluginProperties" BeforeTargets="BeforeBuild;GenerateNuspec" Condition="'$(AlcoveIsPlugin)' == 'true'">
     <ItemGroup>
       <_AlcovePrivateNotHostOwned Include="@(PluginPrivateDependency)" Exclude="@(PluginHostOwnedPackage)" />
       <_AlcovePrivateHostOwned Include="@(PluginPrivateDependency)" Exclude="@(_AlcovePrivateNotHostOwned)" />
@@ -39,12 +59,34 @@
            Text="Alcove.Sdk: '@(_AlcovePrivateHostOwned)' is host-owned and is always loaded from the host, so it can't be a PluginPrivateDependency." />
   </Target>
 
-  <!-- Generates <PackageId>.plugin.json and packs it at the package root. -->
+  <!-- Generates <PackageId>.plugin.json, packs it at the package root and copies it into the build output (so the
+       build output loads as a development plugin; packageId and version identify it there). -->
   <Target Name="AlcoveGeneratePluginManifest"
-          BeforeTargets="_GetPackageFiles"
-          DependsOnTargets="AlcoveValidatePluginProperties">
+          BeforeTargets="_GetPackageFiles;CopyFilesToOutputDirectory"
+          DependsOnTargets="AlcoveValidatePluginProperties"
+          Condition="'$(AlcoveIsPlugin)' == 'true'">
+    <!-- Plugin dependencies, for the build output's manifest: a development plugin's deps.json doesn't say which of its
+         dependencies are plugins. Project references to plugins carry AlcovePluginId (above); package references are
+         plugins when their nuspec has the host's plugin package type. -->
+    <PropertyGroup>
+      <_AlcovePluginPackageTypePattern>(?i)&lt;packageType\s+name=&quot;$([System.Text.RegularExpressions.Regex]::Escape('$(PluginPackageType)'))&quot;</_AlcovePluginPackageTypePattern>
+      <_AlcoveNuGetPackageRoot Condition="'$(NuGetPackageRoot)' != ''">$([MSBuild]::EnsureTrailingSlash('$(NuGetPackageRoot)'))</_AlcoveNuGetPackageRoot>
+    </PropertyGroup>
+
     <ItemGroup>
       <_AlcovePrivateDependencyDistinct Include="@(PluginPrivateDependency->Distinct())" />
+      <_AlcovePluginDependency Include="%(_ResolvedProjectReferencePaths.AlcovePluginId)" Condition="'%(_ResolvedProjectReferencePaths.AlcovePluginId)' != ''" />
+      <_AlcoveDependencyPackage Include="%(RuntimeCopyLocalItems.NuGetPackageId)" Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' != '' and '$(_AlcoveNuGetPackageRoot)' != ''">
+        <Version>%(RuntimeCopyLocalItems.NuGetPackageVersion)</Version>
+      </_AlcoveDependencyPackage>
+      <_AlcoveDependencyPackage>
+        <Nuspec>$(_AlcoveNuGetPackageRoot)$([System.String]::Copy('%(Identity)').ToLowerInvariant())/$([System.String]::Copy('%(Version)').ToLowerInvariant())/$([System.String]::Copy('%(Identity)').ToLowerInvariant()).nuspec</Nuspec>
+      </_AlcoveDependencyPackage>
+      <_AlcoveDependencyNuspec Include="@(_AlcoveDependencyPackage)" Condition="Exists('%(_AlcoveDependencyPackage.Nuspec)')" />
+      <!-- The first test also skips the read when there's no package: the condition is evaluated once regardless. -->
+      <_AlcovePluginDependency Include="@(_AlcoveDependencyNuspec)"
+          Condition="'%(_AlcoveDependencyNuspec.Nuspec)' != '' and $([System.Text.RegularExpressions.Regex]::IsMatch($([System.IO.File]::ReadAllText('%(_AlcoveDependencyNuspec.Nuspec)')), '$(_AlcovePluginPackageTypePattern)'))" />
+      <_AlcovePluginDependencyDistinct Include="@(_AlcovePluginDependency->Distinct())" />
     </ItemGroup>
 
     <PropertyGroup>
@@ -55,10 +97,13 @@
       <_AlcoveIsolated Condition="'$(PluginIsolated)' == 'true'">true</_AlcoveIsolated>
       <_AlcovePrivateDependencies>@(_AlcovePrivateDependencyDistinct->'&quot;%(Identity)&quot;', ', ')</_AlcovePrivateDependencies>
       <_AlcovePrivateDependencies Condition="'$(_AlcovePrivateDependencies)' != ''"> $(_AlcovePrivateDependencies) </_AlcovePrivateDependencies>
-      <_AlcoveManifestJson>{$(_AlcoveNL)  &quot;schemaVersion&quot;: $(AlcovePluginManifestSchemaVersion),</_AlcoveManifestJson>
+      <_AlcoveManifestJson>{$(_AlcoveNL)  &quot;schemaVersion&quot;: $(AlcovePluginManifestSchemaVersion),$(_AlcoveNL)  &quot;packageId&quot;: &quot;$(PackageId)&quot;,$(_AlcoveNL)  &quot;version&quot;: &quot;$(PackageVersion)&quot;,</_AlcoveManifestJson>
       <_AlcoveManifestJson Condition="'$(PluginEntryPoint)' != ''">$(_AlcoveManifestJson)$(_AlcoveNL)  &quot;entryPoint&quot;: &quot;$(PluginEntryPoint)&quot;,</_AlcoveManifestJson>
       <_AlcoveManifestJson Condition="'$(PluginCell)' != ''">$(_AlcoveManifestJson)$(_AlcoveNL)  &quot;cell&quot;: &quot;$(PluginCell)&quot;,</_AlcoveManifestJson>
-      <_AlcoveManifestJson>$(_AlcoveManifestJson)$(_AlcoveNL)  &quot;isolated&quot;: $(_AlcoveIsolated),$(_AlcoveNL)  &quot;privateDependencies&quot;: [$(_AlcovePrivateDependencies)]$(_AlcoveNL)}</_AlcoveManifestJson>
+      <_AlcovePluginDependencies>@(_AlcovePluginDependencyDistinct->'&quot;%(Identity)&quot;', ', ')</_AlcovePluginDependencies>
+      <_AlcoveManifestJson>$(_AlcoveManifestJson)$(_AlcoveNL)  &quot;isolated&quot;: $(_AlcoveIsolated),$(_AlcoveNL)  &quot;privateDependencies&quot;: [$(_AlcovePrivateDependencies)]</_AlcoveManifestJson>
+      <_AlcoveManifestJson Condition="'$(_AlcovePluginDependencies)' != ''">$(_AlcoveManifestJson),$(_AlcoveNL)  &quot;pluginDependencies&quot;: [ $(_AlcovePluginDependencies) ]</_AlcoveManifestJson>
+      <_AlcoveManifestJson>$(_AlcoveManifestJson)$(_AlcoveNL)}</_AlcoveManifestJson>
       <PluginManifestPath>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', '$(PluginManifestFileName)'))</PluginManifestPath>
     </PropertyGroup>
 
@@ -73,17 +118,188 @@
     </ItemGroup>
   </Target>
 
+  <Target Name="AlcoveCopyPluginManifestToOutput"
+          AfterTargets="CopyFilesToOutputDirectory"
+          DependsOnTargets="AlcoveGeneratePluginManifest"
+          Condition="'$(AlcoveIsPlugin)' == 'true'">
+    <!-- A Copy, not a CopyToOutputDirectory item, so the manifest never flows into referencing projects' output. -->
+    <Copy SourceFiles="$(PluginManifestPath)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    <ItemGroup>
+      <FileWrites Include="$(OutDir)$(PluginManifestFileName)" />
+    </ItemGroup>
+  </Target>
+
   <!--
     Host-owned packages stay nuspec dependencies, but their runtime assets are never copied into the build
     output (relevant with CopyLocalLockFileAssemblies / EnableDynamicLoading, and for local debugging).
     This works on build-time items, so it's unaffected by whether restore has seen this package's props.
   -->
-  <Target Name="AlcoveExcludeHostOwnedRuntimeAssets" AfterTargets="ResolvePackageAssets">
+  <Target Name="AlcoveExcludeHostOwnedRuntimeAssets" AfterTargets="ResolvePackageAssets" Condition="'$(AlcoveIsPlugin)' == 'true'">
     <ItemGroup>
       <_AlcoveHostOwnedPackageId Include="@(PluginHostOwnedPackage)" NuGetPackageId="%(Identity)" />
       <RuntimeCopyLocalItems Remove="@(_AlcoveHostOwnedPackageId)" MatchOnMetadata="NuGetPackageId" MatchOnMetadataOptions="CaseInsensitive" />
       <NativeCopyLocalItems Remove="@(_AlcoveHostOwnedPackageId)" MatchOnMetadata="NuGetPackageId" MatchOnMetadataOptions="CaseInsensitive" />
       <ResourceCopyLocalItems Remove="@(_AlcoveHostOwnedPackageId)" MatchOnMetadata="NuGetPackageId" MatchOnMetadataOptions="CaseInsensitive" />
     </ItemGroup>
+  </Target>
+
+  <!--
+    Harness style 1 (a harness project): PluginUnderTest items. The plugin is built first but never referenced,
+    copied into the harness output or loaded into the default context; its build output folder is recorded in a
+    generated [assembly: Alcove.Development.AlcoveDevelopmentPlugin(...)], which AddDevelopmentPluginsFrom reads.
+  -->
+  <ItemGroup Condition="'@(PluginUnderTest)' != ''">
+    <ProjectReference Include="@(PluginUnderTest)">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Private>false</Private>
+      <PrivateAssets>all</PrivateAssets>
+      <ExcludeAssets>all</ExcludeAssets>
+      <AlcovePluginUnderTest>true</AlcovePluginUnderTest>
+    </ProjectReference>
+  </ItemGroup>
+
+  <!-- The first restore of a harness runs before this file is imported, so it doesn't see PluginUnderTest: a plugin
+       under test that was never restored (default obj/ layout) is restored here, before anything evaluates it. -->
+  <Target Name="AlcoveRestorePluginsUnderTest"
+          BeforeTargets="AssignProjectConfiguration"
+          Condition="'@(PluginUnderTest)' != ''">
+    <ItemGroup>
+      <_AlcovePluginUnderTestToRestore Include="@(PluginUnderTest)" Condition="!Exists('%(RootDir)%(Directory)obj/project.assets.json')" />
+    </ItemGroup>
+
+    <MSBuild Projects="@(_AlcovePluginUnderTestToRestore)"
+             Targets="Restore"
+             Properties="_AlcoveRestoreSession=$([System.Guid]::NewGuid())"
+             Condition="'@(_AlcovePluginUnderTestToRestore)' != ''" />
+  </Target>
+
+  <Target Name="AlcoveGenerateDevelopmentPluginAttributes"
+          BeforeTargets="GetAssemblyAttributes"
+          DependsOnTargets="PrepareProjectReferences"
+          Condition="'@(PluginUnderTest)' != ''">
+    <ItemGroup>
+      <_AlcovePluginUnderTestReference Include="@(_MSBuildProjectReferenceExistent)" Condition="'%(_MSBuildProjectReferenceExistent.AlcovePluginUnderTest)' == 'true'" />
+    </ItemGroup>
+
+    <MSBuild Projects="@(_AlcovePluginUnderTestReference)"
+             Targets="GetTargetPath"
+             BuildInParallel="$(BuildInParallel)"
+             Properties="%(_AlcovePluginUnderTestReference.SetConfiguration); %(_AlcovePluginUnderTestReference.SetPlatform); %(_AlcovePluginUnderTestReference.SetTargetFramework)"
+             RemoveProperties="%(_AlcovePluginUnderTestReference.GlobalPropertiesToRemove)">
+      <Output TaskParameter="TargetOutputs" ItemName="_AlcovePluginUnderTestPath" />
+    </MSBuild>
+
+    <ItemGroup>
+      <AssemblyAttribute Include="Alcove.Development.AlcoveDevelopmentPluginAttribute">
+        <_Parameter1>%(_AlcovePluginUnderTestPath.RootDir)%(_AlcovePluginUnderTestPath.Directory)</_Parameter1>
+        <ProjectPath>%(_AlcovePluginUnderTestPath.MSBuildSourceProjectFile)</ProjectPath>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Harness style 2 (F5 on the plugin project): AlcoveHarnessExecutable makes `dotnet run` (RunCommand,
+    RunArguments) and IDEs (a generated launch profile) start the harness with this plugin's build output.
+  -->
+  <PropertyGroup Condition="'$(AlcoveHarnessExecutable)' != ''">
+    <_AlcoveHarnessIsDll Condition="$(AlcoveHarnessExecutable.ToLowerInvariant().EndsWith('.dll'))">true</_AlcoveHarnessIsDll>
+    <_AlcoveDotNet Condition="'$(DOTNET_HOST_PATH)' != ''">$(DOTNET_HOST_PATH)</_AlcoveDotNet>
+    <_AlcoveDotNet Condition="'$(_AlcoveDotNet)' == ''">dotnet</_AlcoveDotNet>
+    <RunCommand Condition="'$(_AlcoveHarnessIsDll)' == 'true'">$(_AlcoveDotNet)</RunCommand>
+    <RunCommand Condition="'$(_AlcoveHarnessIsDll)' != 'true'">$(AlcoveHarnessExecutable)</RunCommand>
+    <AlcoveGenerateLaunchSettings Condition="'$(AlcoveGenerateLaunchSettings)' == ''">true</AlcoveGenerateLaunchSettings>
+  </PropertyGroup>
+
+  <Target Name="AlcoveComputeHarnessArguments" Condition="'$(AlcoveHarnessExecutable)' != ''">
+    <PropertyGroup>
+      <!-- No trailing separator: "C:\out\" would escape its closing quote on Windows. -->
+      <_AlcoveDevelopmentPluginDirectory>$(TargetDir.TrimEnd('/').TrimEnd('\'))</_AlcoveDevelopmentPluginDirectory>
+      <_AlcoveHarnessArguments>--alcove-dev-plugin &quot;$(_AlcoveDevelopmentPluginDirectory)&quot;</_AlcoveHarnessArguments>
+      <_AlcoveHarnessArguments Condition="'$(AlcoveHarnessArguments)' != ''">$(_AlcoveHarnessArguments) $(AlcoveHarnessArguments)</_AlcoveHarnessArguments>
+      <_AlcoveHarnessDirectory>$([System.IO.Path]::GetDirectoryName('$(AlcoveHarnessExecutable)'))</_AlcoveHarnessDirectory>
+      <_AlcoveHarnessCommandLine>$(_AlcoveHarnessArguments)</_AlcoveHarnessCommandLine>
+      <_AlcoveHarnessCommandLine Condition="'$(_AlcoveHarnessIsDll)' == 'true'">&quot;$(AlcoveHarnessExecutable)&quot; $(_AlcoveHarnessArguments)</_AlcoveHarnessCommandLine>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="AlcoveSetHarnessRunArguments"
+          BeforeTargets="ComputeRunArguments"
+          DependsOnTargets="AlcoveComputeHarnessArguments"
+          Condition="'$(AlcoveHarnessExecutable)' != ''">
+    <PropertyGroup>
+      <RunArguments>$(_AlcoveHarnessCommandLine)</RunArguments>
+      <RunWorkingDirectory Condition="'$(_AlcoveHarnessDirectory)' != ''">$(_AlcoveHarnessDirectory)</RunWorkingDirectory>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Writes a launchSettings.json with the two profiles below. A task, not WriteLinesToFile: MSBuild turns the
+       backslashes of JSON escapes into slashes in item specs on Unix. -->
+  <UsingTask TaskName="AlcoveWriteLaunchSettings" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)/Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <File ParameterType="System.String" Required="true" />
+      <ProfileName ParameterType="System.String" Required="true" />
+      <ExecutablePath ParameterType="System.String" Required="true" />
+      <CommandLineArgs ParameterType="System.String" Required="true" />
+      <WorkingDirectory ParameterType="System.String" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        System.Func<string, string> json = value =>
+        {
+            var text = new System.Text.StringBuilder("\"");
+            foreach (var c in value)
+            {
+                switch (c)
+                {
+                    case '"': text.Append("\\\""); break;
+                    case '\\': text.Append("\\\\"); break;
+                    default:
+                        if (c < ' ') { text.Append("\\u").Append(((int)c).ToString("x4")); } else { text.Append(c); }
+                        break;
+                }
+            }
+
+            return text.Append('"').ToString();
+        };
+
+        var nl = System.Environment.NewLine;
+        System.Func<string, string, string, string> profile = (name, commandName, executablePath) =>
+            "    " + json(name) + ": {" + nl
+            + "      \"commandName\": " + json(commandName) + "," + nl
+            + (executablePath == null ? "" : "      \"executablePath\": " + json(executablePath) + "," + nl)
+            + "      \"commandLineArgs\": " + json(CommandLineArgs)
+            + (string.IsNullOrEmpty(WorkingDirectory) ? "" : "," + nl + "      \"workingDirectory\": " + json(WorkingDirectory))
+            + nl + "    }";
+        var content = "{" + nl
+            + "  \"profiles\": {" + nl
+            + profile(ProfileName, "Project", null) + "," + nl
+            + profile(ProfileName + " (Rider)", "Executable", ExecutablePath) + nl
+            + "  }" + nl + "}" + nl;
+        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(File));
+        System.IO.File.WriteAllText(File, content);
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <!-- Visual Studio and Rider start a class library only through a launch profile, and need different ones (Windows
+       results in docs/design/development-plugins.md), so if there's none, two are generated:
+         - "Project", first (VS's default): VS takes the program from RunCommand, but not RunArguments (set by a target
+           it doesn't run), so the profile carries the arguments. VS has no Hot Reload for an "Executable" profile.
+         - "Executable", for Rider: it runs the project's own DLL for a "Project" profile, even with an executablePath. -->
+  <Target Name="AlcoveGenerateLaunchSettings"
+          BeforeTargets="BeforeBuild"
+          DependsOnTargets="AlcoveComputeHarnessArguments"
+          Condition="'$(AlcoveHarnessExecutable)' != '' and '$(AlcoveGenerateLaunchSettings)' == 'true' and !Exists('$(MSBuildProjectDirectory)/Properties/launchSettings.json')">
+    <PropertyGroup>
+      <_AlcoveLaunchExecutable>$(AlcoveHarnessExecutable)</_AlcoveLaunchExecutable>
+      <_AlcoveLaunchExecutable Condition="'$(_AlcoveHarnessIsDll)' == 'true'">dotnet</_AlcoveLaunchExecutable>
+    </PropertyGroup>
+
+    <AlcoveWriteLaunchSettings File="$(MSBuildProjectDirectory)/Properties/launchSettings.json"
+                               ProfileName="$(MSBuildProjectName) in harness"
+                               ExecutablePath="$(_AlcoveLaunchExecutable)"
+                               CommandLineArgs="$(_AlcoveHarnessCommandLine)"
+                               WorkingDirectory="$(_AlcoveHarnessDirectory)" />
+    <Message Importance="high" Text="Alcove.Sdk: generated Properties/launchSettings.json to start $(AlcoveHarnessExecutable) with this plugin (delete it to regenerate)." />
   </Target>
 </Project>

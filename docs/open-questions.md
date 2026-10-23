@@ -8,11 +8,7 @@ Nothing open right now. All design decisions so far are recorded under **Resolve
 
 ## Verification still needed
 
-### Signature verification on Windows
-Run the signature spike's `Verifier matrix` on Windows to confirm identical verdicts with the shipped root bundle ([report](../spike/nuget-signature-verification/REPORT.md)). macOS is untested.
-
-### Native library soname collisions on Windows
-*(spike: hot-load-into-loaded-compartment)* On Linux, a native library's own dependencies resolve by soname against everything already loaded in the process, so two cells with different versions of the same native dependency can share one. Check Windows; module-name matching is expected to behave similarly.
+Nothing open right now.
 
 ## Known limitations to document
 
@@ -27,6 +23,10 @@ Only `lib/` and `runtimes/` (plus satellite resource assemblies) are used. `cont
 NuGet's trust store selection and the opt-in WPF resolving forwarder. (NuGet's user-wide HTTP cache is bypassed.) See [ADR 0012](adr/0012-app-supplies-root-no-global-state.md).
 
 ## Resolved
+
+*2026-10-21:*
+- **Native library name collisions on Windows:** the same as on Linux, by module name instead of soname. With the hot-load spike's `q6` scenarios built with MSVC, a DLL's import resolved to the same-named DLL another context had already loaded (v1), not the v2 next to it; with nothing loaded first it got its neighbour. Two copies loaded by full path still work side by side, and native failures aren't cached. The integration tests' native scenarios now build their library with MSVC on Windows and run there. See the [spike report](../spike/hot-load-into-loaded-compartment/REPORT.md#windows-results-2026-10-21).
+- **Signature verification on Windows:** identical verdicts and error codes to Linux under every policy of the spike's `Verifier matrix`, with or without the bundle (NuGet uses the Windows trust store, which accepts nuget.org packages). Untrusted-root signatures cost about 3 s more per package on Windows (NuGet's chain build retries). Network tests pass. See the [report](../spike/nuget-signature-verification/REPORT.md#windows-results-2026-10-21) and [ADR 0010](adr/0010-trust-model.md). macOS is still untested.
 
 *2026-10-19:*
 - **WPF spike on Windows:** run by the user. Every prediction matched except 7.4, which turned out better than predicted (lookless controls' theme styles survive same-identity duplicates). ADR 0015 and the duplicate rule stand. See the [WPF report](../spike/wpf-across-load-contexts/REPORT.md).

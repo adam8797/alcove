@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    A harness for ConsoleHost plugins: a stand-in host that loads the plugins installed in a plugin root plus
+    development plugins straight from their build output.
+      Style 1: PluginUnderTest below. Building the harness builds Sample.Greetings first (never copying it here),
+               and running it loads Sample.Greetings from its bin/ instead of the installed one.
+      Style 2: a plugin project sets AlcoveHarnessExecutable to this harness (see ../plugins/Sample.Time), so
+               `dotnet run` (or F5) on the plugin starts this harness with the plugin's build output.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Alcove" Version="$(AlcoveVersion)" />
+    <PackageReference Include="Alcove.Sdk" Version="$(AlcoveVersion)" PrivateAssets="all" />
+    <PackageReference Include="ConsoleHost.Contracts" Version="$(AlcoveVersion)" />
+    <PluginUnderTest Include="../plugins/Sample.Greetings/Sample.Greetings.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="../ConsoleHost/ConsoleLoggerFactory.cs" Link="ConsoleLoggerFactory.cs" />
+  </ItemGroup>
+</Project>

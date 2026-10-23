@@ -9,7 +9,8 @@
 set -euo pipefail
 
 configuration="${1:-Debug}"
-repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# pwd -W: on Git Bash (Windows), the C:/... form, since the paths also go into files (nuget.config) that NuGet reads.
+repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && { pwd -W 2>/dev/null || pwd; })"
 work="$repo/artifacts/sample"
 feed="$work/feed"
 
@@ -18,7 +19,7 @@ version="$(dotnet msbuild "$repo/src/Alcove/Alcove.csproj" -getProperty:Version 
 
 rm -rf "$work"
 mkdir -p "$feed"
-for id in Alcove.Abstractions Alcove.Sdk ConsoleHost.Contracts; do
+for id in Alcove Alcove.Abstractions Alcove.Sdk ConsoleHost.Contracts; do
   cp "$repo/artifacts/packages/$configuration/$id.$version.nupkg" "$feed/"
 done
 
@@ -34,6 +35,7 @@ cat > "$work/nuget.config" <<CONFIG
   <packageSourceMapping>
     <clear />
     <packageSource key="sample-feed">
+      <package pattern="Alcove" />
       <package pattern="Alcove.*" />
       <package pattern="ConsoleHost.*" />
     </packageSource>

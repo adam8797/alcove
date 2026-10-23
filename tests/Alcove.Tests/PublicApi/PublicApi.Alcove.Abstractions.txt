@@ -28,11 +28,14 @@ sealed record Alcove.Packaging.PluginManifest
   static string GetFileName(string packageId)
   override int GetHashCode()
   bool Isolated { get; init; }
+  string? PackageId { get; init; }
   static PluginManifest Parse(string json)
+  IReadOnlyList<string>? PluginDependencies { get; init; }
   IReadOnlyList<string> PrivateDependencies { get; init; }
   static PluginManifest Read(Stream utf8Json)
   int SchemaVersion { get; init; }
   string ToJson()
   override string ToString()
+  string? Version { get; init; }
   static bool op_Equality(PluginManifest? left, PluginManifest? right)
   static bool op_Inequality(PluginManifest? left, PluginManifest? right)

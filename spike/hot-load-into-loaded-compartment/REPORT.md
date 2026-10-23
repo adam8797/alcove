@@ -91,3 +91,16 @@ grep -E '^===|\[FAIL\]|RESULT' results/all.txt
 ```
 
 Needs gcc (for the native test libraries) and SDK 10.0.203 (pinned in `global.json`).
+
+## Windows results (2026-10-21)
+
+Windows 11 Pro 10.0.26200 (x64), .NET SDK 10.0.402, MSVC 14.51 (Visual Studio 2026). Only the native scenarios (`q6-*`), from a copy of the spike outside the repository, with two changes there: `native/nat.c` and `native/natuser.c` built with `cl /LD` instead of gcc (same file names, `libnat.so` and `libnatuser.so`, so `Program.cs` needs no changes; `libnatuser.so` imports `libnat.so` by module name, like `DT_NEEDED`), and `Program.cs`'s `path.Split('/')` (used only to print folder names) also splitting on `\`.
+
+| Scenario | Result |
+|---|---|
+| `q6-native-remap` | As on Linux: a P/Invoke binds once (`OK: 1` after the remap, no new `LoadUnmanagedDll` call); a new assembly in the same context asks again and gets v2 |
+| `q6-native-already-in-process` | As on Linux. v2 loaded by full path works next to the v1 the host loaded (`OK: 2`). **`libnatuser.so` from the v2 folder sees `nat_version` → 1**: Windows resolved its import to the already-loaded module with the same name, not the `libnat.so` next to it |
+| `q6-native-soname-control` | As on Linux: with nothing loaded first, `libnatuser.so` gets the `libnat.so` next to it (`OK: 2`) |
+| `q6-native-failure-then-available` | As on Linux: a failure isn't cached |
+
+All checks pass, so the caveat holds on Windows too, by module name instead of soname. Alcove's integration tests now build their native test library with MSVC on Windows (found with vswhere) and run the native cell scenarios there.

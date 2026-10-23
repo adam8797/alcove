@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Alcove.Catalog;
 using Alcove.Cells;
+using Alcove.Development;
 using Alcove.Feeds;
 using Alcove.Storage;
 using Alcove.Trust;
@@ -109,6 +110,15 @@ public sealed class PluginHostOptions
     /// </summary>
     [JsonIgnore]
     public ICredentialProvider? CredentialProvider { get; set; }
+
+    /// <summary>
+    /// Development plugins: plugins loaded straight from their build output, next to the installed ones, for a plugin
+    /// developer's harness (ADR 0017). Empty unless the app adds some, e.g. with
+    /// <see cref="DevelopmentPluginExtensions.AddDevelopmentPluginsFrom(PluginHostOptions, IReadOnlyList{string}, System.Collections.IDictionary?)"/>
+    /// in its harness only. Code only; never in the configuration file.
+    /// </summary>
+    [JsonIgnore]
+    public IList<DevelopmentPlugin> DevelopmentPlugins { get; init => field = value ?? new List<DevelopmentPlugin>(); } = new List<DevelopmentPlugin>();
 
     /// <summary>Reads a configuration file. The library never does this by itself.</summary>
     /// <param name="path">The configuration file, e.g. <c>&lt;root&gt;/config.json</c>.</param>

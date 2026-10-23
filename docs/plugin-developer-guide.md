@@ -1,6 +1,16 @@
 # Plugin developer guide
 
-This guide is for people writing a **plugin** for a host app.
+This guide is for people writing a **plugin** for a host app. New to Alcove? Start with the [quick start](quickstart-plugin-developer.md).
+
+**Contents:** [0. Set up](#0-set-up) · [1. Create the project](#1-create-the-project) · [2. Contribute extensions](#2-contribute-extensions) · [3. Dependencies](#3-dependencies) · [4. Cells](#4-cells) · [5. Dependency injection](#5-dependency-injection-if-the-host-uses-it) · [6. Lifecycle](#6-lifecycle-you-should-expect) · [7. Run and debug your plugin](#7-run-and-debug-your-plugin) · [8. Publish](#8-publish)
+
+## 0. Set up
+
+- **The .NET SDK** for the framework the host targets (e.g. .NET 10).
+- **An IDE**, if you want one. Visual Studio 2026 and Rider are checked for F5, breakpoints and Hot Reload on a development plugin. VS Code with C# Dev Kit isn't yet, but `dotnet run` and `dotnet watch` work anywhere.
+- **The host's packages:** its contracts package (the extension points; it also configures `Alcove.Sdk` for that host), maybe an app SDK with shared UI and helpers, and its harness package (§7). Ask the host's developers which feed they publish to, and add it to a `nuget.config` next to your solution if it isn't nuget.org.
+- **`Alcove.Sdk`**, from nuget.org. A harness needs a version after `0.0.1-alpha`.
+- **Your `.gitignore`:** add `Properties/launchSettings.json`. It's generated, with machine-specific paths (§7).
 
 ## 1. Create the project
 
@@ -29,7 +39,8 @@ A plugin is a class library targeting a framework the host supports (for a WPF h
 - sets the NuGet `PackageType` from `<PluginPackageType>`, which the host's contracts package usually sets for you;
 - generates the plugin manifest;
 - keeps host-owned packages (`Alcove.Abstractions`, `NuGet.Versioning`, `Microsoft.Extensions.Logging.Abstractions` and whatever the host's contracts package lists as `PluginHostOwnedPackage`) as NuGet dependencies, but never copies their assemblies into your build output;
-- sets an explicit `AssemblyVersion` (major.minor.patch.0 from `Version`) unless you set one.
+- sets an explicit `AssemblyVersion` (major.minor.patch.0 from `Version`) unless you set one;
+- on every build, writes the manifest (with your `PackageId` and version) into the build output and sets `EnableDynamicLoading=true` (unless you set it), so dependencies are copied next to your plugin: the build output loads as a development plugin ([§7](#7-run-and-debug-your-plugin)).
 
 Title, description, icon, authors and so on come from ordinary NuGet properties.
 
@@ -183,7 +194,94 @@ public sealed class ChartsPlugin : IPlugin, IServicePlugin
 - When the host is disposed, your singleton extensions and then your entry point are disposed (`IAsyncDisposable` or `IDisposable`), in reverse load order. An `InitializeAsync` still running gets a cancelled token. During the host's call the token follows the app's token; after `InitializeAsync` returns it's cancelled only when the host shuts down, so you can tie background work to it. The host waits for `InitializeAsync` to finish, so honour the token.
 - `DataDirectory` (`<root>/data/<id>`) is created on first access and survives updates and uninstalls. `Logger` uses your plugin ID as its category.
 
-## 7. Publish
+## 7. Run and debug your plugin
+
+You don't need to pack, publish and install your plugin to try it. If the host provides a **harness**, your plugin runs straight from its build output (`bin/Debug/net10.0/`) as a **development plugin**: in its own cell, with the same isolation and validation as when installed, next to the plugins installed in the harness's plugin root. Press F5 and the app starts with your plugin loaded and the debugger attached from the first line.
+
+There are two ways to run it, depending on what the host ships: F5 on your plugin project (the usual one), or a small harness project of your own.
+
+### F5 on the plugin project
+
+The host ships a harness package, say `MyApp.Harness`. Reference it from your plugin project, **with `PrivateAssets="all"`**:
+
+```xml
+<PackageReference Include="MyApp.Harness" Version="2.*" PrivateAssets="all" />
+```
+
+`PrivateAssets="all"` keeps the harness out of your package's dependencies. Without it, every install of your plugin would also download the harness. (The harness package is marked as a development dependency, but NuGet only applies that when an IDE or `dotnet add package` adds the reference.)
+
+The harness package sets `AlcoveHarnessExecutable`, so:
+- `dotnet run` on your class library starts the harness with `--alcove-dev-plugin "<your build output>"`;
+- the first build writes `Properties/launchSettings.json`, if your project has none, with two launch profiles holding the harness command line, because Visual Studio and Rider need different ones (below). It holds machine-specific paths, so don't commit it. Delete it to regenerate it, e.g. after changing `AlcoveHarnessArguments` or updating the harness package. To keep your own launch profiles instead, set `<AlcoveGenerateLaunchSettings>false</AlcoveGenerateLaunchSettings>`.
+
+To pass more arguments to the harness (after `--alcove-dev-plugin`), set `AlcoveHarnessArguments`, e.g. a plugin root: `<AlcoveHarnessArguments>--root "$(MSBuildThisFileDirectory)harness-root"</AlcoveHarnessArguments>`. Which arguments the harness accepts is up to the host. Without a harness package, point at the harness yourself: `<AlcoveHarnessExecutable>path/to/MyApp.Harness.exe</AlcoveHarnessExecutable>` (a framework-dependent `.dll` works too: it's started with `dotnet`).
+
+**Visual Studio 2026.** Use the profile **"*project* in harness"**, the default. F5 starts the harness under the debugger, breakpoints in your plugin hit, and Hot Reload (Alt+F10, or the 🔥 button) applies to your plugin in its cell. It's a `Project` profile: Visual Studio takes the program from the project (the harness that `Alcove.Sdk` set) and the arguments from the profile. If your `launchSettings.json` came from an older `Alcove.Sdk` (a single `Executable` profile), Hot Reload fails with "Hot Reload is not supported in this session due to the lack of a managed language service": delete the file to regenerate it.
+
+**Rider.** Use the profile **"*project* in harness (Rider)"** (an `Executable` profile). Rider lists the other one too, but runs your class library itself for it, which fails with `MissingMethodException: Entry point not found`. Debugging, breakpoints and Hot Reload ("Apply changes") work with the Rider profile. Rider also keeps run configurations for profiles that no longer exist; ignore those.
+
+**VS Code and the command line.** `dotnet run` runs the harness; `dotnet watch` runs it with Hot Reload. F5 in C# Dev Kit hasn't been checked with a class library. If it doesn't offer the launch profile, attach to the harness process, or add a `coreclr` configuration to `launch.json` with the program and arguments from `launchSettings.json`.
+
+### A harness project
+
+Some hosts ship their harness as a library, with something like `MyApp.Harness.HarnessApp.RunAsync(args)`. Then add a small exe project that names your plugin as a `PluginUnderTest`, and start that one:
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MyApp.Harness" Version="2.*" />
+    <PackageReference Include="Alcove.Sdk" Version="1.*" PrivateAssets="all" />
+    <PluginUnderTest Include="..\Contoso.Charts\Contoso.Charts.csproj" />
+  </ItemGroup>
+</Project>
+```
+
+```csharp
+await MyApp.Harness.HarnessApp.RunAsync(args);   // whatever the host's harness package offers
+```
+
+`PluginUnderTest` builds your plugin first, but never references it or copies it into the harness output (it must not load into the app's default context). It records your plugin's build output folder in the harness assembly, so no command-line arguments are needed. The harness project is an ordinary exe, so F5, breakpoints and Hot Reload work in every IDE, and building it rebuilds your plugin. Several `PluginUnderTest` items load several development plugins.
+
+### Editing while it runs
+
+- **Hot Reload** applies method-body edits (and many others) to the running app: in Visual Studio and Rider with the profiles above, or with `dotnet watch`.
+- **Rude edits**, changes that can't be applied to loaded code (e.g. a class's modifiers or base type), get an offer to rebuild and restart. Accept it, and the app comes back with your change.
+- **Otherwise: stop, edit, F5.** The IDE rebuilds your plugin first. Your code is never unloaded mid-run, and on Windows the running app keeps your DLL locked, so a build while debugging fails with "The file is locked by: .NET Host" (MSB3026, MSB3027). Stop debugging first.
+
+### What's different from an installed plugin
+
+- Your dependencies come from your `deps.json`, classified as an install would classify them against the host. Where the build differs from what an install would load, validation warns (`DevelopmentDependencyDiffers`): for example, the host has a newer version of a host-shared package, so you run with the host's. A host-owned package the host can't satisfy is an error, as it would be after a real install (`HostOwnedConflict`, `HostOwnedMissing`).
+- An installed plugin with your ID stays installed, but isn't loaded while yours runs (`DevelopmentPluginOverridesInstalled`).
+- Your plugin may depend on plugins installed in the harness's root, or on other development plugins. A plugin dependency that's neither is an error (`PluginDependencyMissing`), as for an install. `Alcove.Sdk` records your plugin dependencies (project and package references to plugins) in the manifest in your build output, so the harness can tell them from ordinary libraries.
+- A development plugin is never recorded in the host's state file, trust-verified, hash-pinned or cleaned up. `PluginInfo.IsDevelopment` tells the host it's one. Installing a plugin with your ID while yours runs is `PendingRestart`.
+
+### Troubleshooting a development plugin
+
+The harness's validation report names your plugin and a code:
+
+| You see | Why | What to do |
+|---|---|---|
+| `DevelopmentPluginInvalid`: the folder doesn't exist | Not built yet, or the path is wrong | Build the plugin. Check that `--alcove-dev-plugin` points at `bin/<configuration>/<framework>/` |
+| `DevelopmentPluginInvalid`: no plugin manifest | Built without `Alcove.Sdk`, or with one that predates development plugins | Reference a current `Alcove.Sdk` and rebuild |
+| `DevelopmentPluginInvalid`: a file its deps.json lists is missing | A partial build | Rebuild |
+| `DevelopmentPluginOverridesInstalled` (warning) | Your plugin is also installed in the harness's root | Nothing: yours runs. Uninstall it from the harness root to silence the warning |
+| `DevelopmentDependencyDiffers` (warning) | The host ships a newer version of one of your dependencies | Usually nothing: installed, you'd get the host's copy too. Build against that version to match |
+| `HostOwnedConflict`, `HostOwnedMissing` | You reference a newer version of a host-owned package (the host's contracts, `Microsoft.Extensions.Logging.Abstractions`, ...) than the host has, or one it doesn't have | Build against the version the host ships |
+| `PluginDependencyMissing` | Your plugin depends on another plugin the harness can't find | Install it into the harness's root, or run it as a development plugin too (another `--alcove-dev-plugin`, or another `PluginUnderTest`) |
+| Rider: `Entry point not found in assembly '<your plugin>'` | Rider ran your class library itself (the Visual Studio profile) | Pick the "(Rider)" profile |
+| Visual Studio: "lack of a managed language service" on Hot Reload | An `Executable` launch profile from an older `Alcove.Sdk` | Delete `Properties/launchSettings.json` and rebuild |
+| The harness starts with old arguments | `launchSettings.json` is only generated when it's missing | Delete it and rebuild |
+| `ALCOVE001` when building | No `PluginPackageType`; the host's contracts package usually sets it | Reference the host's contracts package |
+
+### Try a real install before publishing
+
+`dotnet pack -c Release -o <folder>`, then install your plugin from that folder in the host or the harness, if its options list the folder as a feed. That's the path your users take: resolution, download, trust policy, hash pinning, and a restart for updates.
+
+## 8. Publish
 
 Push the `.nupkg` to whatever feed the host uses. Signing is optional unless the host's trust policy requires it.
 

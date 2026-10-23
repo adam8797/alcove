@@ -157,4 +157,19 @@ public static class ValidationCodes
     /// implementing <see cref="IPlugin"/>: set <c>PluginEntryPoint</c> in its project.
     /// </summary>
     public const string EntryPointAmbiguous = nameof(EntryPointAmbiguous);
+
+    /// <summary>
+    /// A development plugin's build output can't be used (no folder, no manifest, no <c>deps.json</c>, files missing); as
+    /// a warning, a development plugin is listed twice.
+    /// </summary>
+    public const string DevelopmentPluginInvalid = nameof(DevelopmentPluginInvalid);
+
+    /// <summary>A development plugin has the ID of an installed plugin: the development plugin loads in this run, the installed one is left on disk.</summary>
+    public const string DevelopmentPluginOverridesInstalled = nameof(DevelopmentPluginOverridesInstalled);
+
+    /// <summary>
+    /// A development plugin's build output differs from what an install would load (e.g. the host has a newer version
+    /// of a host-shared dependency): it runs as an installed plugin would, not as it was built.
+    /// </summary>
+    public const string DevelopmentDependencyDiffers = nameof(DevelopmentDependencyDiffers);
 }

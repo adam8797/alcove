@@ -21,13 +21,24 @@ internal sealed class AssemblyClassifier
     private readonly PackageLayout _layout;
     private readonly AssetSelector _assets;
     private readonly Func<PluginState, PluginManifest?> _manifests;
+    private readonly Func<PluginState, string, LocatedAssets?>? _locate;
 
     /// <summary>Creates a classifier.</summary>
     /// <param name="host">The host inventory (framework, RID, packages, host-owned set).</param>
     /// <param name="layout">The plugin root's package layout.</param>
     /// <param name="assets">Asset selection; <see cref="AssetSelector.Default"/> if omitted.</param>
     /// <param name="manifests">Reads a plugin's manifest; by default from its package folder (a missing or invalid manifest counts as none).</param>
-    public AssemblyClassifier(HostInventory host, PackageLayout layout, AssetSelector? assets = null, Func<PluginState, PluginManifest?>? manifests = null)
+    /// <param name="locate">
+    /// Finds the assets of a cell-private package (or the plugin itself) outside the plugin root, given the plugin
+    /// that needs it and the package ID: a development plugin's build output. <see langword="null"/> (or a
+    /// <see langword="null"/> answer) means the package folder in the plugin root.
+    /// </param>
+    public AssemblyClassifier(
+        HostInventory host,
+        PackageLayout layout,
+        AssetSelector? assets = null,
+        Func<PluginState, PluginManifest?>? manifests = null,
+        Func<PluginState, string, LocatedAssets?>? locate = null)
     {
         ArgumentNullException.ThrowIfNull(host);
         ArgumentNullException.ThrowIfNull(layout);
@@ -35,6 +46,7 @@ internal sealed class AssemblyClassifier
         _layout = layout;
         _assets = assets ?? AssetSelector.Default;
         _manifests = manifests ?? ReadManifest;
+        _locate = locate;
     }
 
     /// <summary>The cell a plugin is in: its recorded assignment, or a default cell named after the plugin.</summary>
@@ -182,16 +194,26 @@ internal sealed class AssemblyClassifier
 
     private void AddPrivateAssets(CellBuilder cell, PluginState owner, string id, NuGetVersion version, IReadOnlyList<AssemblyRecord> records, bool isPlugin)
     {
-        var directory = _layout.GetPackageDirectory(id, version);
-        if (!Directory.Exists(directory))
+        string directory;
+        PackageAssets assets;
+        if (_locate?.Invoke(owner, id) is { } located)
         {
-            cell.Issue(ClassificationIssueKind.PackageMissing, owner.Id, id,
-                $"{(isPlugin ? "The plugin package" : "The cell-private package")} {id} {version} isn't in the plugin root ('{directory}').");
-            return;
+            (directory, assets) = (located.Directory, located.Assets);
+        }
+        else
+        {
+            directory = _layout.GetPackageDirectory(id, version);
+            if (!Directory.Exists(directory))
+            {
+                cell.Issue(ClassificationIssueKind.PackageMissing, owner.Id, id,
+                    $"{(isPlugin ? "The plugin package" : "The cell-private package")} {id} {version} isn't in the plugin root ('{directory}').");
+                return;
+            }
+
+            assets = _assets.SelectFromDirectory(directory, _host.Framework, _host.RuntimeIdentifier);
         }
 
         var wpfRelevant = records.Where(r => r.WpfRelevant).Select(r => r.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var assets = _assets.SelectFromDirectory(directory, _host.Framework, _host.RuntimeIdentifier);
         foreach (var relative in assets.RuntimeAssemblies)
         {
             var name = Path.GetFileNameWithoutExtension(relative);
@@ -386,3 +408,8 @@ internal sealed class AssemblyClassifier
         };
     }
 }
+
+/// <summary>A package's selected assets found outside the plugin root (a development plugin's build output).</summary>
+/// <param name="Directory">The folder the asset paths are relative to.</param>
+/// <param name="Assets">The assets, relative to <paramref name="Directory"/> with forward slashes.</param>
+internal sealed record LocatedAssets(string Directory, PackageAssets Assets);

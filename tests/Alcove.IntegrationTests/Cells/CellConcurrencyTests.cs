@@ -11,7 +11,8 @@ namespace Alcove.IntegrationTests.Cells;
 /// Cells load from many threads at once (hosts do, and plugin initialisation runs in parallel): the Gate is
 /// only held to decide and freeze answers, never during the load itself.
 /// </summary>
-public sealed class CellConcurrencyTests(CellFixtures fixtures) : IClassFixture<CellFixtures>
+[Collection(CellFixturesCollection.Name)]
+public sealed class CellConcurrencyTests(CellFixtures fixtures)
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(60);
     private const string Dep = "Fixture.Dep";

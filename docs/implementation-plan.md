@@ -21,10 +21,10 @@ Throwaway proof-of-concept code under `spike/<name>/`, described in [docs/spikes
 | [cross-compartment-deps](../spike/cross-compartment-deps/REPORT.md) | Works if a plugin's **exposed dependencies** resolve through its cell. Leaks are detectable statically. | Done (Linux) |
 | [hot-load-into-loaded-compartment](../spike/hot-load-into-loaded-compartment/REPORT.md) | The runtime doesn't pin "use the host's copy" answers, so cells must **freeze answers**. That gives a precise hot-load rule. | Done (Linux), 30/30 checks |
 | [nuget-resolution-and-assets](../spike/nuget-resolution-and-assets/REPORT.md) | `RemoteDependencyWalker` + host pins matches `dotnet restore`; `ManagedCodeConventions` matches `dotnet build`. Single-file hosts have no inventory. | Done (Linux) |
-| [nuget-signature-verification](../spike/nuget-signature-verification/REPORT.md) | Works on Linux only with the SDK root bundle shipped next to `NuGet.Packaging.dll`. Online revocation on a hanging network takes 120 s per package. | Done (Linux) |
+| [nuget-signature-verification](../spike/nuget-signature-verification/REPORT.md) | Works on Linux only with the SDK root bundle shipped next to `NuGet.Packaging.dll`. Online revocation on a hanging network takes 120 s per package. | Done (Linux); Windows 2026-10-21: same verdicts, Windows trust store |
 | [wpf-across-load-contexts](../spike/wpf-across-load-contexts/REPORT.md) | Single copies work. Duplicate names break WPF, even identical copies. WPF never asks a cell for an assembly. | Built on Linux; run on Windows 2026-10-19: all predictions held (7.4 better than predicted) |
 
-### Phase 0b: Windows verification (WPF done 2026-10-19; signature matrix outstanding)
+### Phase 0b: Windows verification ✅ (WPF 2026-10-19; signatures and native libraries 2026-10-21)
 - Run `spike/wpf-across-load-contexts/run-windows.ps1`. Expect `ALL PREDICTIONS MATCHED`. Any `!! UNEXPECTED` means revisiting §4/§5 of the architecture and ADR 0015.
 - Run the signature spike's `Verifier matrix` on Windows.
 - Check native soname/module-name collisions on Windows (hot-load spike `q6` scenarios).
@@ -202,7 +202,7 @@ Validation also reports `ExposedDependencyConflict` for a fixture built to trigg
 | Linux trust store rejects nuget.org signatures | Solved by shipping the SDK root bundle; needs a refresh process *(spike: nuget-signature-verification)* |
 | Online revocation on a hanging network: about 120 s per package, can't be cancelled | Default stays `Online` (decided); document `Offline` for air-gapped hosts; verify off the UI thread with progress |
 | Process-wide side effects (trust store, WPF forwarder; the HTTP cache is bypassed) | Documented in ADR 0012; forwarder opt-in |
-| Native libraries share dependencies by soname across cells | Warn on collisions; Windows check in Phase 0b |
+| Native libraries share dependencies by file name across cells (soname on Linux, module name on Windows, both confirmed) | Warn on collisions |
 | Scope creep | Later items stay out of v1 |
 
 ## What the spikes changed
