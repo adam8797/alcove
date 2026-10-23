@@ -198,3 +198,40 @@ No one profile works in both IDEs, so the generator writes two: "*project* in ha
 Style 1 in Rider (`ConsoleHost.Harness`, a normal exe, breakpoint in `GreetCommand.Run`): the breakpoint hits, Hot Reload applies in the plugin's cell, and after stop, edit, Debug, Rider rebuilds Sample.Greetings (a `PluginUnderTest`) and the new code runs.
 
 VS Code wasn't checked.
+
+### Launch profiles and Hot Reload: why Visual Studio and Rider need different ones
+
+Both generated profiles start the same thing: the same harness command line and working directory. They differ only in `commandName`, which says how the IDE picks the program:
+
+```jsonc
+"Sample.Time in harness": {             // Visual Studio
+  "commandName": "Project",
+  "commandLineArgs": "\"...ConsoleHost.Harness.dll\" --alcove-dev-plugin \"...\\Sample.Time\\bin\\Debug\\net10.0\" --root \"...\"",
+  "workingDirectory": "...\\ConsoleHost.Harness\\bin\\Debug\\net10.0"
+},
+"Sample.Time in harness (Rider)": {     // Rider
+  "commandName": "Executable",
+  "executablePath": "dotnet",
+  "commandLineArgs": "(the same)",
+  "workingDirectory": "(the same)"
+}
+```
+
+`Project` means "run this project", and the IDE works out the program. `Executable` means "run this program", the one in `executablePath`. What each IDE did with each (Windows, 2026-10-21; the tables above):
+
+| Profile | Visual Studio 2026 | Rider |
+|---|---|---|
+| `Executable` | Starts, breakpoints hit, **no Hot Reload or Edit and Continue**: "Hot Reload is not supported in this session due to the lack of a managed language service" | **Works**, Hot Reload included |
+| `Project` with the arguments | **Works**, Hot Reload included | **Fails**: runs `Sample.Time.dll` itself, "Entry point not found" |
+| `Project` with `executablePath` too | not tried | Fails the same way: `executablePath` ignored |
+| `Project` without arguments | Fails: `dotnet` without the harness DLL, exit code `0x80008081` | not tried |
+
+Why, as far as we can tell (from this behaviour, not from either IDE's source):
+
+- **Visual Studio offers Hot Reload only for a process it attributes to a project in the solution.** With `Executable`, the process is an outside program it launched, never tied to `Sample.Time`'s source, hence the "managed language service" error. With `Project`, the debug session belongs to `Sample.Time`, so VS starts a Hot Reload session for its code, even though the process is the harness. VS takes the program from MSBuild's `RunCommand`, which `Alcove.Sdk` sets (`dotnet` for a harness `.dll`), but not `RunArguments`, which `Alcove.Sdk` sets in a target that runs before `ComputeRunArguments` and VS doesn't run. So the profile must carry the arguments, and the bare profile started `dotnet` alone.
+- **Rider gives Hot Reload to an `Executable` profile**, but for a `Project` profile it assumes the project's own output is the program: it runs the class library, which has no entry point, and ignores both `RunCommand` and an `executablePath`.
+- **The plugin side is the same in both.** In every working case the IDE's Hot Reload agent is in the harness process and patches `Sample.Time.dll` where it's loaded, in its cell (a non-default `AssemblyLoadContext`). The cell is no obstacle: style 1 (the harness as a normal exe project, the plugin a `PluginUnderTest`) has Hot Reload in both IDEs, and so does `dotnet watch`. The only difference is how each IDE ties the process back to the plugin's source.
+
+So no single profile works in both, and the generator writes one of each. The `Project` one comes first because Visual Studio starts the first profile by default; in Rider you pick one anyway. An automated (DTE) run in VS with the `Project` profile once hung at startup, the injected Hot Reload agent waiting for VS to connect; by hand it never did, so it's put down to the automation.
+
+`dotnet run` is unaffected by either profile: it logs "Using launch settings from ..." but runs `RunCommand` with `RunArguments` (checked with a `--repeat` added only to the profile). `dotnet watch` does take a profile's `commandLineArgs`, which is why the generated file must be deleted after changing `AlcoveHarnessArguments`.
